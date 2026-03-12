@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手機比較分析報告 2025</title>
+<style>
+  :root {
+    --apple: #1d1d1f;
+    --poco: #FF6900;
+    --redmi: #FF4136;
+    --bg: #f5f5f7;
+    --card: #ffffff;
+    --border: #e0e0e0;
+    --accent: #0071e3;
+    --gold: #f5a623;
+    --green: #27ae60;
+    --red: #e74c3c;
+    --orange: #e67e22;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: var(--bg); color: #333; }
+
+  header {
+    background: linear-gradient(135deg, #1d1d1f 0%, #2c3e50 100%);
+    color: white; padding: 28px 20px; text-align: center;
+  }
+  header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
+  header p { font-size: 0.85rem; opacity: 0.7; margin-top: 6px; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
+
+  .section-title {
+    font-size: 1.1rem; font-weight: 700; color: var(--apple);
+    border-left: 4px solid var(--accent); padding-left: 10px;
+    margin: 28px 0 14px;
+  }
+
+  /* Summary Cards */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .phone-card {
+    background: var(--card); border-radius: 14px; padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07); border-top: 4px solid var(--accent);
+    transition: transform 0.2s;
+  }
+  .phone-card:hover { transform: translateY(-3px); }
+  .phone-card.apple { border-top-color: #555; }
+  .phone-card.poco-x7 { border-top-color: #FF6900; }
+  .phone-card.poco-x6 { border-top-color: #e67e22; }
+  .phone-card.poco-f5 { border-top-color: #9b59b6; }
+  .phone-card.redmi { border-top-color: #e74c3c; }
+  .phone-card .model { font-size: 0.78rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+  .phone-card .price { font-size: 1.5rem; font-weight: 800; color: var(--apple); margin: 4px 0; }
+  .phone-card .sub { font-size: 0.75rem; color: #888; }
+  .phone-card .tag { 
+    display: inline-block; margin-top: 8px; padding: 3px 8px;
+    border-radius: 20px; font-size: 0.7rem; font-weight: 600;
+  }
+  .tag-premium { background: #e8f0fe; color: #1a73e8; }
+  .tag-value { background: #e6f4ea; color: #1e8e3e; }
+  .tag-budget { background: #fce8e6; color: #d93025; }
+
+  /* Main comparison table */
+  .table-wrap { overflow-x: auto; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+  table { width: 100%; border-collapse: collapse; background: white; min-width: 680px; }
+  thead tr { background: linear-gradient(135deg, #1d1d1f, #2c3e50); color: white; }
+  thead th { padding: 12px 10px; font-size: 0.78rem; text-align: center; font-weight: 600; }
+  thead th:first-child { text-align: left; padding-left: 16px; }
+  tbody tr:nth-child(even) { background: #f9f9f9; }
+  tbody tr:hover { background: #eef4ff; }
+  td { padding: 10px; font-size: 0.8rem; text-align: center; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  td:first-child { text-align: left; padding-left: 16px; font-weight: 600; color: #555; font-size: 0.78rem; }
+  .best { color: var(--green); font-weight: 700; }
+  .worst { color: var(--red); }
+  .mid { color: var(--orange); }
+
+  /* Score bars */
+  .score-section { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .score-card { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+  .score-card h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 14px; color: #333; }
+  .score-row { margin-bottom: 10px; }
+  .score-label { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.78rem; }
+  .score-name { font-weight: 600; }
+  .score-val { color: var(--accent); font-weight: 700; }
+  .bar-bg { background: #eee; border-radius: 10px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 10px; transition: width 0.6s; }
+  .bar-apple { background: linear-gradient(90deg, #555, #888); }
+  .bar-x7 { background: linear-gradient(90deg, #FF6900, #ffb347); }
+  .bar-x6 { background: linear-gradient(90deg, #e67e22, #f0a500); }
+  .bar-f5 { background: linear-gradient(90deg, #9b59b6, #c39bd3); }
+  .bar-redmi { background: linear-gradient(90deg, #e74c3c, #ff7675); }
+
+  /* Value Analysis */
+  .value-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+  .value-card {
+    background: white; border-radius: 14px; padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07); text-align: center;
+  }
+  .value-card .vmodel { font-size: 0.75rem; font-weight: 700; color: #888; text-transform: uppercase; }
+  .value-card .vindex { font-size: 2rem; font-weight: 900; margin: 6px 0; }
+  .value-card .vdesc { font-size: 0.72rem; color: #666; }
+  .vi-5 { color: #27ae60; }
+  .vi-4 { color: #2ecc71; }
+  .vi-3 { color: #f39c12; }
+  .vi-2 { color: #e74c3c; }
+
+  /* Age & Upgrade */
+  .upgrade-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+  .upgrade-card {
+    background: white; border-radius: 14px; padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  }
+  .upgrade-card .umodel { font-size: 0.75rem; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 8px; }
+  .upgrade-card .age-badge {
+    display: inline-block; padding: 4px 10px; border-radius: 20px;
+    font-size: 0.78rem; font-weight: 700; margin-bottom: 10px;
+  }
+  .age-new { background: #e6f4ea; color: #27ae60; }
+  .age-mid { background: #fff3e0; color: #f57c00; }
+  .age-old { background: #fce8e6; color: #c0392b; }
+  .upgrade-card ul { list-style: none; padding: 0; }
+  .upgrade-card ul li { font-size: 0.75rem; color: #555; padding: 3px 0; border-bottom: 1px solid #f0f0f0; }
+  .upgrade-card ul li:last-child { border: none; }
+  .upgrade-card ul li::before { content: "▸ "; color: var(--accent); }
+  .upgrade-card .rec {
+    margin-top: 10px; padding: 8px; background: #f0f7ff; border-radius: 8px;
+    font-size: 0.73rem; color: #1a73e8; font-weight: 600; line-height: 1.4;
+  }
+
+  /* Pros Cons */
+  .proscons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+  .pc-card { background: white; border-radius: 14px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+  .pc-card .pcmodel { font-size: 0.78rem; font-weight: 800; color: #333; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid #eee; }
+  .pc-section { margin-bottom: 8px; }
+  .pc-section .pc-title { font-size: 0.7rem; font-weight: 700; margin-bottom: 4px; }
+  .pros-title { color: #27ae60; }
+  .cons-title { color: #e74c3c; }
+  .pc-item { font-size: 0.72rem; color: #555; padding: 2px 0; }
+  .pros-item::before { content: "✓ "; color: #27ae60; font-weight: 700; }
+  .cons-item::before { content: "✗ "; color: #e74c3c; font-weight: 700; }
+
+  /* Notes */
+  .note-box {
+    background: #fff8e1; border-left: 4px solid #f5a623;
+    padding: 12px 16px; border-radius: 0 10px 10px 0;
+    font-size: 0.8rem; color: #555; margin-bottom: 14px; line-height: 1.6;
+  }
+
+  footer { text-align: center; padding: 20px; color: #999; font-size: 0.75rem; }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.2rem; }
+    .section-title { font-size: 0.95rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📱 五部手機比較分析報告</h1>
+  <p>記錄 · 分析 · 換機建議 ｜ 更新於 2026年3月</p>
+</header>
+
+<div class="container">
+
+  <!-- Summary Cards -->
+  <div class="section-title">📋 手機概覽</div>
+  <div class="card-grid">
+    <div class="phone-card apple">
+      <div class="model">iPhone 16e</div>
+      <div class="price">$7,499</div>
+      <div class="sub">512GB | 2025年4月</div>
+      <div class="tag tag-premium">旗艦級</div>
+    </div>
+    <div class="phone-card poco-x7">
+      <div class="model">POCO X7 Pro</div>
+      <div class="price">$1,950</div>
+      <div class="sub">256GB | 2025年4月</div>
+      <div class="tag tag-value">高性價比</div>
+    </div>
+    <div class="phone-card poco-x6">
+      <div class="model">POCO X6 Pro</div>
+      <div class="price">$2,499</div>
+      <div class="sub">512GB | 2024年3月</div>
+      <div class="tag tag-value">高性價比</div>
+    </div>
+    <div class="phone-card poco-f5">
+      <div class="model">POCO F5</div>
+      <div class="price">$2,300</div>
+      <div class="sub">256GB | 2023年5月</div>
+      <div class="tag tag-value">高性價比</div>
+    </div>
+    <div class="phone-card redmi">
+      <div class="model">Redmi Note 13 Pro 5G</div>
+      <div class="price">$1,100</div>
+      <div class="sub">未知容量 | 2024年10月</div>
+      <div class="tag tag-budget">入門精選</div>
+    </div>
+  </div>
+
+  <!-- Main Spec Table -->
+  <div class="section-title">🔬 詳細規格比較</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>規格項目</th>
+          <th>iPhone 16e</th>
+          <th>POCO X7 Pro</th>
+          <th>POCO X6 Pro</th>
+          <th>POCO F5</th>
+          <th>Redmi Note 13 Pro 5G</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>買入價格 (HKD)</td><td>$7,499</td><td>$1,950</td><td>$2,499</td><td>$2,300</td><td>$1,100</td></tr>
+        <tr><td>買入時間</td><td>2025年4月</td><td>2025年4月</td><td>2024年3月</td><td>2023年5月</td><td>2024年10月</td></tr>
+        <tr><td>使用月數 (至2026年3月)</td><td class="mid">11個月</td><td class="mid">11個月</td><td class="mid">24個月</td><td class="worst">34個月</td><td class="best">17個月</td></tr>
+        <tr><td>處理器</td><td class="best">Apple A18 (3nm)</td><td class="best">Dimensity 8400 Ultra (4nm)</td><td>Dimensity 8300 Ultra (4nm)</td><td>Snapdragon 7+ Gen 2 (4nm)</td><td class="worst">Snapdragon 7s Gen 2 (4nm)</td></tr>
+        <tr><td>RAM</td><td>8GB LPDDR5X</td><td class="best">12GB LPDDR5X</td><td class="best">12GB LPDDR5X</td><td>8/12GB LPDDR5</td><td>8/12GB LPDDR4X</td></tr>
+        <tr><td>儲存空間</td><td class="best">512GB NVMe</td><td>256GB UFS 4.0</td><td class="best">512GB UFS 4.0</td><td>256GB UFS 3.1</td><td>128-512GB UFS 2.2</td></tr>
+        <tr><td>螢幕尺寸</td><td class="worst">6.1吋</td><td class="best">6.67吋</td><td class="best">6.67吋</td><td class="best">6.67吋</td><td class="best">6.67吋</td></tr>
+        <tr><td>螢幕類型</td><td class="best">OLED 460ppi</td><td class="best">AMOLED 120Hz</td><td class="best">AMOLED 120Hz</td><td class="best">AMOLED 120Hz</td><td class="best">AMOLED 120Hz</td></tr>
+        <tr><td>螢幕刷新率</td><td class="worst">60Hz</td><td class="best">120Hz</td><td class="best">120Hz</td><td class="best">120Hz</td><td class="best">120Hz</td></tr>
+        <tr><td>主攝像頭</td><td>48MP f/1.6 OIS</td><td>50MP f/1.88 OIS</td><td>64MP f/1.8 OIS</td><td>64MP f/1.8 OIS</td><td class="best">200MP f/1.7 OIS</td></tr>
+        <tr><td>攝像頭數量</td><td class="worst">單鏡頭</td><td>三鏡頭</td><td>三鏡頭</td><td>三鏡頭</td><td>三鏡頭</td></tr>
+        <tr><td>前置鏡頭</td><td class="best">12MP</td><td>20MP</td><td>16MP</td><td>16MP</td><td>16MP</td></tr>
+        <tr><td>電池容量</td><td class="worst">4,005 mAh</td><td class="best">6,000 mAh</td><td>5,000 mAh</td><td>5,000 mAh</td><td>5,100 mAh</td></tr>
+        <tr><td>充電速度</td><td class="worst">25W (有線)</td><td class="best">90W</td><td class="best">67W</td><td>67W</td><td>67W</td></tr>
+        <tr><td>無線充電</td><td class="best">MagSafe 25W</td><td>無</td><td>無</td><td>無</td><td>無</td></tr>
+        <tr><td>5G 支援</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>NFC</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td class="mid">視地區</td></tr>
+        <tr><td>3.5mm 耳機孔</td><td class="worst">❌</td><td class="worst">❌</td><td class="worst">❌</td><td class="best">✅</td><td class="best">✅</td></tr>
+        <tr><td>紅外線</td><td class="worst">❌</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>IP 防水防塵</td><td class="best">IP68</td><td class="best">IP69</td><td class="worst">IP54</td><td class="worst">IP53</td><td>IP54</td></tr>
+        <tr><td>作業系統</td><td>iOS 18+</td><td>Android 15 HyperOS 2</td><td>Android 14 HyperOS</td><td>Android 15 HyperOS</td><td>Android 13→15 HyperOS</td></tr>
+        <tr><td>軟件更新支援</td><td class="best">5-6年iOS更新</td><td class="best">3年Android更新</td><td>3年Android更新</td><td class="mid">2年Android更新</td><td class="mid">3年Android更新</td></tr>
+        <tr><td>機身重量</td><td class="best">167g</td><td>220g</td><td>186g</td><td>181g</td><td>187g</td></tr>
+        <tr><td>AnTuTu 跑分</td><td class="best">~1,600,000+</td><td class="best">1,568,331</td><td>~1,200,000</td><td>~949,000</td><td class="worst">~581,979</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Score Bars -->
+  <div class="section-title">📊 多維度評分 (滿分10分)</div>
+  <div class="note-box">
+    評分基於規格、性能、性價比及實際使用體驗綜合分析。旗艦與中端定位不同，請按使用需求參考。
+  </div>
+  <div class="score-section">
+
+    <div class="score-card">
+      <h3>🚀 效能表現</h3>
+      <div class="score-row"><div class="score-label"><span class="score-name">iPhone 16e</span><span class="score-val">10/10</span></div><div class="bar-bg"><div class="bar-fill bar-apple" style="width:100%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X7 Pro</span><span class="score-val">9.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-x7" style="width:95%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X6 Pro</span><span class="score-val">8/10</span></div><div class="bar-bg"><div class="bar-fill bar-x6" style="width:80%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO F5</span><span class="score-val">7/10</span></div><div class="bar-bg"><div class="bar-fill bar-f5" style="width:70%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">Redmi Note 13 Pro 5G</span><span class="score-val">5.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-redmi" style="width:55%"></div></div></div>
+    </div>
+
+    <div class="score-card">
+      <h3>📸 相機質素</h3>
+      <div class="score-row"><div class="score-label"><span class="score-name">iPhone 16e</span><span class="score-val">9/10</span></div><div class="bar-bg"><div class="bar-fill bar-apple" style="width:90%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X7 Pro</span><span class="score-val">7.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-x7" style="width:75%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X6 Pro</span><span class="score-val">7.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-x6" style="width:75%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO F5</span><span class="score-val">7/10</span></div><div class="bar-bg"><div class="bar-fill bar-f5" style="width:70%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">Redmi Note 13 Pro 5G</span><span class="score-val">8.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-redmi" style="width:85%"></div></div></div>
+    </div>
+
+    <div class="score-card">
+      <h3>🔋 電池續航</h3>
+      <div class="score-row"><div class="score-label"><span class="score-name">iPhone 16e</span><span class="score-val">7/10</span></div><div class="bar-bg"><div class="bar-fill bar-apple" style="width:70%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X7 Pro</span><span class="score-val">10/10</span></div><div class="bar-bg"><div class="bar-fill bar-x7" style="width:100%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X6 Pro</span><span class="score-val">8/10</span></div><div class="bar-bg"><div class="bar-fill bar-x6" style="width:80%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO F5</span><span class="score-val">8/10</span></div><div class="bar-bg"><div class="bar-fill bar-f5" style="width:80%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">Redmi Note 13 Pro 5G</span><span class="score-val">8.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-redmi" style="width:85%"></div></div></div>
+    </div>
+
+    <div class="score-card">
+      <h3>🖥️ 螢幕顯示</h3>
+      <div class="score-row"><div class="score-label"><span class="score-name">iPhone 16e</span><span class="score-val">8/10</span></div><div class="bar-bg"><div class="bar-fill bar-apple" style="width:80%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X7 Pro</span><span class="score-val">9/10</span></div><div class="bar-bg"><div class="bar-fill bar-x7" style="width:90%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X6 Pro</span><span class="score-val">9/10</span></div><div class="bar-bg"><div class="bar-fill bar-x6" style="width:90%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO F5</span><span class="score-val">8.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-f5" style="width:85%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">Redmi Note 13 Pro 5G</span><span class="score-val">8.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-redmi" style="width:85%"></div></div></div>
+    </div>
+
+    <div class="score-card">
+      <h3>💰 性價比</h3>
+      <div class="score-row"><div class="score-label"><span class="score-name">iPhone 16e</span><span class="score-val">4/10</span></div><div class="bar-bg"><div class="bar-fill bar-apple" style="width:40%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X7 Pro</span><span class="score-val">9.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-x7" style="width:95%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X6 Pro</span><span class="score-val">8.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-x6" style="width:85%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO F5</span><span class="score-val">7.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-f5" style="width:75%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">Redmi Note 13 Pro 5G</span><span class="score-val">10/10</span></div><div class="bar-bg"><div class="bar-fill bar-redmi" style="width:100%"></div></div></div>
+    </div>
+
+    <div class="score-card">
+      <h3>🛡️ 軟件生態 / 長期支援</h3>
+      <div class="score-row"><div class="score-label"><span class="score-name">iPhone 16e</span><span class="score-val">10/10</span></div><div class="bar-bg"><div class="bar-fill bar-apple" style="width:100%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X7 Pro</span><span class="score-val">7.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-x7" style="width:75%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO X6 Pro</span><span class="score-val">7/10</span></div><div class="bar-bg"><div class="bar-fill bar-x6" style="width:70%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">POCO F5</span><span class="score-val">6/10</span></div><div class="bar-bg"><div class="bar-fill bar-f5" style="width:60%"></div></div></div>
+      <div class="score-row"><div class="score-label"><span class="score-name">Redmi Note 13 Pro 5G</span><span class="score-val">6.5/10</span></div><div class="bar-bg"><div class="bar-fill bar-redmi" style="width:65%"></div></div></div>
+    </div>
+
+  </div>
+
+  <!-- Value Analysis -->
+  <div class="section-title">💵 性價比深度分析</div>
+  <div class="note-box">
+    「效能指數」= AnTuTu 萬分 / 每千港元，數字越高代表每港元買到更多效能。此指標純粹比較硬件效能，不包含生態系統、品牌及服務價值。
+  </div>
+  <div class="value-grid">
+    <div class="value-card">
+      <div class="vmodel">iPhone 16e</div>
+      <div class="vindex vi-2">21.4</div>
+      <div class="vdesc">160萬分 ÷ $7,499<br>超強效能但溢價高<br>每港元效能最低</div>
+    </div>
+    <div class="value-card">
+      <div class="vmodel">POCO X7 Pro</div>
+      <div class="vindex vi-5">804</div>
+      <div class="vdesc">156萬分 ÷ $1,950<br>效能幾乎媲美旗艦<br>每港元效能最高之一</div>
+    </div>
+    <div class="value-card">
+      <div class="vmodel">POCO X6 Pro</div>
+      <div class="vindex vi-4">480</div>
+      <div class="vdesc">120萬分 ÷ $2,499<br>512GB超大儲存<br>買入時高性價比</div>
+    </div>
+    <div class="value-card">
+      <div class="vmodel">POCO F5</div>
+      <div class="vindex vi-3">413</div>
+      <div class="vdesc">95萬分 ÷ $2,300<br>現已偏舊，當年<br>旗艦級性價比</div>
+    </div>
+    <div class="value-card">
+      <div class="vmodel">Redmi Note 13 Pro 5G</div>
+      <div class="vindex vi-5">529</div>
+      <div class="vdesc">58萬分 ÷ $1,100<br>效能較低但極便宜<br>200MP相機突出</div>
+    </div>
+  </div>
+
+  <!-- Pros & Cons -->
+  <div class="section-title">✅ 優缺點總結</div>
+  <div class="proscons-grid">
+    <div class="pc-card">
+      <div class="pcmodel">📱 iPhone 16e 512GB</div>
+      <div class="pc-section">
+        <div class="pc-title pros-title">✅ 優點</div>
+        <div class="pc-item pros-item">A18晶片業界最強效能</div>
+        <div class="pc-item pros-item">iOS生態系統成熟穩定</div>
+        <div class="pc-item pros-item">5-6年長期軟件更新</div>
+        <div class="pc-item pros-item">IP68最高防水等級</div>
+        <div class="pc-item pros-item">MagSafe無線充電</div>
+        <div class="pc-item pros-item">512GB大容量旗艦品質</div>
+      </div>
+      <div class="pc-section">
+        <div class="pc-title cons-title">✗ 缺點</div>
+        <div class="pc-item cons-item">只有60Hz螢幕刷新率</div>
+        <div class="pc-item cons-item">單鏡頭無超廣角/望遠</div>
+        <div class="pc-item cons-item">電池4005mAh偏小</div>
+        <div class="pc-item cons-item">$7,499性價比最低</div>
+        <div class="pc-item cons-item">無3.5mm耳機孔</div>
+      </div>
+    </div>
+    <div class="pc-card">
+      <div class="pcmodel">🔥 POCO X7 Pro</div>
+      <div class="pc-section">
+        <div class="pc-title pros-title">✅ 優點</div>
+        <div class="pc-item pros-item">Dimensity 8400 旗艦效能</div>
+        <div class="pc-item pros-item">6000mAh超大電池</div>
+        <div class="pc-item pros-item">90W超快充電</div>
+        <div class="pc-item pros-item">IP69頂級防水</div>
+        <div class="pc-item pros-item">120Hz AMOLED大螢幕</div>
+        <div class="pc-item pros-item">$1,950超高性價比</div>
+      </div>
+      <div class="pc-section">
+        <div class="pc-title cons-title">✗ 缺點</div>
+        <div class="pc-item cons-item">無3.5mm耳機孔</div>
+        <div class="pc-item cons-item">僅256GB儲存</div>
+        <div class="pc-item cons-item">品牌支援不及Apple</div>
+        <div class="pc-item cons-item">相機不及旗艦水準</div>
+      </div>
+    </div>
+    <div class="pc-card">
+      <div class="pcmodel">⚡ POCO X6 Pro 512GB</div>
+      <div class="pc-section">
+        <div class="pc-title pros-title">✅ 優點</div>
+        <div class="pc-item pros-item">512GB大容量儲存</div>
+        <div class="pc-item pros-item">Dimensity 8300U效能強</div>
+        <div class="pc-item pros-item">120Hz AMOLED螢幕</div>
+        <div class="pc-item pros-item">Wi-Fi 6E高速連接</div>
+        <div class="pc-item pros-item">67W快充</div>
+      </div>
+      <div class="pc-section">
+        <div class="pc-title cons-title">✗ 缺點</div>
+        <div class="pc-item cons-item">已使用24個月漸舊</div>
+        <div class="pc-item cons-item">IP54防水較弱</div>
+        <div class="pc-item cons-item">無3.5mm耳機孔</div>
+        <div class="pc-item cons-item">軟件更新接近尾聲</div>
+      </div>
+    </div>
+    <div class="pc-card">
+      <div class="pcmodel">💜 POCO F5 256GB</div>
+      <div class="pc-section">
+        <div class="pc-title pros-title">✅ 優點</div>
+        <div class="pc-item pros-item">有3.5mm耳機孔</div>
+        <div class="pc-item pros-item">SD 7+ Gen 2仍可用</div>
+        <div class="pc-item pros-item">120Hz AMOLED</div>
+        <div class="pc-item pros-item">5000mAh + 67W快充</div>
+        <div class="pc-item pros-item">輕薄機身(181g)</div>
+      </div>
+      <div class="pc-section">
+        <div class="pc-title cons-title">✗ 缺點</div>
+        <div class="pc-item cons-item">已使用34個月最舊</div>
+        <div class="pc-item cons-item">效能明顯落後新款</div>
+        <div class="pc-item cons-item">256GB漸感不足</div>
+        <div class="pc-item cons-item">軟件更新快結束</div>
+        <div class="pc-item cons-item">IP53防水最弱</div>
+      </div>
+    </div>
+    <div class="pc-card">
+      <div class="pcmodel">📷 Redmi Note 13 Pro 5G</div>
+      <div class="pc-section">
+        <div class="pc-title pros-title">✅ 優點</div>
+        <div class="pc-item pros-item">200MP超高像素主鏡</div>
+        <div class="pc-item pros-item">$1,100最低買入價</div>
+        <div class="pc-item pros-item">5100mAh大電池</div>
+        <div class="pc-item pros-item">有3.5mm耳機孔</div>
+        <div class="pc-item pros-item">有Hi-Res音訊支援</div>
+      </div>
+      <div class="pc-section">
+        <div class="pc-title cons-title">✗ 缺點</div>
+        <div class="pc-item cons-item">Snapdragon 7s Gen 2效能最弱</div>
+        <div class="pc-item cons-item">UFS 2.2讀寫速度慢</div>
+        <div class="pc-item cons-item">Wi-Fi 5(無Wi-Fi 6)</div>
+        <div class="pc-item cons-item">NFC依地區而定</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upgrade Recommendations -->
+  <div class="section-title">🔄 換機時間表及建議</div>
+  <div class="upgrade-grid">
+    <div class="upgrade-card">
+      <div class="umodel">iPhone 16e</div>
+      <span class="age-badge age-new">使用11個月 🟢</span>
+      <ul>
+        <li>機況：全新，無需換機</li>
+        <li>預計可用至2029-2030年</li>
+        <li>iOS持續更新5-6年</li>
+      </ul>
+      <div class="rec">💡 建議2029-2030年才考慮換機。若想升級，屆時再評估 iPhone 18系列。</div>
+    </div>
+    <div class="upgrade-card">
+      <div class="umodel">POCO X7 Pro</div>
+      <span class="age-badge age-new">使用11個月 🟢</span>
+      <ul>
+        <li>機況：全新，無需換機</li>
+        <li>電池、效能均最新</li>
+        <li>Android更新至2028年</li>
+      </ul>
+      <div class="rec">💡 建議2027-2028年換機。屆時可考慮 POCO X9 Pro 或 Redmi Turbo 系列。</div>
+    </div>
+    <div class="upgrade-card">
+      <div class="umodel">POCO X6 Pro</div>
+      <span class="age-badge age-mid">使用24個月 🟡</span>
+      <ul>
+        <li>機況：中期，效能仍可</li>
+        <li>電池可能開始退化</li>
+        <li>512GB儲存仍充足</li>
+      </ul>
+      <div class="rec">💡 建議2026年底至2027年換機。可考慮 POCO X8 Pro 或 Xiaomi 14T，趁早售出可回收較好二手價。</div>
+    </div>
+    <div class="upgrade-card">
+      <div class="umodel">POCO F5</div>
+      <span class="age-badge age-old">使用34個月 🔴</span>
+      <ul>
+        <li>機況：偏舊，建議換機</li>
+        <li>電池退化明顯</li>
+        <li>256GB可能已不足</li>
+        <li>軟件更新近終止</li>
+      </ul>
+      <div class="rec">💡 ⚠️ 強烈建議2026年中前換機！推薦 POCO X7 Pro ($1,950) 或 Xiaomi 14T，效能大幅提升。</div>
+    </div>
+    <div class="upgrade-card">
+      <div class="umodel">Redmi Note 13 Pro 5G</div>
+      <span class="age-badge age-mid">使用17個月 🟡</span>
+      <ul>
+        <li>機況：尚可，效能偏弱</li>
+        <li>200MP相機仍是亮點</li>
+        <li>價格$1,100超值</li>
+      </ul>
+      <div class="rec">💡 建議2026-2027年換機。若追求效能可考慮 POCO X7 Pro；若預算緊可等 Redmi Note 14 Pro 5G 降價。</div>
+    </div>
+  </div>
+
+  <!-- Final Summary Table -->
+  <div class="section-title">🏆 綜合評分排名</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>排名</th>
+          <th>手機型號</th>
+          <th>效能</th>
+          <th>相機</th>
+          <th>電池</th>
+          <th>螢幕</th>
+          <th>性價比</th>
+          <th>長期支援</th>
+          <th>綜合評分</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-size:1.1rem">🥇</td>
+          <td style="font-weight:700">iPhone 16e</td>
+          <td class="best">10</td>
+          <td class="best">9</td>
+          <td class="mid">7</td>
+          <td>8</td>
+          <td class="worst">4</td>
+          <td class="best">10</td>
+          <td class="best" style="font-weight:800;font-size:1rem">8.0</td>
+        </tr>
+        <tr>
+          <td style="font-size:1.1rem">🥈</td>
+          <td style="font-weight:700">POCO X7 Pro</td>
+          <td class="best">9.5</td>
+          <td class="mid">7.5</td>
+          <td class="best">10</td>
+          <td class="best">9</td>
+          <td class="best">9.5</td>
+          <td class="mid">7.5</td>
+          <td class="best" style="font-weight:800;font-size:1rem">8.8</td>
+        </tr>
+        <tr>
+          <td style="font-size:1.1rem">🥉</td>
+          <td style="font-weight:700">POCO X6 Pro</td>
+          <td>8</td>
+          <td class="mid">7.5</td>
+          <td>8</td>
+          <td class="best">9</td>
+          <td>8.5</td>
+          <td class="mid">7</td>
+          <td style="font-weight:800;font-size:1rem">8.0</td>
+        </tr>
+        <tr>
+          <td style="font-size:1.1rem">4️⃣</td>
+          <td style="font-weight:700">Redmi Note 13 Pro 5G</td>
+          <td class="worst">5.5</td>
+          <td>8.5</td>
+          <td>8.5</td>
+          <td>8.5</td>
+          <td class="best">10</td>
+          <td class="mid">6.5</td>
+          <td style="font-weight:800;font-size:1rem">7.9</td>
+        </tr>
+        <tr>
+          <td style="font-size:1.1rem">5️⃣</td>
+          <td style="font-weight:700">POCO F5</td>
+          <td class="mid">7</td>
+          <td class="mid">7</td>
+          <td>8</td>
+          <td>8.5</td>
+          <td class="mid">7.5</td>
+          <td class="worst">6</td>
+          <td class="worst" style="font-weight:800;font-size:1rem">7.3</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note-box" style="margin-top:20px">
+    📌 <strong>總結建議：</strong> POCO X7 Pro 以 $1,950 提供最佳整體體驗，性價比無可匹敵。iPhone 16e 雖然總分相近但價格差距3.8倍，適合深度蘋果生態用戶。POCO F5 用戶應優先考慮換機，POCO X6 Pro 用戶可計劃2027年升級。Redmi Note 13 Pro 5G 使用者如不常玩遊戲可暫時繼續使用，200MP相機在價位上仍有競爭力。
+  </div>
+
+</div>
+
+<footer>
+  <p>📱 手機比較分析報告 · 數據來源：GSMArena, Apple HK, POCO Global · 2026年3月更新</p>
+</footer>
+
+</body>
+</html>

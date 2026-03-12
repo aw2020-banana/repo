@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>黃金價格實時追蹤</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    body { background: #0d0d0d; color: #f0e6c8; font-family: 'Segoe UI', sans-serif; }
+    .navbar { background: linear-gradient(135deg, #1a1200, #3d2b00); border-bottom: 2px solid #d4a017; }
+    .navbar-brand { color: #d4a017 !important; font-weight: 700; font-size: 1.4rem; }
+    .card { background: #1a1500; border: 1px solid #3d2b00; border-radius: 12px; }
+    .card-header { background: linear-gradient(135deg, #3d2b00, #1a1200); border-bottom: 1px solid #d4a017; color: #d4a017; font-weight: 600; }
+    .stat-card { background: linear-gradient(135deg, #1a1200, #2a1f00); border: 1px solid #d4a017; border-radius: 12px; padding: 20px; text-align: center; }
+    .stat-value { font-size: 2rem; font-weight: 700; color: #d4a017; }
+    .stat-label { font-size: 0.85rem; color: #a08050; text-transform: uppercase; letter-spacing: 1px; }
+    .price-up { color: #00e676 !important; }
+    .price-down { color: #ff5252 !important; }
+    .badge-live { background: #00e676; color: #000; font-size: 0.7rem; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    table { font-size: 0.875rem; }
+    thead th { background: #2a1f00; color: #d4a017; border-color: #3d2b00; position: sticky; top: 0; }
+    tbody tr { background: #1a1500; border-color: #2a1f00; }
+    tbody tr:hover { background: #2a1f00; }
+    td, th { border-color: #2a1f00 !important; color: #f0e6c8; }
+    .chart-container { position: relative; height: 320px; }
+    .range-btn { background: #2a1f00; border: 1px solid #3d2b00; color: #d4a017; font-size: 0.8rem; }
+    .range-btn.active, .range-btn:hover { background: #d4a017; color: #000; border-color: #d4a017; }
+    .last-update { font-size: 0.78rem; color: #a08050; }
+    .spinner-border { width: 1.2rem; height: 1.2rem; border-width: 2px; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1a1500; }
+    ::-webkit-scrollbar-thumb { background: #d4a017; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg mb-4">
+  <div class="container">
+    <span class="navbar-brand">⚜ 黃金價格實時追蹤</span>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge badge-live rounded-pill px-2 py-1">● LIVE</span>
+      <span class="last-update" id="lastUpdate">載入中...</span>
+      <button class="btn btn-sm range-btn ms-2" onclick="refreshData()" title="手動刷新">↻</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container pb-5">
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-4" id="statsRow">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-label">現價 (USD/oz)</div>
+        <div class="stat-value" id="currentPrice">--</div>
+        <div id="priceChange" class="mt-1 small">--</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-label">HKD/兩 (約)</div>
+        <div class="stat-value" id="hkdTael">--</div>
+        <div class="small" style="color:#a08050;">1 oz ≈ 0.857 兩</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-label">30日最高</div>
+        <div class="stat-value text-success" id="monthHigh">--</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-label">30日最低</div>
+        <div class="stat-value text-danger" id="monthLow">--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Card -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>📈 黃金價格走勢圖 (USD/oz)</span>
+      <div class="btn-group btn-group-sm" role="group" id="rangeGroup">
+        <button class="range-btn btn active" onclick="setRange(7,this)">7日</button>
+        <button class="range-btn btn" onclick="setRange(30,this)">30日</button>
+        <button class="range-btn btn" onclick="setRange(90,this)">90日</button>
+        <button class="range-btn btn" onclick="setRange(365,this)">1年</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container">
+        <canvas id="goldChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Volume/Change Bar Chart -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">📊 每日漲跌幅 (近30日)</div>
+        <div class="card-body">
+          <div style="height:260px;">
+            <canvas id="changeChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">🗓 月度均價走勢</div>
+        <div class="card-body">
+          <div style="height:260px;">
+            <canvas id="monthlyChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>📋 近期價格明細</span>
+      <span class="small text-muted">顯示最新 <span id="tableCount">--</span> 筆</span>
+    </div>
+    <div class="card-body p-0">
+      <div style="max-height:400px; overflow-y:auto;">
+        <table class="table table-sm table-hover mb-0">
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th class="text-end">收盤價 (USD)</th>
+              <th class="text-end">漲跌 (USD)</th>
+              <th class="text-end">漲跌幅</th>
+              <th class="text-end">HKD/兩</th>
+            </tr>
+          </thead>
+          <tbody id="priceTableBody">
+            <tr><td colspan="5" class="text-center py-4">
+              <span class="spinner-border text-warning me-2"></span>載入中...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── Constants ───────────────────────────────────────────────
+const USD_HKD = 7.78;       // USD to HKD exchange rate
+const OZ_TO_TAEL = 1.20337; // 1 troy oz = 1.20337 Hong Kong tael
+
+let allData = [];
+let goldChart, changeChart, monthlyChart;
+let currentRange = 7;
+
+// ─── Fetch Data ───────────────────────────────────────────────
+async function fetchGoldData() {
+  try {
+    const res = await fetch('https://freegoldapi.com/data/latest.json');
+    if (!res.ok) throw new Error('API Error');
+    const data = await res.json();
+    return data; // Array of {date, price}
+  } catch (e) {
+    console.error('Fetch error:', e);
+    return null;
+  }
+}
+
+// ─── Update Stats ─────────────────────────────────────────────
+function updateStats(data) {
+  if (!data || data.length < 2) return;
+
+  const latest = data[data.length - 1];
+  const prev   = data[data.length - 2];
+  const price  = parseFloat(latest.price);
+  const change = price - parseFloat(prev.price);
+  const changePct = (change / parseFloat(prev.price) * 100);
+
+  // Current price
+  document.getElementById('currentPrice').textContent = '$' + price.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  // Change
+  const chEl = document.getElementById('priceChange');
+  const sign = change >= 0 ? '+' : '';
+  chEl.textContent = `${sign}${change.toFixed(2)} (${sign}${changePct.toFixed(2)}%)`;
+  chEl.className = change >= 0 ? 'price-up small' : 'price-down small';
+
+  // HKD per tael
+  const hkdPerTael = price * USD_HKD * OZ_TO_TAEL;
+  document.getElementById('hkdTael').textContent = 'HK$' + Math.round(hkdPerTael).toLocaleString();
+
+  // 30-day high/low
+  const last30 = data.slice(-30).map(d => parseFloat(d.price));
+  document.getElementById('monthHigh').textContent = '$' + Math.max(...last30).toLocaleString('en-US', {maximumFractionDigits:2});
+  document.getElementById('monthLow').textContent  = '$' + Math.min(...last30).toLocaleString('en-US', {maximumFractionDigits:2});
+
+  // Last update
+  document.getElementById('lastUpdate').textContent = '更新: ' + new Date().toLocaleTimeString('zh-HK');
+}
+
+// ─── Draw Line Chart ──────────────────────────────────────────
+function drawLineChart(data) {
+  const sliced = data.slice(-currentRange);
+  const labels = sliced.map(d => d.date);
+  const prices = sliced.map(d => parseFloat(d.price));
+
+  const ctx = document.getElementById('goldChart').getContext('2d');
+  if (goldChart) goldChart.destroy();
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+  gradient.addColorStop(0, 'rgba(212,160,23,0.4)');
+  gradient.addColorStop(1, 'rgba(212,160,23,0.01)');
+
+  goldChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: '黃金現貨 USD/oz',
+        data: prices,
+        borderColor: '#d4a017',
+        backgroundColor: gradient,
+        borderWidth: 2,
+        pointRadius: currentRange <= 30 ? 3 : 0,
+        pointHoverRadius: 5,
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#2a1f00',
+          borderColor: '#d4a017',
+          borderWidth: 1,
+          titleColor: '#d4a017',
+          bodyColor: '#f0e6c8',
+          callbacks: {
+            label: ctx => ` $${ctx.parsed.y.toFixed(2)} USD/oz`
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#a08050', maxTicksLimit: 8 }, grid: { color: '#1f1500' } },
+        y: {
+          ticks: { color: '#a08050', callback: v => '$'+v.toLocaleString() },
+          grid: { color: '#1f1500' }
+        }
+      }
+    }
+  });
+}
+
+// ─── Draw Change Bar Chart ────────────────────────────────────
+function drawChangeChart(data) {
+  const sliced = data.slice(-30);
+  const labels = sliced.map(d => d.date.slice(5)); // MM-DD
+  const changes = sliced.map((d, i) => {
+    if (i === 0) return 0;
+    return parseFloat(d.price) - parseFloat(sliced[i-1].price);
+  });
+  const colors = changes.map(v => v >= 0 ? 'rgba(0,230,118,0.75)' : 'rgba(255,82,82,0.75)');
+
+  const ctx = document.getElementById('changeChart').getContext('2d');
+  if (changeChart) changeChart.destroy();
+
+  changeChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: '日漲跌 USD', data: changes, backgroundColor: colors, borderRadius: 3 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)} USD` } }
+      },
+      scales: {
+        x: { ticks: { color: '#a08050', maxTicksLimit: 10, font: {size:10} }, grid: { color: '#1f1500' } },
+        y: { ticks: { color: '#a08050' }, grid: { color: '#1f1500' } }
+      }
+    }
+  });
+}
+
+// ─── Draw Monthly Chart ───────────────────────────────────────
+function drawMonthlyChart(data) {
+  const monthly = {};
+  data.forEach(d => {
+    const m = d.date.slice(0, 7);
+    if (!monthly[m]) monthly[m] = [];
+    monthly[m].push(parseFloat(d.price));
+  });
+  const labels = Object.keys(monthly).slice(-18);
+  const avgs   = labels.map(m => {
+    const arr = monthly[m];
+    return arr.reduce((a,b) => a+b, 0) / arr.length;
+  });
+
+  const ctx = document.getElementById('monthlyChart').getContext('2d');
+  if (monthlyChart) monthlyChart.destroy();
+
+  monthlyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '月均價 USD',
+        data: avgs,
+        backgroundColor: 'rgba(212,160,23,0.6)',
+        borderColor: '#d4a017',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` 均價: $${ctx.parsed.y.toFixed(2)}` } }
+      },
+      scales: {
+        x: { ticks: { color: '#a08050', font: {size:10} }, grid: { color: '#1f1500' } },
+        y: { ticks: { color: '#a08050', callback: v => '$'+v.toLocaleString() }, grid: { color: '#1f1500' } }
+      }
+    }
+  });
+}
+
+// ─── Build Table ──────────────────────────────────────────────
+function buildTable(data) {
+  const rows = data.slice(-60).reverse();
+  document.getElementById('tableCount').textContent = rows.length;
+
+  const tbody = document.getElementById('priceTableBody');
+  tbody.innerHTML = rows.map((d, i) => {
+    const price  = parseFloat(d.price);
+    const prev   = i < rows.length - 1 ? parseFloat(rows[i+1].price) : price;
+    const change = price - prev;
+    const pct    = prev ? (change / prev * 100) : 0;
+    const hkd    = Math.round(price * USD_HKD * OZ_TO_TAEL).toLocaleString();
+    const sign   = change >= 0 ? '+' : '';
+    const cls    = change > 0 ? 'price-up' : change < 0 ? 'price-down' : '';
+    return `<tr>
+      <td>${d.date}</td>
+      <td class="text-end fw-semibold">$${price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td class="text-end ${cls}">${sign}${change.toFixed(2)}</td>
+      <td class="text-end ${cls}">${sign}${pct.toFixed(2)}%</td>
+      <td class="text-end">HK$${hkd}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── Set Range & Redraw ───────────────────────────────────────
+function setRange(days, btn) {
+  currentRange = days;
+  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (allData.length) drawLineChart(allData);
+}
+
+// ─── Main Refresh ─────────────────────────────────────────────
+async function refreshData() {
+  document.getElementById('lastUpdate').textContent = '載入中...';
+  const data = await fetchGoldData();
+  if (!data) {
+    document.getElementById('lastUpdate').textContent = '⚠ 數據載入失敗';
+    document.getElementById('priceTableBody').innerHTML =
+      '<tr><td colspan="5" class="text-center text-danger py-3">⚠ 無法獲取數據，請稍後重試</td></tr>';
+    return;
+  }
+  allData = data;
+  updateStats(data);
+  drawLineChart(data);
+  drawChangeChart(data);
+  drawMonthlyChart(data);
+  buildTable(data);
+}
+
+// ─── Auto-refresh every 60s ───────────────────────────────────
+refreshData();
+setInterval(refreshData, 60000);
+</script>
+</body>
+</html>

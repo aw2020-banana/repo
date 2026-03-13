@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MusicLab — 音樂創作工具</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+:root {
+  --bg0: #090b0f;
+  --bg1: #111318;
+  --bg2: #1a1d24;
+  --bg3: #22252e;
+  --bg4: #2a2f3b;
+  --accent: #00c8ff;
+  --accent2: #ff5e3a;
+  --accent3: #43e97b;
+  --accent4: #a78bfa;
+  --warn: #fbbf24;
+  --text: #dde1ec;
+  --muted: #5a6070;
+  --border: #2d3245;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg0);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+/* ===== NAV ===== */
+.nav-tabs{border-bottom:1px solid var(--border);background:var(--bg1);padding:6px 12px 0;}
+.nav-tabs .nav-link{color:var(--muted);border:none;padding:8px 18px;font-size:.88rem;letter-spacing:.5px;border-radius:6px 6px 0 0;transition:all .2s;}
+.nav-tabs .nav-link:hover{color:var(--text);background:var(--bg3);}
+.nav-tabs .nav-link.active{color:var(--accent);background:var(--bg2);border-bottom:2px solid var(--accent);}
+.tab-content{padding:20px 16px;}
+
+/* ===== COMMON ===== */
+.card-dark{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.section-label{font-size:.75rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:6px;}
+.btn-daw{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 14px;font-size:.82rem;cursor:pointer;transition:all .15s;}
+.btn-daw:hover{background:var(--bg4);border-color:var(--muted);}
+.btn-daw.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600;}
+.btn-daw.danger{background:var(--accent2);border-color:var(--accent2);color:#fff;}
+.knob-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+input[type=range]{accent-color:var(--accent);height:4px;cursor:pointer;}
+select.form-select{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:.85rem;border-radius:6px;}
+select.form-select:focus{background:var(--bg3);color:var(--text);border-color:var(--accent);box-shadow:none;}
+
+/* ===== PIANO ===== */
+#piano-wrap{overflow-x:auto;padding-bottom:8px;}
+.piano-keys{display:flex;position:relative;height:140px;user-select:none;}
+.wkey{
+  width:42px;min-width:42px;height:138px;background:#f0ede8;border:1px solid #888;
+  border-radius:0 0 6px 6px;cursor:pointer;position:relative;display:flex;
+  align-items:flex-end;justify-content:center;padding-bottom:6px;
+  font-size:.65rem;color:#555;transition:background .05s;
+}
+.wkey:hover{background:#e0ddd8;}
+.wkey.active{background:#b0deff;}
+.wkey.c-key::before{content:'C';font-size:.6rem;position:absolute;bottom:4px;color:#888;}
+.bkey{
+  width:26px;min-width:26px;height:88px;background:#1a1a1a;border:1px solid #000;
+  border-radius:0 0 5px 5px;position:absolute;top:0;cursor:pointer;z-index:2;
+  transition:background .05s;
+}
+.bkey:hover{background:#333;}
+.bkey.active{background:#1a7acc;}
+.note-display{background:var(--bg3);border-radius:8px;padding:8px 16px;font-size:1.1rem;
+  color:var(--accent);min-width:140px;text-align:center;border:1px solid var(--border);}
+.kbd-hint{font-size:.72rem;color:var(--muted);background:var(--bg3);border:1px solid var(--border);
+  border-radius:4px;padding:1px 5px;display:inline-block;}
+
+/* ===== DRUM MACHINE ===== */
+.drum-grid{display:grid;gap:4px;}
+.drum-row{display:grid;grid-template-columns:90px repeat(16, 1fr);gap:3px;align-items:center;}
+.drum-label{font-size:.78rem;color:var(--text);text-align:right;padding-right:8px;white-space:nowrap;}
+.drum-btn{
+  height:30px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;
+  cursor:pointer;transition:background .1s;position:relative;
+}
+.drum-btn:hover{background:var(--bg4);}
+.drum-btn.on{background:var(--accent2);border-color:var(--accent2);}
+.drum-btn.current{outline:2px solid var(--accent);outline-offset:0px;}
+.drum-btn.beat4{border-left:2px solid var(--border);}
+.drum-btn[data-row="0"].on{background:#ff5e3a;border-color:#ff5e3a;}
+.drum-btn[data-row="1"].on{background:#fbbf24;border-color:#fbbf24;}
+.drum-btn[data-row="2"].on{background:#43e97b;border-color:#43e97b;}
+.drum-btn[data-row="3"].on{background:#00c8ff;border-color:#00c8ff;}
+.drum-btn[data-row="4"].on{background:#a78bfa;border-color:#a78bfa;}
+.drum-btn[data-row="5"].on{background:#f472b6;border-color:#f472b6;}
+.drum-btn[data-row="6"].on{background:#fb923c;border-color:#fb923c;}
+.drum-btn[data-row="7"].on{background:#94a3b8;border-color:#94a3b8;}
+
+/* ===== SEQUENCER ===== */
+.seq-row{display:grid;grid-template-columns:110px 56px repeat(16,1fr);gap:3px;align-items:center;}
+.seq-note-sel{background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  font-size:.72rem;border-radius:4px;padding:2px 2px;text-align:center;cursor:pointer;}
+.seq-btn{
+  height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;
+  cursor:pointer;transition:background .1s;
+}
+.seq-btn:hover{background:var(--bg4);}
+.seq-btn.on{background:var(--accent4);border-color:var(--accent4);}
+.seq-btn.current{outline:2px solid var(--accent);outline-offset:0;}
+.step-num{display:grid;grid-template-columns:110px 56px repeat(16,1fr);gap:3px;margin-bottom:4px;}
+.step-num span{font-size:.6rem;color:var(--muted);text-align:center;}
+
+/* ===== CHORD GEN ===== */
+.chord-key{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:44px;height:44px;border-radius:8px;font-size:.85rem;
+  background:var(--bg3);border:1px solid var(--border);cursor:pointer;
+  transition:all .15s;
+}
+.chord-key:hover{background:var(--bg4);}
+.chord-key.active{background:var(--accent4);border-color:var(--accent4);color:#fff;font-weight:600;}
+.chord-type-btn{
+  padding:6px 12px;font-size:.8rem;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.chord-type-btn:hover{background:var(--bg4);}
+.chord-type-btn.active{background:var(--accent4);border-color:var(--accent4);color:#fff;font-weight:600;}
+.mini-piano{display:flex;position:relative;height:64px;margin-top:8px;}
+.mw{width:22px;min-width:22px;height:62px;background:#f0ede8;border:1px solid #888;
+  border-radius:0 0 4px 4px;cursor:default;position:relative;}
+.mb{width:14px;min-width:14px;height:38px;background:#1a1a1a;border:1px solid #000;
+  border-radius:0 0 3px 3px;position:absolute;top:0;z-index:2;}
+.mw.hl{background:#a78bfa;}
+.mb.hl{background:#7c3aed;}
+.chord-notes-display{font-size:1rem;color:var(--accent4);letter-spacing:2px;min-height:28px;}
+.chord-name-big{font-size:1.8rem;font-weight:700;color:var(--text);}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:600px){
+  .wkey{width:32px;min-width:32px;}
+  .bkey{width:20px;min-width:20px;}
+  .drum-row{grid-template-columns:70px repeat(16,1fr);}
+  .drum-label{font-size:.65rem;padding-right:4px;}
+  .seq-row{grid-template-columns:80px 44px repeat(16,1fr);}
+}
+
+/* scrollbar */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg1);}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div class="px-2 py-2" style="background:var(--bg1);border-bottom:1px solid var(--border);">
+  <div class="d-flex align-items-center gap-2">
+    <span style="font-size:1.2rem;font-weight:700;color:var(--accent);letter-spacing:1px;">
+      <i class="bi bi-music-note-beamed"></i> MusicLab
+    </span>
+    <span style="font-size:.75rem;color:var(--muted);">音樂創作工具</span>
+  </div>
+</div>
+
+<ul class="nav nav-tabs" id="mainTab" role="tablist">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-piano">
+    <i class="bi bi-piano-keys"></i> 鋼琴
+  </button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-drum">
+    <i class="bi bi-grid-3x3-gap-fill"></i> 鼓機
+  </button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-seq">
+    <i class="bi bi-layout-wtf"></i> 音序器
+  </button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-chord">
+    <i class="bi bi-music-note-list"></i> 和弦
+  </button></li>
+</ul>
+
+<div class="tab-content">
+
+<!-- ===== TAB 1: PIANO ===== -->
+<div class="tab-pane fade show active" id="tab-piano">
+  <div class="row g-3">
+    <div class="col-12">
+      <div class="card-dark">
+        <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+          <div>
+            <div class="section-label">音色</div>
+            <select id="osc-type" class="form-select form-select-sm" style="width:120px">
+              <option value="sine">Sine (純音)</option>
+              <option value="triangle">Triangle</option>
+              <option value="sawtooth" selected>Sawtooth</option>
+              <option value="square">Square</option>
+            </select>
+          </div>
+          <div>
+            <div class="section-label">音量</div>
+            <input type="range" id="piano-vol" min="0" max="1" step="0.01" value="0.5" style="width:100px">
+          </div>
+          <div>
+            <div class="section-label">延音 (ms)</div>
+            <input type="range" id="piano-release" min="50" max="2000" step="50" value="400" style="width:100px">
+            <span id="release-val" style="font-size:.75rem;color:var(--muted)">400ms</span>
+          </div>
+          <div>
+            <div class="section-label">八度</div>
+            <div class="d-flex gap-1">
+              <button class="btn-daw" id="oct-down"><i class="bi bi-dash"></i></button>
+              <span id="oct-display" style="font-size:.9rem;color:var(--accent);padding:4px 8px;">3</span>
+              <button class="btn-daw" id="oct-up"><i class="bi bi-plus"></i></button>
+            </div>
+          </div>
+          <div class="note-display" id="piano-note-display">—</div>
+        </div>
+
+        <div id="piano-wrap">
+          <div class="piano-keys" id="piano-keys"></div>
+        </div>
+
+        <div class="mt-3 p-3" style="background:var(--bg3);border-radius:8px;border:1px solid var(--border);">
+          <div class="section-label">鍵盤對應 (電腦鍵盤)</div>
+          <div class="d-flex flex-wrap gap-1 mt-1" style="font-size:.72rem;color:var(--muted);">
+            <span>白鍵：<kbd class="kbd-hint">A</kbd>S<kbd class="kbd-hint">D</kbd>F<kbd class="kbd-hint">G</kbd>H<kbd class="kbd-hint">J</kbd>K<kbd class="kbd-hint">L</kbd></span>
+            <span>黑鍵：<kbd class="kbd-hint">W</kbd>E<kbd class="kbd-hint"> </kbd>T<kbd class="kbd-hint">Y</kbd>U<kbd class="kbd-hint"> </kbd>O<kbd class="kbd-hint">P</kbd></span>
+            <span>升降八度：<kbd class="kbd-hint">Z</kbd> / <kbd class="kbd-hint">X</kbd></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 2: DRUM MACHINE ===== -->
+<div class="tab-pane fade" id="tab-drum">
+  <div class="card-dark mb-3">
+    <div class="d-flex flex-wrap gap-3 align-items-center">
+      <button class="btn-daw" id="drum-play-btn"><i class="bi bi-play-fill"></i> 播放</button>
+      <button class="btn-daw" id="drum-stop-btn"><i class="bi bi-stop-fill"></i> 停止</button>
+      <button class="btn-daw" id="drum-clear-btn"><i class="bi bi-trash3"></i> 清除</button>
+      <div class="d-flex align-items-center gap-2">
+        <span class="section-label mb-0">BPM</span>
+        <input type="range" id="drum-bpm" min="40" max="240" value="120" style="width:120px">
+        <input type="number" id="drum-bpm-num" min="40" max="240" value="120"
+          style="width:60px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;font-size:.85rem;">
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="section-label mb-0">步數</span>
+        <select id="drum-steps" class="form-select form-select-sm" style="width:80px">
+          <option value="8">8</option>
+          <option value="16" selected>16</option>
+          <option value="32">32</option>
+        </select>
+      </div>
+      <div id="drum-beat-display" style="font-size:.9rem;color:var(--accent);min-width:60px">— / —</div>
+    </div>
+  </div>
+
+  <div class="card-dark">
+    <div class="drum-grid" id="drum-grid"></div>
+  </div>
+</div>
+
+<!-- ===== TAB 3: STEP SEQUENCER ===== -->
+<div class="tab-pane fade" id="tab-seq">
+  <div class="card-dark mb-3">
+    <div class="d-flex flex-wrap gap-3 align-items-center">
+      <button class="btn-daw" id="seq-play-btn"><i class="bi bi-play-fill"></i> 播放</button>
+      <button class="btn-daw" id="seq-stop-btn"><i class="bi bi-stop-fill"></i> 停止</button>
+      <button class="btn-daw" id="seq-rec-btn" style="color:var(--accent2);border-color:var(--accent2);">
+        <i class="bi bi-record-circle"></i> 錄音
+      </button>
+      <button class="btn-daw" id="seq-clear-btn"><i class="bi bi-trash3"></i> 清除</button>
+      <div class="d-flex align-items-center gap-2">
+        <span class="section-label mb-0">BPM</span>
+        <input type="range" id="seq-bpm" min="40" max="240" value="120" style="width:120px">
+        <input type="number" id="seq-bpm-num" min="40" max="240" value="120"
+          style="width:60px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;font-size:.85rem;">
+      </div>
+      <div id="seq-status" style="font-size:.82rem;color:var(--muted);">待機</div>
+    </div>
+  </div>
+
+  <div class="card-dark">
+    <div class="step-num" id="seq-step-nums"></div>
+    <div id="seq-grid"></div>
+  </div>
+</div>
+
+<!-- ===== TAB 4: CHORD GENERATOR ===== -->
+<div class="tab-pane fade" id="tab-chord">
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <div class="card-dark">
+        <div class="section-label">根音 (Root Note)</div>
+        <div class="d-flex flex-wrap gap-2 mt-2" id="chord-root-btns"></div>
+
+        <div class="section-label mt-3">八度</div>
+        <div class="d-flex gap-2 mt-1">
+          <button class="btn-daw" id="chord-oct-down"><i class="bi bi-dash"></i></button>
+          <span id="chord-oct-display" style="font-size:.9rem;color:var(--accent);padding:4px 8px;">4</span>
+          <button class="btn-daw" id="chord-oct-up"><i class="bi bi-plus"></i></button>
+        </div>
+
+        <div class="section-label mt-3">和弦類型</div>
+        <div class="d-flex flex-wrap gap-2 mt-2" id="chord-type-btns"></div>
+
+        <div class="mt-3 d-flex gap-2 flex-wrap">
+          <button class="btn-daw active" id="chord-play-btn"><i class="bi bi-play-fill"></i> 同時演奏</button>
+          <button class="btn-daw" id="chord-arp-btn"><i class="bi bi-music-note-beamed"></i> 琶音</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="card-dark h-100">
+        <div class="chord-name-big" id="chord-name-display">C Major</div>
+        <div class="chord-notes-display mt-2" id="chord-notes-display">C · E · G</div>
+        <div style="font-size:.78rem;color:var(--muted);margin-top:4px;" id="chord-interval-display">1 · 3 · 5</div>
+
+        <div class="section-label mt-3">預覽鍵盤</div>
+        <div id="mini-piano-wrap" style="overflow-x:auto;padding-bottom:4px;">
+          <div class="mini-piano" id="mini-piano"></div>
+        </div>
+
+        <div class="mt-3 p-2" style="background:var(--bg3);border-radius:8px;border:1px solid var(--border);">
+          <div class="section-label">常用進行</div>
+          <div class="d-flex flex-wrap gap-2 mt-1" id="progression-btns">
+            <button class="btn-daw" data-prog="I-IV-V-I">I–IV–V–I</button>
+            <button class="btn-daw" data-prog="I-V-vi-IV">I–V–vi–IV</button>
+            <button class="btn-daw" data-prog="ii-V-I">ii–V–I</button>
+            <button class="btn-daw" data-prog="I-vi-IV-V">I–vi–IV–V</button>
+            <button class="btn-daw" data-prog="I-IV-vi-V">I–IV–vi–V</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end tab-content -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ============================================================
+//  AUDIO CONTEXT
+// ============================================================
+let actx = null;
+function getCtx() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+
+// ============================================================
+//  UTILS
+// ============================================================
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function midiToFreq(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
+function noteLabel(midi) {
+  return NOTE_NAMES[midi % 12] + Math.floor(midi / 12 - 1);
+}
+
+// ============================================================
+//  PIANO
+// ============================================================
+const WHITE_PATTERN = [0,2,4,5,7,9,11]; // semitones of white keys in octave
+const BLACK_PATTERN = [1,3,-1,6,8,10];  // -1 = no black key after E
+const KBD_WHITE = ['a','s','d','f','g','h','j','k','l',';'];
+const KBD_BLACK = ['w','e','','t','y','u','','o','p',''];
+
+let pianoOct = 3;
+let activeOscs = {};
+
+function buildPiano() {
+  const wrap = document.getElementById('piano-keys');
+  wrap.innerHTML = '';
+  const numOct = 2;
+  const startMidi = (pianoOct + 1) * 12; // C of pianoOct
+
+  let whiteX = 0;
+  const whiteW = 42;
+  const blackW = 26;
+
+  for (let o = 0; o < numOct; o++) {
+    for (let wi = 0; wi < 7; wi++) {
+      const semi = WHITE_PATTERN[wi];
+      const midi = startMidi + o * 12 + semi;
+      const el = document.createElement('div');
+      el.className = 'wkey' + (semi === 0 ? ' c-key' : '');
+      el.dataset.midi = midi;
+      el.dataset.x = whiteX;
+      el.title = noteLabel(midi);
+      const kbdIdx = o * 7 + wi; // will overflow but that's ok
+      if (o === 0 && wi < KBD_WHITE.length) {
+        const hint = document.createElement('span');
+        hint.style.cssText = 'position:absolute;bottom:18px;font-size:.55rem;color:#aaa;';
+        hint.textContent = KBD_WHITE[wi].toUpperCase();
+        el.appendChild(hint);
+      }
+      el.addEventListener('mousedown', e => { e.preventDefault(); pianoPlay(midi); });
+      el.addEventListener('mouseup', () => pianoStop(midi));
+      el.addEventListener('mouseleave', () => pianoStop(midi));
+      wrap.appendChild(el);
+      whiteX += whiteW;
+    }
+  }
+  // Black keys
+  whiteX = 0;
+  const blackOffsets = [0.6, 1.6, -1, 3.6, 4.6, 5.6, -1];
+  for (let o = 0; o < numOct; o++) {
+    let bwi = 0;
+    for (let wi = 0; wi < 7; wi++) {
+      const offsetX = whiteW * (o * 7 + wi);
+      // black key after this white key?
+      const blackSemi = [1,3,-1,6,8,10,-1][wi];
+      if (blackSemi !== -1) {
+        const midi = startMidi + o * 12 + blackSemi;
+        const el = document.createElement('div');
+        el.className = 'bkey';
+        el.dataset.midi = midi;
+        el.title = noteLabel(midi);
+        el.style.left = (offsetX + whiteW - blackW / 2) + 'px';
+        if (o === 0 && bwi < KBD_BLACK.length && KBD_BLACK[bwi]) {
+          const hint = document.createElement('span');
+          hint.style.cssText = 'position:absolute;bottom:6px;font-size:.5rem;color:#aaa;left:50%;transform:translateX(-50%);';
+          hint.textContent = KBD_BLACK[bwi].toUpperCase();
+          el.appendChild(hint);
+        }
+        el.addEventListener('mousedown', e => { e.preventDefault(); pianoPlay(midi); });
+        el.addEventListener('mouseup', () => pianoStop(midi));
+        el.addEventListener('mouseleave', () => pianoStop(midi));
+        wrap.appendChild(el);
+        bwi++;
+      }
+    }
+  }
+}
+
+function pianoPlay(midi) {
+  if (activeOscs[midi]) return;
+  const ctx = getCtx();
+  const type = document.getElementById('osc-type').value;
+  const vol = parseFloat(document.getElementById('piano-vol').value);
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = midiToFreq(midi);
+  gain.gain.setValueAtTime(0, ctx.currentTime);
+  gain.gain.linearRampToValueAtTime(vol * 0.4, ctx.currentTime + 0.01);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start();
+  activeOscs[midi] = {osc, gain};
+  // highlight
+  document.querySelectorAll('[data-midi="' + midi + '"]').forEach(el => el.classList.add('active'));
+  document.getElementById('piano-note-display').textContent = noteLabel(midi) + '  ' + Math.round(midiToFreq(midi)) + 'Hz';
+}
+
+function pianoStop(midi) {
+  const entry = activeOscs[midi];
+  if (!entry) return;
+  const ctx = getCtx();
+  const release = parseInt(document.getElementById('piano-release').value) / 1000;
+  entry.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + release);
+  entry.osc.stop(ctx.currentTime + release + 0.05);
+  delete activeOscs[midi];
+  document.querySelectorAll('[data-midi="' + midi + '"]').forEach(el => el.classList.remove('active'));
+  document.getElementById('piano-note-display').textContent = '—';
+}
+
+// Keyboard mapping
+const WHITE_KEYS_MAP = {'a':0,'s':1,'d':2,'f':3,'g':4,'h':5,'j':6,'k':7,'l':8};
+const BLACK_KEYS_MAP = {'w':1,'e':3,'t':6,'y':8,'u':10,'o':13,'p':15};
+
+document.addEventListener('keydown', e => {
+  if (e.repeat || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const k = e.key.toLowerCase();
+  if (k === 'z') { pianoOct = Math.max(1, pianoOct - 1); document.getElementById('oct-display').textContent = pianoOct; buildPiano(); return; }
+  if (k === 'x') { pianoOct = Math.min(6, pianoOct + 1); document.getElementById('oct-display').textContent = pianoOct; buildPiano(); return; }
+  const startMidi = (pianoOct + 1) * 12;
+  if (WHITE_KEYS_MAP[k] !== undefined) pianoPlay(startMidi + WHITE_PATTERN[WHITE_KEYS_MAP[k] % 7] + Math.floor(WHITE_KEYS_MAP[k] / 7) * 12);
+  if (BLACK_KEYS_MAP[k] !== undefined) pianoPlay(startMidi + BLACK_KEYS_MAP[k]);
+});
+document.addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  const startMidi = (pianoOct + 1) * 12;
+  if (WHITE_KEYS_MAP[k] !== undefined) pianoStop(startMidi + WHITE_PATTERN[WHITE_KEYS_MAP[k] % 7] + Math.floor(WHITE_KEYS_MAP[k] / 7) * 12);
+  if (BLACK_KEYS_MAP[k] !== undefined) pianoStop(startMidi + BLACK_KEYS_MAP[k]);
+});
+
+document.getElementById('oct-down').onclick = () => {
+  pianoOct = Math.max(1, pianoOct - 1);
+  document.getElementById('oct-display').textContent = pianoOct; buildPiano();
+};
+document.getElementById('oct-up').onclick = () => {
+  pianoOct = Math.min(6, pianoOct + 1);
+  document.getElementById('oct-display').textContent = pianoOct; buildPiano();
+};
+document.getElementById('piano-release').addEventListener('input', function() {
+  document.getElementById('release-val').textContent = this.value + 'ms';
+});
+
+// ============================================================
+//  DRUM MACHINE
+// ============================================================
+const DRUM_NAMES = ['Kick','Snare','Hi-Hat','Open Hat','Tom','Clap','Ride','Cowbell'];
+let drumSteps = 16;
+let drumPattern = Array.from({length: 8}, () => new Array(32).fill(false));
+let drumPlaying = false;
+let drumStep = 0;
+let drumTimer = null;
+let drumBpm = 120;
+
+function buildDrumGrid() {
+  const grid = document.getElementById('drum-grid');
+  grid.innerHTML = '';
+  drumSteps = parseInt(document.getElementById('drum-steps').value);
+  for (let r = 0; r < 8; r++) {
+    const row = document.createElement('div');
+    row.className = 'drum-row';
+    const lbl = document.createElement('div');
+    lbl.className = 'drum-label';
+    lbl.textContent = DRUM_NAMES[r];
+    row.appendChild(lbl);
+    for (let s = 0; s < drumSteps; s++) {
+      const btn = document.createElement('div');
+      btn.className = 'drum-btn' + (s % 4 === 0 ? ' beat4' : '');
+      btn.dataset.row = r; btn.dataset.step = s;
+      if (drumPattern[r][s]) btn.classList.add('on');
+      btn.addEventListener('click', () => {
+        drumPattern[r][s] = !drumPattern[r][s];
+        btn.classList.toggle('on', drumPattern[r][s]);
+      });
+      row.appendChild(btn);
+    }
+    grid.appendChild(row);
+  }
+}
+
+function playDrumSound(r, time) {
+  const ctx = getCtx();
+  switch(r) {
+    case 0: drumKick(ctx, time); break;
+    case 1: drumSnare(ctx, time); break;
+    case 2: drumHihat(ctx, time, false); break;
+    case 3: drumHihat(ctx, time, true); break;
+    case 4: drumTom(ctx, time); break;
+    case 5: drumClap(ctx, time); break;
+    case 6: drumRide(ctx, time); break;
+    case 7: drumCowbell(ctx, time); break;
+  }
+}
+
+function drumKick(ctx, t) {
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.frequency.setValueAtTime(160, t);
+  o.frequency.exponentialRampToValueAtTime(0.001, t + 0.5);
+  g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + 0.55);
+}
+function drumSnare(ctx, t) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.25, ctx.sampleRate);
+  const d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2-1;
+  const n = ctx.createBufferSource(); n.buffer = buf;
+  const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 2000;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+  n.connect(f); f.connect(g); g.connect(ctx.destination); n.start(t); n.stop(t + 0.25);
+  const o = ctx.createOscillator(), og = ctx.createGain();
+  o.frequency.value = 180; og.gain.setValueAtTime(0.5, t); og.gain.exponentialRampToValueAtTime(0.001, t+0.08);
+  o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t+0.1);
+}
+function drumHihat(ctx, t, open) {
+  const len = open ? 0.35 : 0.06;
+  const buf = ctx.createBuffer(1, ctx.sampleRate * len, ctx.sampleRate);
+  const d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2-1;
+  const n = ctx.createBufferSource(); n.buffer = buf;
+  const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 10000; f.Q.value = 0.5;
+  const g = ctx.createGain(); g.gain.setValueAtTime(open ? 0.5 : 0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + len);
+  n.connect(f); f.connect(g); g.connect(ctx.destination); n.start(t); n.stop(t + len);
+}
+function drumTom(ctx, t) {
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(60, t+0.3);
+  g.gain.setValueAtTime(0.8, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.35);
+  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.4);
+}
+function drumClap(ctx, t) {
+  [0, 0.012, 0.024].forEach(delay => {
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.1, ctx.sampleRate);
+    const d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2-1;
+    const n = ctx.createBufferSource(); n.buffer = buf;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1200;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.7, t+delay); g.gain.exponentialRampToValueAtTime(0.001, t+delay+0.1);
+    n.connect(f); f.connect(g); g.connect(ctx.destination); n.start(t+delay); n.stop(t+delay+0.12);
+  });
+}
+function drumRide(ctx, t) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.8, ctx.sampleRate);
+  const d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2-1;
+  const n = ctx.createBufferSource(); n.buffer = buf;
+  const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 8000;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.25, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.8);
+  n.connect(f); f.connect(g); g.connect(ctx.destination); n.start(t); n.stop(t+0.85);
+}
+function drumCowbell(ctx, t) {
+  [562, 845].forEach(freq => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'square'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.25);
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 700;
+    o.connect(f); f.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.3);
+  });
+}
+
+function drumTick() {
+  const ctx = getCtx();
+  const now = ctx.currentTime;
+  const stepDur = 60 / drumBpm / 4;
+  for (let r = 0; r < 8; r++) {
+    if (drumPattern[r][drumStep]) playDrumSound(r, now);
+  }
+  // highlight
+  document.querySelectorAll('.drum-btn').forEach(b => {
+    b.classList.toggle('current', parseInt(b.dataset.step) === drumStep);
+  });
+  document.getElementById('drum-beat-display').textContent =
+    (Math.floor(drumStep/4)+1) + '.' + (drumStep%4+1) + ' / ' + Math.ceil(drumSteps/4);
+  drumStep = (drumStep + 1) % drumSteps;
+  drumTimer = setTimeout(drumTick, stepDur * 1000 * 0.98);
+}
+
+document.getElementById('drum-play-btn').onclick = () => {
+  if (drumPlaying) return;
+  drumPlaying = true;
+  drumStep = 0;
+  document.getElementById('drum-play-btn').classList.add('active');
+  drumTick();
+};
+document.getElementById('drum-stop-btn').onclick = () => {
+  drumPlaying = false;
+  clearTimeout(drumTimer);
+  document.getElementById('drum-play-btn').classList.remove('active');
+  document.querySelectorAll('.drum-btn').forEach(b => b.classList.remove('current'));
+  document.getElementById('drum-beat-display').textContent = '— / —';
+};
+document.getElementById('drum-clear-btn').onclick = () => {
+  drumPattern = Array.from({length:8}, () => new Array(32).fill(false));
+  buildDrumGrid();
+};
+const drumBpmRange = document.getElementById('drum-bpm');
+const drumBpmNum = document.getElementById('drum-bpm-num');
+drumBpmRange.addEventListener('input', () => { drumBpm = parseInt(drumBpmRange.value); drumBpmNum.value = drumBpm; });
+drumBpmNum.addEventListener('input', () => { drumBpm = Math.min(240,Math.max(40,parseInt(drumBpmNum.value)||120)); drumBpmRange.value = drumBpm; });
+document.getElementById('drum-steps').addEventListener('change', buildDrumGrid);
+
+// ============================================================
+//  STEP SEQUENCER
+// ============================================================
+const SEQ_TRACKS = 6;
+const SEQ_STEPS = 16;
+const SEQ_INSTR = ['Piano','Lead','Bass','Pad','Arp','Perc'];
+const SEQ_COLORS = ['#00c8ff','#ff5e3a','#43e97b','#a78bfa','#fbbf24','#f472b6'];
+const SEQ_TYPES  = ['sine','sawtooth','sine','triangle','sawtooth','square'];
+const SEQ_VOLS   = [0.3, 0.25, 0.4, 0.2, 0.3, 0.2];
+// each track note: midi number
+let seqNotes = [60,64,48,67,72,60];
+let seqPattern = Array.from({length:SEQ_TRACKS}, () => new Array(SEQ_STEPS).fill(false));
+let seqPlaying = false;
+let seqRecording = false;
+let seqStep = 0;
+let seqTimer = null;
+let seqBpm = 120;
+const NOTES_FOR_SEQ = ['C3','D3','E3','F3','G3','A3','B3','C4','D4','E4','F4','G4','A4','B4','C5','D5','E5','F5','G5','A5','B5'];
+
+function buildSeqGrid() {
+  const nums = document.getElementById('seq-step-nums');
+  nums.innerHTML = '<span></span><span></span>';
+  for (let s = 0; s < SEQ_STEPS; s++) {
+    const sp = document.createElement('span');
+    sp.textContent = s + 1;
+    nums.appendChild(sp);
+  }
+
+  const grid = document.getElementById('seq-grid');
+  grid.innerHTML = '';
+  for (let t = 0; t < SEQ_TRACKS; t++) {
+    const row = document.createElement('div');
+    row.className = 'seq-row mb-1';
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:.78rem;color:' + SEQ_COLORS[t] + ';text-align:right;padding-right:6px;white-space:nowrap;';
+    lbl.textContent = SEQ_INSTR[t];
+    row.appendChild(lbl);
+    // note selector
+    const noteWrap = document.createElement('div');
+    const sel = document.createElement('select');
+    sel.className = 'seq-note-sel w-100';
+    sel.style.color = SEQ_COLORS[t];
+    NOTES_FOR_SEQ.forEach((n, i) => {
+      const op = document.createElement('option');
+      op.value = 36 + i * (i < 7 ? 2 : 2); // just label
+      // compute correct midi
+      op.value = midiFromLabel(n);
+      op.textContent = n;
+      if (op.value == seqNotes[t]) op.selected = true;
+      sel.appendChild(op);
+    });
+    sel.dataset.track = t;
+    sel.addEventListener('change', function() { seqNotes[this.dataset.track] = parseInt(this.value); });
+    noteWrap.appendChild(sel);
+    row.appendChild(noteWrap);
+    for (let s = 0; s < SEQ_STEPS; s++) {
+      const btn = document.createElement('div');
+      btn.className = 'seq-btn';
+      btn.dataset.track = t; btn.dataset.step = s;
+      if (seqPattern[t][s]) { btn.classList.add('on'); btn.style.background = SEQ_COLORS[t]; }
+      btn.addEventListener('click', () => {
+        seqPattern[t][s] = !seqPattern[t][s];
+        btn.classList.toggle('on', seqPattern[t][s]);
+        btn.style.background = seqPattern[t][s] ? SEQ_COLORS[t] : '';
+      });
+      row.appendChild(btn);
+    }
+    grid.appendChild(row);
+  }
+}
+
+function midiFromLabel(label) {
+  const nn = label.replace(/[0-9]/g,'');
+  const oct = parseInt(label.replace(/[^0-9]/g,''));
+  return NOTE_NAMES.indexOf(nn) + (oct + 1) * 12;
+}
+
+function seqPlayNote(track, time) {
+  const ctx = getCtx();
+  const midi = seqNotes[track];
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = SEQ_TYPES[track];
+  osc.frequency.value = midiToFreq(midi);
+  gain.gain.setValueAtTime(SEQ_VOLS[track], time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(time); osc.stop(time + 0.22);
+}
+
+function seqTick() {
+  const ctx = getCtx();
+  const now = ctx.currentTime;
+  const stepDur = 60 / seqBpm / 4;
+  for (let t = 0; t < SEQ_TRACKS; t++) {
+    if (seqPattern[t][seqStep]) seqPlayNote(t, now);
+  }
+  document.querySelectorAll('.seq-btn').forEach(b => {
+    b.classList.toggle('current', parseInt(b.dataset.step) === seqStep);
+  });
+  document.getElementById('seq-status').textContent = '播放中  步 ' + (seqStep + 1) + ' / ' + SEQ_STEPS;
+  seqStep = (seqStep + 1) % SEQ_STEPS;
+  seqTimer = setTimeout(seqTick, stepDur * 1000 * 0.98);
+}
+
+document.getElementById('seq-play-btn').onclick = () => {
+  if (seqPlaying) return;
+  seqPlaying = true; seqStep = 0;
+  document.getElementById('seq-play-btn').classList.add('active');
+  seqTick();
+};
+document.getElementById('seq-stop-btn').onclick = () => {
+  seqPlaying = false; clearTimeout(seqTimer);
+  document.getElementById('seq-play-btn').classList.remove('active');
+  document.querySelectorAll('.seq-btn').forEach(b => b.classList.remove('current'));
+  document.getElementById('seq-status').textContent = '停止';
+};
+document.getElementById('seq-rec-btn').addEventListener('click', function() {
+  seqRecording = !seqRecording;
+  this.classList.toggle('danger', seqRecording);
+  this.style.color = seqRecording ? '' : 'var(--accent2)';
+  document.getElementById('seq-status').textContent = seqRecording ? '● 錄音中' : '待機';
+});
+document.getElementById('seq-clear-btn').onclick = () => {
+  seqPattern = Array.from({length:SEQ_TRACKS}, () => new Array(SEQ_STEPS).fill(false));
+  buildSeqGrid();
+};
+const seqBpmRange = document.getElementById('seq-bpm');
+const seqBpmNum = document.getElementById('seq-bpm-num');
+seqBpmRange.addEventListener('input', () => { seqBpm = parseInt(seqBpmRange.value); seqBpmNum.value = seqBpm; });
+seqBpmNum.addEventListener('input', () => { seqBpm = Math.min(240,Math.max(40,parseInt(seqBpmNum.value)||120)); seqBpmRange.value = seqBpm; });
+
+// ============================================================
+//  CHORD GENERATOR
+// ============================================================
+const CHORD_TYPES = {
+  'Major':     {intervals:[0,4,7],   symbol:'',    desc:'1 · 3 · 5'},
+  'Minor':     {intervals:[0,3,7],   symbol:'m',   desc:'1 · ♭3 · 5'},
+  'Dom7':      {intervals:[0,4,7,10],symbol:'7',   desc:'1 · 3 · 5 · ♭7'},
+  'Major7':    {intervals:[0,4,7,11],symbol:'M7',  desc:'1 · 3 · 5 · 7'},
+  'Minor7':    {intervals:[0,3,7,10],symbol:'m7',  desc:'1 · ♭3 · 5 · ♭7'},
+  'Dim':       {intervals:[0,3,6],   symbol:'°',   desc:'1 · ♭3 · ♭5'},
+  'Dim7':      {intervals:[0,3,6,9], symbol:'°7',  desc:'1 · ♭3 · ♭5 · 𝄫7'},
+  'Aug':       {intervals:[0,4,8],   symbol:'+',   desc:'1 · 3 · #5'},
+  'Sus2':      {intervals:[0,2,7],   symbol:'sus2',desc:'1 · 2 · 5'},
+  'Sus4':      {intervals:[0,5,7],   symbol:'sus4',desc:'1 · 4 · 5'},
+  'm7♭5':      {intervals:[0,3,6,10],symbol:'ø7',  desc:'1 · ♭3 · ♭5 · ♭7'},
+  'Add9':      {intervals:[0,4,7,14],symbol:'add9',desc:'1 · 3 · 5 · 9'},
+};
+const MAJOR_SCALE_DEGREES = [0,2,4,5,7,9,11];
+const PROG_DEFS = {
+  'I-IV-V-I':   [0,3,4,0],
+  'I-V-vi-IV':  [0,4,5,3],
+  'ii-V-I':     [1,4,0],
+  'I-vi-IV-V':  [0,5,3,4],
+  'I-IV-vi-V':  [0,3,5,4],
+};
+
+let chordRoot = 60; // C4
+let chordOct = 4;
+let chordType = 'Major';
+let chordRootName = 'C';
+let chordRootSemi = 0;
+
+function buildChordUI() {
+  // Root buttons
+  const rb = document.getElementById('chord-root-btns');
+  rb.innerHTML = '';
+  NOTE_NAMES.forEach((n, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'chord-key' + (i === 0 ? ' active' : '');
+    btn.textContent = n;
+    btn.dataset.semi = i;
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#chord-root-btns .chord-key').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      chordRootSemi = parseInt(this.dataset.semi);
+      chordRootName = n;
+      updateChordRoot();
+      updateChordDisplay();
+    });
+    rb.appendChild(btn);
+  });
+
+  // Chord type buttons
+  const tb = document.getElementById('chord-type-btns');
+  tb.innerHTML = '';
+  Object.keys(CHORD_TYPES).forEach((name, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'chord-type-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = name;
+    btn.dataset.type = name;
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.chord-type-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      chordType = this.dataset.type;
+      updateChordDisplay();
+    });
+    tb.appendChild(btn);
+  });
+}
+
+function updateChordRoot() {
+  chordRoot = 12 * (chordOct + 1) + chordRootSemi;
+}
+
+function getChordMidis() {
+  return CHORD_TYPES[chordType].intervals.map(i => chordRoot + i);
+}
+
+function updateChordDisplay() {
+  const midis = getChordMidis();
+  const sym = CHORD_TYPES[chordType].symbol;
+  document.getElementById('chord-name-display').textContent = chordRootName + sym;
+  document.getElementById('chord-notes-display').textContent = midis.map(m => NOTE_NAMES[m%12]).join(' · ');
+  document.getElementById('chord-interval-display').textContent = CHORD_TYPES[chordType].desc;
+  buildMiniPiano(midis);
+}
+
+function buildMiniPiano(highlightMidis) {
+  const wrap = document.getElementById('mini-piano');
+  wrap.innerHTML = '';
+  const startMidi = 12 * (chordOct + 1); // C of chordOct
+  const numOct = 2;
+  const ww = 22, bw = 14;
+  let wx = 0;
+  for (let o = 0; o < numOct; o++) {
+    for (let wi = 0; wi < 7; wi++) {
+      const semi = WHITE_PATTERN[wi];
+      const midi = startMidi + o*12 + semi;
+      const el = document.createElement('div');
+      const hl = highlightMidis.some(m => m % 12 === midi % 12);
+      el.className = 'mw' + (hl ? ' hl' : '');
+      el.title = noteLabel(midi);
+      wrap.appendChild(el);
+    }
+  }
+  wx = 0;
+  for (let o = 0; o < numOct; o++) {
+    for (let wi = 0; wi < 7; wi++) {
+      const blackSemi = [1,3,-1,6,8,10,-1][wi];
+      const offsetX = ww * (o*7+wi);
+      if (blackSemi !== -1) {
+        const midi = startMidi + o*12 + blackSemi;
+        const el = document.createElement('div');
+        const hl = highlightMidis.some(m => m % 12 === midi % 12);
+        el.className = 'mb' + (hl ? ' hl' : '');
+        el.style.left = (offsetX + ww - bw/2) + 'px';
+        el.title = noteLabel(midi);
+        wrap.appendChild(el);
+      }
+    }
+  }
+}
+
+function playChord() {
+  const ctx = getCtx();
+  const midis = getChordMidis();
+  midis.forEach(midi => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = midiToFreq(midi);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 1.6);
+  });
+}
+
+function playArpeggio() {
+  const ctx = getCtx();
+  const midis = getChordMidis();
+  const interval = 0.12;
+  midis.forEach((midi, i) => {
+    const t = ctx.currentTime + i * interval;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.value = midiToFreq(midi);
+    gain.gain.setValueAtTime(0.3, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.55);
+  });
+}
+
+document.getElementById('chord-play-btn').onclick = playChord;
+document.getElementById('chord-arp-btn').onclick = playArpeggio;
+
+document.getElementById('chord-oct-down').onclick = () => {
+  chordOct = Math.max(2, chordOct - 1);
+  document.getElementById('chord-oct-display').textContent = chordOct;
+  updateChordRoot(); updateChordDisplay();
+};
+document.getElementById('chord-oct-up').onclick = () => {
+  chordOct = Math.min(6, chordOct + 1);
+  document.getElementById('chord-oct-display').textContent = chordOct;
+  updateChordRoot(); updateChordDisplay();
+};
+
+// Chord progressions
+document.querySelectorAll('[data-prog]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const prog = PROG_DEFS[this.dataset.prog];
+    if (!prog) return;
+    const ctx = getCtx();
+    const chordDur = 0.9;
+    prog.forEach((degree, i) => {
+      const semi = MAJOR_SCALE_DEGREES[degree % 7];
+      const rootMidi = 12 * (chordOct + 1) + chordRootSemi + semi;
+      const intervals = degree >= 5 ? CHORD_TYPES['Minor'].intervals : CHORD_TYPES['Major'].intervals;
+      const midis = intervals.map(iv => rootMidi + iv);
+      midis.forEach(midi => {
+        const t = ctx.currentTime + i * chordDur;
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = 'triangle'; osc.frequency.value = midiToFreq(midi);
+        gain.gain.setValueAtTime(0.18, t); gain.gain.exponentialRampToValueAtTime(0.001, t + chordDur * 0.9);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t); osc.stop(t + chordDur);
+      });
+    });
+  });
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+buildPiano();
+buildDrumGrid();
+buildSeqGrid();
+buildChordUI();
+updateChordRoot();
+updateChordDisplay();
+
+// Touch support for piano
+document.getElementById('piano-keys').addEventListener('touchstart', e => {
+  e.preventDefault();
+  Array.from(e.changedTouches).forEach(t => {
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    if (el && el.dataset.midi) pianoPlay(parseInt(el.dataset.midi));
+  });
+}, {passive:false});
+document.getElementById('piano-keys').addEventListener('touchend', e => {
+  e.preventDefault();
+  Array.from(e.changedTouches).forEach(t => {
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    if (el && el.dataset.midi) pianoStop(parseInt(el.dataset.midi));
+  });
+}, {passive:false});
+</script>
+</body>
+</html>

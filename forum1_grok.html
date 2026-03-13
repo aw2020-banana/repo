@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的私人論壇</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', system-ui, sans-serif; }
+        .post-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .post-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+        .modal { animation: modalPop 0.3s ease-out; }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .tail-text { white-space: pre-wrap; word-break: break-word; }
+        .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+        .tab-active {
+            border-bottom: 3px solid #3b82f6;
+            color: #1e40af;
+            font-weight: 700;
+        }
+        .storage-bar {
+            height: 6px;
+            background: linear-gradient(to right, #3b82f6, #60a5fa);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-zinc-100 text-zinc-800">
+    <div class="flex flex-col h-screen">
+        <!-- 頂部導航 -->
+        <header class="bg-white shadow-sm border-b border-zinc-200">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-blue-600 text-white flex items-center justify-center rounded-2xl text-2xl shadow-inner">📌</div>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">我的私人論壇</h1>
+                        <p class="text-xs text-zinc-500 -mt-1">完全離線 • 個人專用 • IndexedDB 儲存</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <!-- 儲存空間顯示 -->
+                    <div id="storage-info" 
+                         class="hidden md:flex items-center gap-2 bg-zinc-100 px-4 py-1.5 rounded-3xl text-xs font-medium cursor-pointer hover:bg-zinc-200 transition-colors"
+                         onclick="showStorageModal()">
+                        <span class="text-emerald-600">💾</span>
+                        <span id="usage-text">0 MB / 0 MB</span>
+                    </div>
+
+                    <!-- PWA 安裝提示 -->
+                    <button id="a2hs-btn"
+                            onclick="installPWA()"
+                            class="hidden md:flex items-center gap-2 bg-white border border-zinc-300 hover:border-blue-300 text-zinc-700 px-5 py-2 rounded-3xl text-sm font-medium transition-all active:scale-95">
+                        <span>📱</span>
+                        <span>加入主畫面</span>
+                    </button>
+
+                    <button onclick="exportJSON()" 
+                            class="flex items-center gap-2 bg-white border border-zinc-300 hover:border-amber-300 px-5 py-2 rounded-3xl text-sm font-medium transition-all">
+                        <span>📤</span>
+                        <span class="hidden sm:inline">匯出 JSON</span>
+                    </button>
+                    
+                    <label onclick="document.getElementById('import-input').click()" 
+                           class="flex items-center gap-2 bg-white border border-zinc-300 hover:border-emerald-300 px-5 py-2 rounded-3xl text-sm font-medium transition-all cursor-pointer">
+                        <span>📥</span>
+                        <span class="hidden sm:inline">匯入 JSON</span>
+                    </label>
+                    <input type="file" id="import-input" accept=".json" class="hidden" onchange="importJSON(event)">
+                </div>
+            </div>
+
+            <!-- 分類 Tab -->
+            <div class="border-t border-zinc-200 bg-white">
+                <div class="max-w-7xl mx-auto px-4">
+                    <div id="category-tabs" 
+                         class="flex gap-1 overflow-x-auto pb-3 pt-3 scrollbar-hide">
+                        <!-- JS 動態生成 -->
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主內容 -->
+        <div class="flex-1 overflow-hidden flex flex-col max-w-7xl mx-auto w-full px-4 py-6">
+            <!-- 工具列 -->
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <button onclick="openNewPostModal()" 
+                            class="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-3xl font-medium shadow-lg shadow-blue-500/30 transition-all active:scale-95">
+                        <span class="text-2xl leading-none">+</span>
+                        <span>發新帖</span>
+                    </button>
+                    
+                    <button onclick="manageCategories()" 
+                            class="flex items-center gap-2 text-zinc-500 hover:text-zinc-700 px-5 py-3 rounded-3xl font-medium transition-colors">
+                        <span class="text-xl">⚙️</span>
+                        <span class="hidden sm:inline">管理分類</span>
+                    </button>
+                </div>
+
+                <div onclick="refreshAll()" 
+                     class="flex items-center gap-2 text-zinc-400 hover:text-zinc-600 cursor-pointer text-sm">
+                    <span class="text-lg">⟳</span>
+                    <span>重新整理</span>
+                </div>
+            </div>
+
+            <!-- 帖子列表 -->
+            <div id="post-list" class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-8">
+                <!-- JS 動態生成卡片 -->
+            </div>
+
+            <!-- 空狀態 -->
+            <div id="empty-state" class="hidden flex-1 flex flex-col items-center justify-center text-center">
+                <div class="text-8xl mb-6 opacity-30">📭</div>
+                <h3 class="text-2xl font-medium text-zinc-400">這裡還沒有帖子</h3>
+                <p class="text-zinc-500 mt-2 max-w-xs">點擊「發新帖」開始記錄你的想法、照片或討論</p>
+            </div>
+        </div>
+
+        <!-- 底部資訊列 -->
+        <footer class="bg-white border-t border-zinc-200 py-4 px-6 text-xs text-zinc-400 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <span onclick="showTechInfo()" class="cursor-pointer hover:text-blue-600 flex items-center gap-1">
+                    <span>ℹ️</span>
+                    <span>技術說明</span>
+                </span>
+                <button onclick="requestPersistence()" 
+                        class="flex items-center gap-1 hover:text-emerald-600 transition-colors">
+                    <span>🔒</span>
+                    <span id="persist-status">申請持久儲存</span>
+                </button>
+            </div>
+            
+            <div class="flex items-center gap-4 text-[10px]">
+                <span class="bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full">IndexedDB</span>
+                <span class="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full">Blob 圖片</span>
+                <span class="bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full">Canvas 壓縮</span>
+            </div>
+            
+            <div class="text-right">
+                <div id="footer-usage" class="text-[10px] font-mono">使用中：0 MB</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 新增/編輯帖子 Modal -->
+    <div id="post-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="modal bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-hidden flex flex-col shadow-2xl">
+            <!-- modal header -->
+            <div class="px-8 pt-6 pb-4 border-b flex items-center justify-between">
+                <div id="modal-title" class="text-2xl font-semibold">發新帖</div>
+                <button onclick="closePostModal()" class="text-4xl leading-none text-zinc-300 hover:text-zinc-500">×</button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-8 space-y-8">
+                <!-- 分類選擇 -->
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">分類</label>
+                    <select id="post-category" 
+                            class="w-full border border-zinc-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-400 text-base">
+                        <!-- JS 填充 -->
+                    </select>
+                </div>
+
+                <!-- 標題 -->
+                <div id="title-group">
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">標題</label>
+                    <input id="post-title" 
+                           type="text" 
+                           class="w-full border border-zinc-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-blue-400 text-lg"
+                           placeholder="給這個帖子一個標題...">
+                </div>
+
+                <!-- 內容 -->
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-2">內容</label>
+                    <textarea id="post-content" rows="8"
+                              class="w-full border border-zinc-200 rounded-3xl px-5 py-4 focus:outline-none focus:border-blue-400 text-base resize-y tail-text"
+                              placeholder="寫下你的想法、記錄或討論..."></textarea>
+                </div>
+
+                <!-- 圖片上傳 -->
+                <div>
+                    <label class="block text-xs font-medium text-zinc-500 mb-3">圖片（自動壓縮）</label>
+                    
+                    <!-- 預覽區 -->
+                    <div id="image-preview" class="image-grid mb-4">
+                        <!-- JS 插入 -->
+                    </div>
+                    
+                    <label class="block border-2 border-dashed border-zinc-300 hover:border-blue-300 rounded-3xl p-8 text-center cursor-pointer transition-colors">
+                        <input type="file" id="image-upload" multiple accept="image/*" 
+                               class="hidden" onchange="handleImageSelect(event)">
+                        <div class="text-blue-500 text-4xl mb-3">📸</div>
+                        <div class="font-medium">點擊或拖放圖片</div>
+                        <div class="text-xs text-zinc-400 mt-1">最大邊長 1024px • JPEG 壓縮 70%</div>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t flex gap-4">
+                <button onclick="closePostModal()" 
+                        class="flex-1 py-4 text-zinc-500 font-medium rounded-3xl border border-zinc-200">取消</button>
+                <button onclick="savePost()" 
+                        id="save-post-btn"
+                        class="flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-3xl">發佈貼文</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 帖子詳細 Modal (含回覆) -->
+    <div id="thread-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="modal bg-white rounded-3xl w-full max-w-3xl max-h-[94vh] flex flex-col shadow-2xl">
+            <div class="px-8 py-5 border-b flex items-center justify-between bg-zinc-50">
+                <div class="flex items-center gap-3">
+                    <button onclick="closeThreadModal()" class="text-3xl text-zinc-400">←</button>
+                    <div id="thread-category-badge" 
+                         class="px-4 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-3xl"></div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="editCurrentThreadPost()" 
+                            class="px-5 py-2 text-sm font-medium rounded-3xl border border-zinc-300 hover:bg-zinc-100">編輯</button>
+                    <button onclick="deleteCurrentThread()" 
+                            class="px-5 py-2 text-sm font-medium text-red-500 rounded-3xl border border-red-200 hover:bg-red-50">刪除整串</button>
+                </div>
+            </div>
+            
+            <!-- 主要帖子 -->
+            <div id="main-post-content" class="p-8 border-b overflow-y-auto flex-1">
+                <!-- JS 渲染 -->
+            </div>
+            
+            <!-- 回覆列表 -->
+            <div class="flex-1 overflow-y-auto px-8 py-6" id="replies-container">
+                <!-- JS 動態回覆 -->
+            </div>
+            
+            <!-- 回覆表單 -->
+            <div class="border-t p-6 bg-zinc-50">
+                <div class="flex gap-3">
+                    <textarea id="reply-content" rows="3"
+                              class="flex-1 border border-zinc-200 rounded-3xl px-6 py-4 focus:outline-none focus:border-blue-400 resize-none"
+                              placeholder="寫回覆..."></textarea>
+                    
+                    <div class="flex flex-col gap-2">
+                        <label class="w-11 h-11 flex items-center justify-center border border-zinc-200 hover:border-blue-400 rounded-2xl cursor-pointer transition-colors">
+                            <input type="file" id="reply-image-upload" accept="image/*" multiple class="hidden" onchange="handleReplyImageSelect(event)">
+                            <span class="text-3xl">📸</span>
+                        </label>
+                        <button onclick="sendReply()" 
+                                class="w-11 h-11 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-3xl leading-none active:scale-95">↑</button>
+                    </div>
+                </div>
+                
+                <!-- 回覆圖片預覽 -->
+                <div id="reply-image-preview" class="flex gap-3 mt-4 overflow-x-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分類管理 Modal -->
+    <div id="category-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="modal bg-white rounded-3xl max-w-md w-full overflow-hidden">
+            <div class="px-8 py-6 border-b flex justify-between items-center">
+                <span class="font-semibold text-xl">管理分類</span>
+                <button onclick="closeCategoryModal()" class="text-4xl text-zinc-300">×</button>
+            </div>
+            
+            <div class="p-6 max-h-96 overflow-y-auto" id="category-list">
+                <!-- JS 動態生成 -->
+            </div>
+            
+            <div class="p-6 border-t bg-zinc-50">
+                <button onclick="showAddCategoryForm()" 
+                        class="w-full py-4 bg-zinc-900 text-white rounded-3xl font-medium flex items-center justify-center gap-2">
+                    <span class="text-2xl">+</span>
+                    新增分類
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 儲存空間詳情 Modal -->
+    <div id="storage-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="modal bg-white rounded-3xl w-full max-w-md">
+            <div class="p-8">
+                <h3 class="font-semibold text-2xl mb-6">儲存空間使用量</h3>
+                
+                <div class="bg-zinc-100 rounded-3xl p-6">
+                    <div class="flex justify-between text-sm mb-3">
+                        <span class="text-zinc-500">已使用</span>
+                        <span id="modal-usage" class="font-mono font-medium">0 MB</span>
+                    </div>
+                    <div class="h-2 bg-zinc-200 rounded-full overflow-hidden">
+                        <div id="modal-progress" class="storage-bar w-0"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-zinc-500 mt-2">
+                        <span>0 MB</span>
+                        <span id="modal-quota">0 MB</span>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-xs space-y-4 text-zinc-500">
+                    <div class="flex justify-between">
+                        <span>IndexedDB 資料庫</span>
+                        <span id="db-size">—</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>圖片 Blob 總大小</span>
+                        <span id="image-size">—</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t flex gap-3">
+                <button onclick="closeStorageModal()" 
+                        class="flex-1 py-4 border border-zinc-300 rounded-3xl">關閉</button>
+                <button onclick="requestPersistence()" 
+                        class="flex-1 py-4 bg-emerald-600 text-white rounded-3xl">申請持久儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 技術說明 Toast / Drawer -->
+    <div id="tech-drawer" 
+         class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-200 rounded-t-3xl max-h-[85vh] shadow-2xl translate-y-full transition-transform duration-300">
+        <div class="p-6 pb-8">
+            <div class="flex justify-between items-center mb-8">
+                <span class="font-semibold text-xl">技術實現說明</span>
+                <button onclick="hideTechInfo()" class="text-3xl">×</button>
+            </div>
+            
+            <div class="prose text-sm space-y-8">
+                <div>
+                    <div class="font-medium text-blue-600 mb-2">📦 資料儲存</div>
+                    <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                        <li>使用 <strong>IndexedDB</strong> 持久化所有資料（分類、帖子、回覆）</li>
+                        <li>圖片以 <strong>Blob</strong> 格式儲存於獨立 objectStore</li>
+                        <li>支援 navigator.storage.persist() 請求瀏覽器不要自動清除</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <div class="font-medium text-blue-600 mb-2">🖼️ 圖片處理</div>
+                    <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                        <li>上傳即時使用 Canvas 壓縮（最長邊 1024px，JPEG 品質 70%）</li>
+                        <li>多圖片支援，預覽即時顯示</li>
+                        <li>顯示時使用 URL.createObjectURL 轉 Blob 為可見圖片</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <div class="font-medium text-blue-600 mb-2">📤 備份功能</div>
+                    <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                        <li>匯出 JSON 只包含純文字（分類 + 帖子標題內容），圖片不匯出</li>
+                        <li>匯入會完全取代現有文字資料，圖片會遺失（符合設計）</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <div class="font-medium text-blue-600 mb-2">📱 PWA 功能</div>
+                    <ul class="list-disc pl-5 space-y-1 text-zinc-600">
+                        <li>自動偵測 beforeinstallprompt 事件，支援「加入主畫面」</li>
+                        <li>離線完全可用，無需網路</li>
+                    </ul>
+                </div>
+                
+                <div class="pt-6 border-t text-[10px] text-zinc-400">
+                    本應用為單一 HTML 檔案 • 完全客戶端 • 無任何後端或雲端服務<br>
+                    適合長期個人日記、想法記錄、照片整理使用
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 全域變數 ====================
+        let db = null;
+        let currentCategoryId = null;           // null = 全部
+        let currentThreadPostId = null;
+        let allCategories = [];
+        let allPosts = [];                      // {id, categoryId, parentId, title, content, createdAt, updatedAt}
+        let editingPostId = null;               // 正在編輯的帖子 ID
+        let selectedImages = [];                // 新增/編輯用 {previewUrl, blob}
+        let replySelectedImages = [];           // 回覆用
+        let deferredPrompt = null;              // PWA 安裝提示
+        
+        const DB_NAME = "personalForumDB";
+        const VERSION = 3;
+
+        // ==================== Tailwind 初始化 ====================
+        function initTailwind() {
+            tailwind.config = {
+                content: [],
+                theme: {
+                    extend: {}
+                }
+            };
+        }
+
+        // ==================== IndexedDB 初始化 ====================
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, VERSION);
+                
+                request.onupgradeneeded = (event) => {
+                    const upgradeDB = event.target.result;
+                    
+                    // 分類
+                    if (!upgradeDB.objectStoreNames.contains("categories")) {
+                        upgradeDB.createObjectStore("categories", { keyPath: "id", autoIncrement: true });
+                    }
+                    
+                    // 帖子
+                    if (!upgradeDB.objectStoreNames.contains("posts")) {
+                        const postStore = upgradeDB.createObjectStore("posts", { keyPath: "id" });
+                        postStore.createIndex("categoryId", "categoryId", { unique: false });
+                        postStore.createIndex("parentId", "parentId", { unique: false });
+                    }
+                    
+                    // 附件 (圖片)
+                    if (!upgradeDB.objectStoreNames.contains("attachments")) {
+                        const attStore = upgradeDB.createObjectStore("attachments", { keyPath: "id" });
+                        attStore.createIndex("postId", "postId", { unique: false });
+                    }
+                };
+                
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve(db);
+                };
+                
+                request.onerror = (event) => {
+                    console.error("IndexedDB 開啟失敗", event);
+                    reject(event);
+                };
+            });
+        }
+
+        // ==================== 載入所有資料 ====================
+        async function loadAllData() {
+            if (!db) return;
+            
+            const tx = db.transaction(["categories", "posts"], "readonly");
+            
+            // 分類
+            const catStore = tx.objectStore("categories");
+            allCategories = await new Promise(r => {
+                const req = catStore.getAll();
+                req.onsuccess = () => r(req.result);
+            });
+            
+            // 如果沒有分類，預設建立一個
+            if (allCategories.length === 0) {
+                const defaultCat = { name: "未分類" };
+                await new Promise(resolve => {
+                    const writeTx = db.transaction("categories", "readwrite");
+                    writeTx.objectStore("categories").add(defaultCat).onsuccess = resolve;
+                });
+                await loadAllData(); // 重新載入
+                return;
+            }
+            
+            // 帖子
+            const postStore = tx.objectStore("posts");
+            allPosts = await new Promise(r => {
+                const req = postStore.getAll();
+                req.onsuccess = () => r(req.result);
+            });
+            
+            renderCategoryTabs();
+            renderPostList();
+            updateStorageUsage();
+        }
+
+        // ==================== UUID ====================
+        function generateUUID() {
+            return crypto.randomUUID();
+        }
+
+        // ==================== Canvas 壓縮圖片 ====================
+        async function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let { width, height } = img;
+                        const MAX = 1024;
+                        if (width > MAX || height > MAX) {
+                            const ratio = MAX / Math.max(width, height);
+                            width = Math.round(width * ratio);
+                            height = Math.round(height * ratio);
+                        }
+                        
+                        const canvas = document.createElement("canvas");
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        canvas.toBlob((blob) => {
+                            resolve(blob);
+                        }, "image/jpeg", 0.72);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ==================== 渲染分類 Tab ====================
+        function renderCategoryTabs() {
+            const container = document.getElementById("category-tabs");
+            container.innerHTML = `
+                <div onclick="switchCategory(null)" 
+                     class="tab px-7 py-3 whitespace-nowrap text-sm cursor-pointer transition-all ${currentCategoryId === null ? 'tab-active' : 'text-zinc-500 hover:text-zinc-700'}">
+                    全部
+                </div>
+            `;
+            
+            allCategories.forEach(cat => {
+                const div = document.createElement("div");
+                div.className = `tab px-7 py-3 whitespace-nowrap text-sm cursor-pointer transition-all ${currentCategoryId === cat.id ? 'tab-active' : 'text-zinc-500 hover:text-zinc-700'}`;
+                div.textContent = cat.name;
+                div.onclick = () => switchCategory(cat.id);
+                container.appendChild(div);
+            });
+            
+            // 新增按鈕
+            const addBtn = document.createElement("div");
+            addBtn.className = "flex-shrink-0 px-4 py-3 text-2xl cursor-pointer text-blue-400 hover:text-blue-600";
+            addBtn.innerHTML = "+";
+            addBtn.onclick = manageCategories;
+            container.appendChild(addBtn);
+        }
+
+        function switchCategory(catId) {
+            currentCategoryId = catId;
+            renderCategoryTabs();
+            renderPostList();
+        }
+
+        // ==================== 渲染帖子列表 ====================
+        async function renderPostList() {
+            const container = document.getElementById("post-list");
+            const empty = document.getElementById("empty-state");
+            container.innerHTML = "";
+            
+            let filteredPosts = allPosts.filter(p => p.parentId === null); // 只顯示頂層帖
+            
+            if (currentCategoryId !== null) {
+                filteredPosts = filteredPosts.filter(p => p.categoryId === currentCategoryId);
+            }
+            
+            // 按時間倒序
+            filteredPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            if (filteredPosts.length === 0) {
+                empty.classList.remove("hidden");
+                container.classList.add("hidden");
+                return;
+            }
+            
+            empty.classList.add("hidden");
+            container.classList.remove("hidden");
+            
+            for (const post of filteredPosts) {
+                const cardHTML = `
+                    <div onclick="openThread(${post.id})" 
+                         class="post-card bg-white border border-zinc-100 rounded-3xl overflow-hidden cursor-pointer">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start">
+                                <div class="text-xs text-zinc-400 font-medium">${new Date(post.createdAt).toLocaleDateString('zh-TW')}</div>
+                                <div class="px-3 py-1 text-[10px] bg-zinc-100 rounded-3xl">${getCategoryName(post.categoryId)}</div>
+                            </div>
+                            
+                            <div class="mt-3 font-semibold text-xl leading-tight line-clamp-2">${post.title || '無標題'}</div>
+                            
+                            <div class="mt-4 text-zinc-600 text-sm line-clamp-3 tail-text">
+                                ${post.content.substring(0, 180)}${post.content.length > 180 ? '...' : ''}
+                            </div>
+                        </div>
+                        
+                        <!-- 縮圖 -->
+                        <div class="px-6 pb-6">
+                            ${await getFirstImagePreview(post.id)}
+                        </div>
+                        
+                        <div class="bg-zinc-50 border-t px-6 py-4 flex justify-between items-center text-xs">
+                            <div class="flex items-center gap-2 text-emerald-600">
+                                <span>💬</span>
+                                <span id="reply-count-${post.id}">${getReplyCount(post.id)}</span>
+                            </div>
+                            <div class="text-zinc-400">${new Date(post.updatedAt).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'})}</div>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += cardHTML;
+            }
+            
+            // 補充 reply count (因為 async)
+            setTimeout(() => updateAllReplyCounts(), 100);
+        }
+        
+        async function getFirstImagePreview(postId) {
+            const attachments = await getAttachments(postId);
+            if (attachments.length === 0) return `<div class="h-2"></div>`;
+            
+            const url = URL.createObjectURL(attachments[0].blob);
+            return `<img src="${url}" class="w-full aspect-video object-cover rounded-2xl" onload="URL.revokeObjectURL('${url}')">`;
+        }
+        
+        function getCategoryName(catId) {
+            const cat = allCategories.find(c => c.id === catId);
+            return cat ? cat.name : "未分類";
+        }
+        
+        function getReplyCount(postId) {
+            return allPosts.filter(p => p.parentId === postId).length;
+        }
+        
+        function updateAllReplyCounts() {
+            allPosts.filter(p => p.parentId === null).forEach(post => {
+                const el = document.getElementById(`reply-count-${post.id}`);
+                if (el) el.textContent = getReplyCount(post.id);
+            });
+        }
+
+        // ==================== 取得附件 ====================
+        async function getAttachments(postId) {
+            return new Promise((resolve) => {
+                const tx = db.transaction("attachments", "readonly");
+                const store = tx.objectStore("attachments");
+                const index = store.index("postId");
+                const req = index.getAll(postId);
+                req.onsuccess = () => resolve(req.result);
+            });
+        }
+
+        // ==================== 開啟詳細 Thread Modal ====================
+        async function openThread(postId) {
+            currentThreadPostId = postId;
+            const modal = document.getElementById("thread-modal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            
+            await renderThreadContent();
+        }
+        
+        async function renderThreadContent() {
+            // 找 root post
+            let rootPost = allPosts.find(p => p.id === currentThreadPostId);
+            if (!rootPost) return;
+            
+            // 渲染主要帖子
+            const mainContainer = document.getElementById("main-post-content");
+            let html = `
+                <div class="text-xs text-zinc-400 mb-2">${new Date(rootPost.createdAt).toLocaleString('zh-TW')}</div>
+                <h2 class="text-3xl font-semibold mb-6">${rootPost.title || '無標題'}</h2>
+                <div class="tail-text text-zinc-700 leading-relaxed text-[15.5px]">${rootPost.content}</div>
+            `;
+            
+            // 主要帖子圖片
+            const atts = await getAttachments(rootPost.id);
+            if (atts.length > 0) {
+                html += `<div class="mt-8 grid grid-cols-2 gap-4">`;
+                for (const att of atts) {
+                    const url = URL.createObjectURL(att.blob);
+                    html += `<img src="${url}" class="rounded-3xl" onload="URL.revokeObjectURL('${url}')">`;
+                }
+                html += `</div>`;
+            }
+            
+            mainContainer.innerHTML = html;
+            
+            // 渲染回覆
+            renderReplies();
+        }
+        
+        async function renderReplies() {
+            const container = document.getElementById("replies-container");
+            container.innerHTML = `<div class="text-xs text-zinc-400 mb-6 font-medium">回覆 (${getReplyCount(currentThreadPostId)})</div>`;
+            
+            const replies = allPosts.filter(p => p.parentId === currentThreadPostId)
+                                   .sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+            
+            for (const reply of replies) {
+                const atts = await getAttachments(reply.id);
+                let replyHTML = `
+                    <div class="border-l-4 border-blue-100 pl-6 mb-10">
+                        <div class="flex gap-3 items-center text-xs text-zinc-400">
+                            <span>${new Date(reply.createdAt).toLocaleString('zh-TW')}</span>
+                            <div class="flex-1 h-px bg-zinc-100"></div>
+                            <button onclick="editReply(${reply.id}); event.stopImmediatePropagation()" class="text-blue-500">編輯</button>
+                            <button onclick="deleteReply(${reply.id}); event.stopImmediatePropagation()" class="text-red-500">刪除</button>
+                        </div>
+                        <div class="tail-text mt-3 text-zinc-700">${reply.content}</div>
+                `;
+                
+                if (atts.length > 0) {
+                    replyHTML += `<div class="mt-6 flex gap-3 flex-wrap">`;
+                    for (const att of atts) {
+                        const url = URL.createObjectURL(att.blob);
+                        replyHTML += `<img src="${url}" class="max-w-[180px] rounded-2xl" onload="URL.revokeObjectURL('${url}')">`;
+                    }
+                    replyHTML += `</div>`;
+                }
+                
+                replyHTML += `</div>`;
+                container.innerHTML += replyHTML;
+            }
+            
+            if (replies.length === 0) {
+                container.innerHTML += `
+                    <div class="text-center py-12 text-zinc-300 text-sm">還沒有回覆<br>快來留言吧！</div>
+                `;
+            }
+        }
+
+        // ==================== 新增回覆 ====================
+        async function sendReply() {
+            const content = document.getElementById("reply-content").value.trim();
+            if (!content && replySelectedImages.length === 0) return;
+            
+            const newPost = {
+                id: generateUUID(),
+                categoryId: allPosts.find(p => p.id === currentThreadPostId).categoryId,
+                parentId: currentThreadPostId,
+                title: null,
+                content: content || "(只有圖片)",
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            // 寫入 posts
+            await new Promise(resolve => {
+                const tx = db.transaction("posts", "readwrite");
+                tx.objectStore("posts").add(newPost);
+                tx.oncomplete = resolve;
+            });
+            
+            // 儲存圖片
+            for (const imgObj of replySelectedImages) {
+                const att = {
+                    id: generateUUID(),
+                    postId: newPost.id,
+                    blob: imgObj.blob
+                };
+                await new Promise(resolve => {
+                    const tx = db.transaction("attachments", "readwrite");
+                    tx.objectStore("attachments").add(att);
+                    tx.oncomplete = resolve;
+                });
+            }
+            
+            // 清空表單
+            document.getElementById("reply-content").value = "";
+            document.getElementById("reply-image-preview").innerHTML = "";
+            replySelectedImages = [];
+            
+            // 重新載入資料並渲染
+            await loadAllData();
+            await renderThreadContent();
+        }
+        
+        function handleReplyImageSelect(e) {
+            const files = e.target.files;
+            Array.from(files).forEach(async file => {
+                const compressedBlob = await compressImage(file);
+                const previewUrl = URL.createObjectURL(compressedBlob);
+                
+                replySelectedImages.push({previewUrl, blob: compressedBlob});
+                
+                const div = document.createElement("div");
+                div.className = "relative flex-shrink-0";
+                div.innerHTML = `
+                    <img src="${previewUrl}" class="h-20 w-20 object-cover rounded-2xl">
+                    <button onclick="removeReplyImage(this)" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center">×</button>
+                `;
+                document.getElementById("reply-image-preview").appendChild(div);
+            });
+        }
+        
+        function removeReplyImage(btn) {
+            const idx = Array.from(btn.parentElement.parentElement.children).indexOf(btn.parentElement);
+            replySelectedImages.splice(idx, 1);
+            btn.parentElement.remove();
+        }
+
+        // ==================== 編輯回覆 ====================
+        let editingReplyId = null;
+        
+        async function editReply(replyId) {
+            editingReplyId = replyId;
+            const reply = allPosts.find(p => p.id === replyId);
+            if (!reply) return;
+            
+            document.getElementById("reply-content").value = reply.content;
+            
+            // 清空舊預覽
+            replySelectedImages = [];
+            document.getElementById("reply-image-preview").innerHTML = "";
+            
+            // 載入已存在圖片
+            const atts = await getAttachments(replyId);
+            for (const att of atts) {
+                const url = URL.createObjectURL(att.blob);
+                replySelectedImages.push({previewUrl: url, blob: att.blob});
+                
+                const div = document.createElement("div");
+                div.className = "relative flex-shrink-0";
+                div.innerHTML = `
+                    <img src="${url}" class="h-20 w-20 object-cover rounded-2xl">
+                    <button onclick="this.parentElement.remove(); replySelectedImages.splice(${replySelectedImages.length-1},1)" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center">×</button>
+                `;
+                document.getElementById("reply-image-preview").appendChild(div);
+            }
+            
+            // 暫時把送出鈕改成更新
+            const oldBtn = document.querySelector("#thread-modal button[onclick='sendReply()']");
+            if (oldBtn) {
+                oldBtn.textContent = "更新回覆";
+                oldBtn.setAttribute("onclick", "updateReply()");
+            }
+        }
+        
+        async function updateReply() {
+            if (!editingReplyId) return;
+            
+            const content = document.getElementById("reply-content").value.trim();
+            const post = allPosts.find(p => p.id === editingReplyId);
+            post.content = content || "(只有圖片)";
+            post.updatedAt = new Date().toISOString();
+            
+            // 更新 posts
+            await new Promise(resolve => {
+                const tx = db.transaction("posts", "readwrite");
+                tx.objectStore("posts").put(post);
+                tx.oncomplete = resolve;
+            });
+            
+            // 先刪除舊附件
+            await new Promise(resolve => {
+                const tx = db.transaction("attachments", "readwrite");
+                const index = tx.objectStore("attachments").index("postId");
+                const req = index.getAllKeys(editingReplyId);
+                req.onsuccess = () => {
+                    req.result.forEach(key => {
+                        tx.objectStore("attachments").delete(key);
+                    });
+                };
+                tx.oncomplete = resolve;
+            });
+            
+            // 加入新附件
+            for (const imgObj of replySelectedImages) {
+                if (imgObj.blob) {
+                    const att = { id: generateUUID(), postId: editingReplyId, blob: imgObj.blob };
+                    await new Promise(r => {
+                        const tx = db.transaction("attachments", "readwrite");
+                        tx.objectStore("attachments").add(att);
+                        tx.oncomplete = r;
+                    });
+                }
+            }
+            
+            // 還原按鈕
+            const btn = document.querySelector("#thread-modal button[onclick='updateReply()']");
+            if (btn) {
+                btn.textContent = "↑";
+                btn.setAttribute("onclick", "sendReply()");
+            }
+            
+            editingReplyId = null;
+            document.getElementById("reply-content").value = "";
+            document.getElementById("reply-image-preview").innerHTML = "";
+            replySelectedImages = [];
+            
+            await loadAllData();
+            await renderThreadContent();
+        }
+
+        function deleteReply(replyId) {
+            if (!confirm("確定刪除這則回覆？")) return;
+            
+            deletePostAndAttachments(replyId, false);
+        }
+
+        // ==================== 刪除帖子 (含子回覆) ====================
+        async function deletePostAndAttachments(postId, withChildren = true) {
+            // 先刪除附件
+            const attTx = db.transaction("attachments", "readwrite");
+            const attIndex = attTx.objectStore("attachments").index("postId");
+            const attReq = attIndex.getAllKeys(postId);
+            attReq.onsuccess = () => {
+                attReq.result.forEach(k => attTx.objectStore("attachments").delete(k));
+            };
+            
+            // 刪除自己
+            await new Promise(resolve => {
+                const tx = db.transaction("posts", "readwrite");
+                tx.objectStore("posts").delete(postId);
+                tx.oncomplete = resolve;
+            });
+            
+            if (withChildren) {
+                // 遞迴刪除子回覆
+                const children = allPosts.filter(p => p.parentId === postId);
+                for (const child of children) {
+                    await deletePostAndAttachments(child.id, true);
+                }
+            }
+            
+            await loadAllData();
+            
+            // 如果正在顯示的 thread 被刪除就關閉
+            if (currentThreadPostId === postId || allPosts.find(p => p.id === currentThreadPostId) === undefined) {
+                closeThreadModal();
+            } else {
+                await renderThreadContent();
+            }
+            renderPostList();
+        }
+
+        async function deleteCurrentThread() {
+            if (!confirm("確定刪除整個討論串（包含所有回覆）？")) return;
+            await deletePostAndAttachments(currentThreadPostId, true);
+        }
+
+        // ==================== 編輯目前 thread 的主帖 ====================
+        function editCurrentThreadPost() {
+            const post = allPosts.find(p => p.id === currentThreadPostId);
+            if (!post || post.parentId !== null) return;
+            
+            closeThreadModal();
+            openEditPostModal(post);
+        }
+
+        // ==================== 開啟新增帖子 Modal ====================
+        function openNewPostModal() {
+            editingPostId = null;
+            selectedImages = [];
+            document.getElementById("post-modal").classList.remove("hidden");
+            document.getElementById("post-modal").classList.add("flex");
+            
+            document.getElementById("modal-title").textContent = "發新帖";
+            document.getElementById("save-post-btn").textContent = "發佈貼文";
+            
+            // 清空表單
+            document.getElementById("post-title").value = "";
+            document.getElementById("post-content").value = "";
+            document.getElementById("image-preview").innerHTML = "";
+            
+            // 填充分類選單
+            fillCategorySelect();
+        }
+        
+        function fillCategorySelect() {
+            const select = document.getElementById("post-category");
+            select.innerHTML = "";
+            allCategories.forEach(cat => {
+                const opt = document.createElement("option");
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                select.appendChild(opt);
+            });
+        }
+        
+        async function savePost() {
+            const title = document.getElementById("post-title").value.trim();
+            const content = document.getElementById("post-content").value.trim();
+            const categoryId = parseInt(document.getElementById("post-category").value);
+            
+            if (!content && selectedImages.length === 0) {
+                alert("請至少填寫內容或上傳圖片");
+                return;
+            }
+            
+            const now = new Date().toISOString();
+            
+            let post;
+            
+            if (editingPostId) {
+                // 更新
+                post = allPosts.find(p => p.id === editingPostId);
+                post.title = title || null;
+                post.content = content || "(只有圖片)";
+                post.updatedAt = now;
+                
+                await new Promise(resolve => {
+                    const tx = db.transaction("posts", "readwrite");
+                    tx.objectStore("posts").put(post);
+                    tx.oncomplete = resolve;
+                });
+                
+                // 先刪除舊圖片
+                const oldAttTx = db.transaction("attachments", "readwrite");
+                const idx = oldAttTx.objectStore("attachments").index("postId");
+                const keysReq = idx.getAllKeys(editingPostId);
+                keysReq.onsuccess = () => {
+                    keysReq.result.forEach(k => oldAttTx.objectStore("attachments").delete(k));
+                };
+            } else {
+                // 新增
+                post = {
+                    id: generateUUID(),
+                    categoryId: categoryId,
+                    parentId: null,
+                    title: title || null,
+                    content: content || "(只有圖片)",
+                    createdAt: now,
+                    updatedAt: now
+                };
+                
+                await new Promise(resolve => {
+                    const tx = db.transaction("posts", "readwrite");
+                    tx.objectStore("posts").add(post);
+                    tx.oncomplete = resolve;
+                });
+            }
+            
+            // 儲存新圖片
+            for (const imgObj of selectedImages) {
+                const att = {
+                    id: generateUUID(),
+                    postId: post.id,
+                    blob: imgObj.blob
+                };
+                await new Promise(resolve => {
+                    const tx = db.transaction("attachments", "readwrite");
+                    tx.objectStore("attachments").add(att);
+                    tx.oncomplete = resolve;
+                });
+            }
+            
+            closePostModal();
+            await loadAllData();
+        }
+        
+        function closePostModal() {
+            const modal = document.getElementById("post-modal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+            selectedImages = [];
+        }
+        
+        function handleImageSelect(e) {
+            const files = Array.from(e.target.files);
+            
+            files.forEach(async (file) => {
+                const blob = await compressImage(file);
+                const previewUrl = URL.createObjectURL(blob);
+                
+                selectedImages.push({previewUrl, blob});
+                
+                const div = document.createElement("div");
+                div.className = "relative";
+                div.innerHTML = `
+                    <img src="${previewUrl}" class="rounded-3xl w-full aspect-video object-cover">
+                    <button onclick="removePreviewImage(this)" 
+                            class="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">×</button>
+                `;
+                document.getElementById("image-preview").appendChild(div);
+            });
+        }
+        
+        function removePreviewImage(btn) {
+            const idx = Array.from(btn.parentElement.parentElement.children).indexOf(btn.parentElement);
+            URL.revokeObjectURL(selectedImages[idx].previewUrl);
+            selectedImages.splice(idx, 1);
+            btn.parentElement.remove();
+        }
+        
+        function openEditPostModal(post) {
+            editingPostId = post.id;
+            document.getElementById("post-modal").classList.remove("hidden");
+            document.getElementById("post-modal").classList.add("flex");
+            
+            document.getElementById("modal-title").textContent = "編輯帖子";
+            document.getElementById("save-post-btn").textContent = "儲存修改";
+            
+            document.getElementById("post-title").value = post.title || "";
+            document.getElementById("post-content").value = post.content;
+            fillCategorySelect();
+            document.getElementById("post-category").value = post.categoryId;
+            
+            // 清空預覽
+            document.getElementById("image-preview").innerHTML = "";
+            selectedImages = [];
+            
+            // 載入現有圖片
+            getAttachments(post.id).then(atts => {
+                atts.forEach(att => {
+                    const url = URL.createObjectURL(att.blob);
+                    selectedImages.push({previewUrl: url, blob: att.blob});
+                    
+                    const div = document.createElement("div");
+                    div.className = "relative";
+                    div.innerHTML = `
+                        <img src="${url}" class="rounded-3xl w-full aspect-video object-cover">
+                        <button onclick="removePreviewImage(this)" 
+                                class="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs">×</button>
+                    `;
+                    document.getElementById("image-preview").appendChild(div);
+                });
+            });
+        }
+
+        // ==================== 分類管理 ====================
+        function manageCategories() {
+            const modal = document.getElementById("category-modal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            renderCategoryList();
+        }
+        
+        function closeCategoryModal() {
+            const modal = document.getElementById("category-modal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+        
+        function renderCategoryList() {
+            const container = document.getElementById("category-list");
+            container.innerHTML = "";
+            
+            allCategories.forEach(cat => {
+                const row = document.createElement("div");
+                row.className = "flex items-center justify-between py-4 border-b last:border-none group";
+                row.innerHTML = `
+                    <div class="font-medium">${cat.name}</div>
+                    <div class="flex gap-3 opacity-0 group-hover:opacity-100 transition-all">
+                        <button onclick="editCategory(${cat.id}); event.stopImmediatePropagation()" class="text-blue-500 text-sm">修改</button>
+                        <button onclick="deleteCategory(${cat.id}); event.stopImmediatePropagation()" class="text-red-500 text-sm">刪除</button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+        
+        function showAddCategoryForm() {
+            const name = prompt("新分類名稱：");
+            if (!name || !name.trim()) return;
+            
+            const tx = db.transaction("categories", "readwrite");
+            const store = tx.objectStore("categories");
+            store.add({ name: name.trim() }).onsuccess = () => {
+                loadAllData();
+                renderCategoryList();
+            };
+        }
+        
+        function editCategory(catId) {
+            const cat = allCategories.find(c => c.id === catId);
+            const newName = prompt("修改分類名稱：", cat.name);
+            if (!newName || newName === cat.name) return;
+            
+            cat.name = newName.trim();
+            const tx = db.transaction("categories", "readwrite");
+            tx.objectStore("categories").put(cat).onsuccess = () => {
+                loadAllData();
+            };
+        }
+        
+        async function deleteCategory(catId) {
+            const postsInCat = allPosts.filter(p => p.parentId === null && p.categoryId === catId);
+            if (postsInCat.length > 0) {
+                if (!confirm(`此分類還有 ${postsInCat.length} 篇帖子，確定要刪除分類嗎？\n帖子將移至「未分類」`)) return;
+            }
+            
+            // 刪除分類
+            await new Promise(resolve => {
+                const tx = db.transaction("categories", "readwrite");
+                tx.objectStore("categories").delete(catId);
+                tx.oncomplete = resolve;
+            });
+            
+            // 把相關帖子移到第一個分類 (未分類)
+            const firstCat = allCategories[0];
+            if (firstCat) {
+                const updateTx = db.transaction("posts", "readwrite");
+                const store = updateTx.objectStore("posts");
+                postsInCat.forEach(p => {
+                    p.categoryId = firstCat.id;
+                    store.put(p);
+                });
+            }
+            
+            await loadAllData();
+            renderCategoryList();
+        }
+
+        // ==================== JSON 匯出 / 匯入 ====================
+        async function exportJSON() {
+            const data = {
+                version: "1.0",
+                exportedAt: new Date().toISOString(),
+                categories: allCategories,
+                posts: allPosts.map(p => ({
+                    id: p.id,
+                    categoryId: p.categoryId,
+                    parentId: p.parentId,
+                    title: p.title,
+                    content: p.content,
+                    createdAt: p.createdAt,
+                    updatedAt: p.updatedAt
+                }))
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `forum-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        async function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!confirm("匯入會完全取代現有文字資料，圖片將遺失。\n確定繼續？")) return;
+            
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    
+                    // 清空現有資料
+                    await new Promise(r => {
+                        const tx = db.transaction(["categories", "posts", "attachments"], "readwrite");
+                        tx.objectStore("categories").clear();
+                        tx.objectStore("posts").clear();
+                        tx.objectStore("attachments").clear();
+                        tx.oncomplete = r;
+                    });
+                    
+                    // 寫入新分類
+                    const catTx = db.transaction("categories", "readwrite");
+                    const catStore = catTx.objectStore("categories");
+                    imported.categories.forEach(cat => catStore.add(cat));
+                    
+                    // 寫入新帖子
+                    const postTx = db.transaction("posts", "readwrite");
+                    const postStore = postTx.objectStore("posts");
+                    imported.posts.forEach(post => postStore.add(post));
+                    
+                    await loadAllData();
+                    alert("匯入成功！\n圖片已重置（因為備份不包含圖片）");
+                } catch(err) {
+                    alert("匯入失敗，JSON 格式錯誤");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ==================== 儲存空間顯示 ====================
+        async function updateStorageUsage() {
+            if (!('storage' in navigator)) return;
+            
+            const estimate = await navigator.storage.estimate();
+            const usageMB = (estimate.usage / (1024*1024)).toFixed(1);
+            const quotaMB = (estimate.quota / (1024*1024)).toFixed(0);
+            
+            document.getElementById("usage-text").textContent = `${usageMB} MB / ${quotaMB} MB`;
+            document.getElementById("footer-usage").textContent = `使用中：${usageMB} MB`;
+            
+            // modal 用
+            window.currentEstimate = {usage: estimate.usage, quota: estimate.quota};
+        }
+        
+        function showStorageModal() {
+            const modal = document.getElementById("storage-modal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            
+            if (!window.currentEstimate) return;
+            
+            const usageMB = (window.currentEstimate.usage / (1024*1024)).toFixed(1);
+            const quotaMB = (window.currentEstimate.quota / (1024*1024)).toFixed(0);
+            
+            document.getElementById("modal-usage").textContent = `${usageMB} MB`;
+            document.getElementById("modal-quota").textContent = `${quotaMB} MB`;
+            document.getElementById("modal-progress").style.width = `${(window.currentEstimate.usage / window.currentEstimate.quota) * 100}%`;
+        }
+        
+        function closeStorageModal() {
+            const modal = document.getElementById("storage-modal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+        
+        async function requestPersistence() {
+            if (!('storage' in navigator && 'persist' in navigator.storage)) {
+                alert("你的瀏覽器不支援持久化請求");
+                return;
+            }
+            
+            const isPersisted = await navigator.storage.persisted();
+            if (isPersisted) {
+                alert("已處於持久化狀態！");
+                return;
+            }
+            
+            const granted = await navigator.storage.persist();
+            document.getElementById("persist-status").textContent = granted ? "已持久化 ✓" : "未成功";
+            alert(granted ? "已成功申請持久化！瀏覽器將盡量保留資料。" : "申請被拒絕");
+        }
+
+        // ==================== PWA 安裝 ====================
+        function installPWA() {
+            if (!deferredPrompt) {
+                alert("你的瀏覽器不支援加入主畫面，或已經安裝");
+                return;
+            }
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => {
+                deferredPrompt = null;
+            });
+        }
+
+        // ==================== 技術說明 Drawer ====================
+        function showTechInfo() {
+            const drawer = document.getElementById("tech-drawer");
+            drawer.classList.remove("hidden");
+            setTimeout(() => {
+                drawer.style.transform = "translateY(0)";
+            }, 10);
+        }
+        
+        function hideTechInfo() {
+            const drawer = document.getElementById("tech-drawer");
+            drawer.style.transform = "translateY(100%)";
+            setTimeout(() => drawer.classList.add("hidden"), 300);
+        }
+
+        function closeThreadModal() {
+            const modal = document.getElementById("thread-modal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+            currentThreadPostId = null;
+        }
+
+        function refreshAll() {
+            loadAllData();
+        }
+
+        // ==================== 啟動程式 ====================
+        async function startApp() {
+            initTailwind();
+            
+            // PWA 安裝提示監聽
+            window.addEventListener("beforeinstallprompt", (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                document.getElementById("a2hs-btn").classList.remove("hidden");
+            });
+            
+            await initDB();
+            await loadAllData();
+            
+            // 初始持久化狀態
+            if ('storage' in navigator && 'persisted' in navigator.storage) {
+                const persisted = await navigator.storage.persisted();
+                document.getElementById("persist-status").textContent = persisted ? "已持久化 ✓" : "申請持久儲存";
+            }
+            
+            // 每 30 秒更新一次儲存量
+            setInterval(updateStorageUsage, 30000);
+            
+            // 讓使用者知道這是單檔案應用
+            console.log("%c✅ 私人論壇已載入完成\n全部資料儲存在本地 IndexedDB", "color:#3b82f6; font-size:13px");
+        }
+        
+        // 啟動
+        window.onload = startApp;
+    </script>
+</body>
+</html>

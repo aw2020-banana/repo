@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>年費訂閱追蹤</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f0f2f5; color: #333; }
+
+  /* Summary Bar */
+  .summary-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: linear-gradient(135deg, #1a73e8, #0d47a1);
+    color: white; padding: 16px 20px;
+    display: flex; justify-content: space-around; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    flex-wrap: wrap; gap: 8px;
+  }
+  .summary-item { text-align: center; }
+  .summary-label { font-size: 12px; opacity: 0.85; text-transform: uppercase; letter-spacing: 1px; }
+  .summary-value { font-size: 28px; font-weight: 700; }
+  .summary-sub { font-size: 12px; opacity: 0.7; }
+
+  .container { max-width: 720px; margin: 0 auto; padding: 20px 16px; }
+
+  /* Controls */
+  .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .controls label { font-size: 14px; color: #555; }
+  .controls select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; background: white; font-size: 14px; cursor: pointer; outline: none; }
+  .btn-export { padding: 8px 16px; background: #34a853; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+  .btn-export:hover { background: #2d9147; }
+
+  /* Add Form */
+  .add-form { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .add-form input { flex: 1; min-width: 120px; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s; }
+  .add-form input:focus { border-color: #1a73e8; }
+  .btn-add { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
+  .btn-add:hover { background: #1558c0; }
+
+  /* List */
+  .list { display: flex; flex-direction: column; gap: 10px; }
+
+  /* Card */
+  .card { background: white; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 12px; transition: opacity 0.2s; }
+  .card.muted { opacity: 0.45; }
+  .card-info { flex: 1; min-width: 0; }
+  .card-name { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card.muted .card-name { text-decoration: line-through; color: #888; }
+  .card-fees { font-size: 13px; color: #666; margin-top: 2px; }
+  .card-fees span { margin-right: 12px; }
+  .card-fees .monthly { color: #1a73e8; }
+
+  /* Inline Edit */
+  .card-edit-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .card-edit-row input { flex: 1; min-width: 80px; padding: 6px 10px; border: 1px solid #1a73e8; border-radius: 6px; font-size: 14px; outline: none; }
+  .btn-save { padding: 6px 14px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .btn-cancel { padding: 6px 14px; background: #eee; color: #333; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+
+  /* Action Buttons */
+  .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .btn-icon { width: 34px; height: 34px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+  .btn-edit { background: #e8f0fe; color: #1a73e8; }
+  .btn-edit:hover { background: #d2e3fc; }
+  .btn-mute { background: #fce8e6; color: #d93025; }
+  .btn-mute:hover { background: #f5c6c3; }
+  .btn-delete { background: #fce8e6; color: #d93025; }
+  .btn-delete:hover { background: #f5c6c3; }
+  .card.muted .btn-mute { background: #e6f4ea; color: #34a853; }
+  .card.muted .btn-mute:hover { background: #ceead6; }
+
+  /* Empty State */
+  .empty { text-align: center; padding: 40px 20px; color: #aaa; }
+  .empty-icon { font-size: 48px; margin-bottom: 10px; }
+
+  /* Confirm overlay */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+  .overlay.active { display: flex; }
+  .modal { background: white; border-radius: 16px; padding: 24px; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+  .modal h3 { margin-bottom: 8px; font-size: 18px; }
+  .modal p { color: #666; font-size: 14px; margin-bottom: 20px; }
+  .modal-btns { display: flex; gap: 10px; justify-content: center; }
+  .btn-confirm { padding: 10px 24px; background: #d93025; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
+  .btn-cancel-modal { padding: 10px 24px; background: #eee; color: #333; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
+
+  /* Info Section */
+  .info-section { margin-top: 40px; }
+  .info-toggle { width: 100%; background: white; border: none; border-radius: 12px; padding: 16px 20px; text-align: left; font-size: 15px; font-weight: 600; color: #1a73e8; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+  .info-toggle:hover { background: #f8f9ff; }
+  .info-body { display: none; background: white; border-radius: 0 0 12px 12px; padding: 0 20px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.06); margin-top: -4px; }
+  .info-body.open { display: block; }
+  .info-body h3 { font-size: 14px; color: #1a73e8; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-body p { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 8px; }
+  .info-body ul { padding-left: 20px; }
+  .info-body ul li { font-size: 14px; color: #555; line-height: 1.8; }
+  .info-body code { background: #f1f3f4; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; color: #333; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-right: 6px; }
+  .badge-green { background: #e6f4ea; color: #34a853; }
+  .badge-blue  { background: #e8f0fe; color: #1a73e8; }
+  .badge-orange { background: #fef7e0; color: #f29900; }
+  .divider { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+
+  .footer { text-align: center; font-size: 12px; color: #bbb; margin-top: 32px; padding-bottom: 24px; }
+
+  @media (max-width: 480px) {
+    .summary-value { font-size: 22px; }
+    .card-name { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Summary Bar -->
+<div class="summary-bar">
+  <div class="summary-item">
+    <div class="summary-label">年費總計</div>
+    <div class="summary-value" id="totalAnnual">$0</div>
+    <div class="summary-sub">HKD / 年</div>
+  </div>
+  <div class="summary-item">
+    <div class="summary-label">月費總計</div>
+    <div class="summary-value" id="totalMonthly">$0</div>
+    <div class="summary-sub">HKD / 月</div>
+  </div>
+  <div class="summary-item">
+    <div class="summary-label">訂閱數目</div>
+    <div class="summary-value" id="totalCount">0</div>
+    <div class="summary-sub">項目（已啟用）</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Controls -->
+  <div class="controls">
+    <div>
+      <label>排序：</label>
+      <select id="sortSelect" onchange="renderList()">
+        <option value="newest">最新加入</option>
+        <option value="name">名稱 A → Z</option>
+        <option value="high">年費 高 → 低</option>
+        <option value="low">年費 低 → 高</option>
+      </select>
+    </div>
+    <button class="btn-export" onclick="exportJSON()">📥 匯出備份</button>
+  </div>
+
+  <!-- Add Form -->
+  <div class="add-form">
+    <input type="text" id="inputName" placeholder="訂閱名稱（如 Netflix）" maxlength="40">
+    <input type="number" id="inputFee" placeholder="年費（HKD）" min="0" step="0.01">
+    <button class="btn-add" onclick="addRecord()">＋ 新增</button>
+  </div>
+
+  <!-- List -->
+  <div class="list" id="list"></div>
+
+  <!-- Info Section -->
+  <div class="info-section">
+    <button class="info-toggle" onclick="toggleInfo()">
+      <span>ℹ️ &nbsp;關於此工具 · 技術說明 · 常見疑問</span>
+      <span id="infoArrow">▼</span>
+    </button>
+    <div class="info-body" id="infoBody">
+
+      <h3>📌 工具簡介</h3>
+      <p>這是一個完全在本地瀏覽器運行的靜態網頁工具，專為記錄和計算各類電子媒體、串流服務及軟件的年費訂閱而設計。你只需輸入訂閱名稱和年費，月費及匯總將自動計算。</p>
+
+      <hr class="divider">
+      <h3>🔒 私隱與安全</h3>
+      <p><span class="badge badge-green">✓ 完全離線</span>所有資料只儲存在你自己的裝置上，<strong>絕不上傳至任何伺服器</strong>，亦不需要網絡連線運行。</p>
+      <p><span class="badge badge-green">✓ 無帳號登入</span>無需註冊、無需電郵，沒有任何追蹤或分析代碼。</p>
+      <p><span class="badge badge-green">✓ 開放代碼</span>此頁面為單一 HTML 檔案，你可以直接查閱所有源代碼，確保沒有隱藏功能。</p>
+
+      <hr class="divider">
+      <h3>💾 資料儲存方式</h3>
+      <p>本工具使用瀏覽器內建的 <code>LocalStorage</code> 技術儲存資料。資料以 JSON 格式存放，key 名稱為 <code>subscriptions</code>。</p>
+      <ul>
+        <li>每次新增、修改、刪除或 Mute 操作後，資料會立即自動儲存</li>
+        <li>關閉瀏覽器或重啟電腦後，資料仍然保留</li>
+        <li>資料儲存在瀏覽器的本地沙盒內，其他網站無法讀取</li>
+        <li>LocalStorage 上限約為 <strong>5–10 MB</strong>，足夠儲存數千條訂閱記錄</li>
+      </ul>
+
+      <hr class="divider">
+      <h3>⚠️ 何時資料會消失？</h3>
+      <p><span class="badge badge-orange">注意</span>以下情況會導致資料遺失，請定期使用「📥 匯出備份」功能：</p>
+      <ul>
+        <li>在瀏覽器設定中手動「清除瀏覽資料」並勾選了 Cookie / 本地儲存</li>
+        <li>使用無痕模式（Incognito）開啟此頁面——無痕模式關閉後資料即消失</li>
+        <li>更換瀏覽器或裝置（不同瀏覽器的 LocalStorage 互不相通）</li>
+        <li>部分手機在儲存空間極度不足時，系統可能自動清除瀏覽器快取</li>
+      </ul>
+
+      <hr class="divider">
+      <h3>📥 匯出與備份</h3>
+      <p>點擊右上角「📥 匯出備份」按鈕，即可將所有記錄下載為 <code>.json</code> 檔案。備份檔案可用文字編輯器查閱，格式為標準 JSON，方便日後遷移至其他工具。</p>
+      <p><span class="badge badge-blue">提示</span>建議每隔一段時間匯出一次，存放在雲端硬碟（如 Google Drive、iCloud）以確保安全。</p>
+
+      <hr class="divider">
+      <h3>🔇 Mute 功能說明</h3>
+      <p>Mute 的用途是「暫時停用計算」，例如你已取消某訂閱但仍想保留記錄，或某費用為季節性支出，不想長期計入月費匯總。</p>
+      <ul>
+        <li>Muted 項目會變灰並置於列表底部，不計入年費及月費總計</li>
+        <li>再次點擊 🔊 按鈕即可恢復，資料不會遺失</li>
+      </ul>
+
+      <hr class="divider">
+      <h3>🧮 計算方式</h3>
+      <p>月費換算公式：<code>月費 = 年費 ÷ 12</code>（取小數點後一位顯示）</p>
+      <p>匯總只計算 <strong>未被 Mute</strong> 的項目，公式如下：</p>
+      <ul>
+        <li>年費總計 = 所有啟用項目年費之和</li>
+        <li>月費總計 = 年費總計 ÷ 12</li>
+      </ul>
+
+      <hr class="divider">
+      <h3>🌐 瀏覽器相容性</h3>
+      <p>LocalStorage 及所有使用的 Web API 均為現代瀏覽器標準功能，相容性如下：</p>
+      <ul>
+        <li><span class="badge badge-green">✓</span> Chrome / Edge 79+</li>
+        <li><span class="badge badge-green">✓</span> Firefox 75+</li>
+        <li><span class="badge badge-green">✓</span> Safari 13+（iPhone / iPad）</li>
+        <li><span class="badge badge-green">✓</span> Samsung Internet 12+</li>
+        <li><span class="badge badge-orange">△</span> IE 11 不支援部分功能，不建議使用</li>
+      </ul>
+
+    </div>
+  </div>
+
+  <div class="footer">年費訂閱追蹤 · 資料儲存於本地裝置 · 不上傳任何資料</div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>確認刪除</h3>
+    <p id="modalMsg">確定要刪除這項訂閱嗎？</p>
+    <div class="modal-btns">
+      <button class="btn-cancel-modal" onclick="closeModal()">取消</button>
+      <button class="btn-confirm" onclick="confirmDelete()">刪除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+let deleteTargetId = null;
+let editingId = null;
+
+function save() { localStorage.setItem('subscriptions', JSON.stringify(data)); }
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function fmt(n) { return '$' + Number(n).toLocaleString('zh-HK', {minimumFractionDigits: 0, maximumFractionDigits: 1}); }
+
+function addRecord() {
+  const name = document.getElementById('inputName').value.trim();
+  const fee  = parseFloat(document.getElementById('inputFee').value);
+  if (!name) { alert('請輸入訂閱名稱'); return; }
+  if (isNaN(fee) || fee < 0) { alert('請輸入有效年費'); return; }
+  data.unshift({ id: genId(), name, annualFee: fee, muted: false });
+  save(); renderList();
+  document.getElementById('inputName').value = '';
+  document.getElementById('inputFee').value = '';
+  document.getElementById('inputName').focus();
+}
+
+function getSorted() {
+  const sort = document.getElementById('sortSelect').value;
+  let arr = [...data];
+  if (sort === 'name') arr.sort((a,b) => a.name.localeCompare(b.name, 'zh-HK'));
+  else if (sort === 'high') arr.sort((a,b) => b.annualFee - a.annualFee);
+  else if (sort === 'low')  arr.sort((a,b) => a.annualFee - b.annualFee);
+  arr.sort((a,b) => (a.muted ? 1 : 0) - (b.muted ? 1 : 0));
+  return arr;
+}
+
+function renderList() {
+  const list = document.getElementById('list');
+  const sorted = getSorted();
+  const active = data.filter(r => !r.muted);
+  const totalAnnual = active.reduce((s, r) => s + r.annualFee, 0);
+  document.getElementById('totalAnnual').textContent = fmt(totalAnnual);
+  document.getElementById('totalMonthly').textContent = fmt(totalAnnual / 12);
+  document.getElementById('totalCount').textContent = active.length;
+
+  if (sorted.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div>尚未有訂閱記錄<br>請在上方新增</div></div>';
+    return;
+  }
+
+  list.innerHTML = sorted.map(r => {
+    const monthly = (r.annualFee / 12).toFixed(1);
+    const isEditing = editingId === r.id;
+    return `
+    <div class="card${r.muted ? ' muted' : ''}" id="card-${r.id}">
+      <div class="card-info">
+        ${isEditing ? `
+          <div class="card-edit-row">
+            <input type="text" id="edit-name-${r.id}" value="${escHtml(r.name)}" maxlength="40" placeholder="名稱">
+            <input type="number" id="edit-fee-${r.id}" value="${r.annualFee}" min="0" step="0.01" placeholder="年費">
+            <button class="btn-save" onclick="saveEdit('${r.id}')">✓ 儲存</button>
+            <button class="btn-cancel" onclick="cancelEdit()">✕</button>
+          </div>
+        ` : `
+          <div class="card-name">${escHtml(r.name)}</div>
+          <div class="card-fees">
+            <span>年費 <strong>${fmt(r.annualFee)}</strong></span>
+            <span class="monthly">月費 <strong>${fmt(monthly)}</strong></span>
+          </div>
+        `}
+      </div>
+      ${!isEditing ? `
+      <div class="card-actions">
+        <button class="btn-icon btn-edit" onclick="startEdit('${r.id}')" title="編輯">✏️</button>
+        <button class="btn-icon btn-mute" onclick="toggleMute('${r.id}')" title="${r.muted ? '取消 Mute' : 'Mute'}">
+          ${r.muted ? '🔊' : '🔇'}
+        </button>
+        <button class="btn-icon btn-delete" onclick="askDelete('${r.id}', '${escHtml(r.name)}')" title="刪除">🗑️</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function startEdit(id) { editingId = id; renderList(); setTimeout(()=>document.getElementById('edit-name-'+id)?.focus(),50); }
+function cancelEdit() { editingId = null; renderList(); }
+function saveEdit(id) {
+  const name = document.getElementById('edit-name-'+id).value.trim();
+  const fee  = parseFloat(document.getElementById('edit-fee-'+id).value);
+  if (!name) { alert('請輸入名稱'); return; }
+  if (isNaN(fee) || fee < 0) { alert('請輸入有效年費'); return; }
+  const r = data.find(r => r.id === id);
+  if (r) { r.name = name; r.annualFee = fee; }
+  editingId = null; save(); renderList();
+}
+
+function toggleMute(id) {
+  const r = data.find(r => r.id === id);
+  if (r) r.muted = !r.muted;
+  save(); renderList();
+}
+
+function askDelete(id, name) {
+  deleteTargetId = id;
+  document.getElementById('modalMsg').textContent = `確定要刪除「${name}」嗎？`;
+  document.getElementById('overlay').classList.add('active');
+}
+function closeModal() { document.getElementById('overlay').classList.remove('active'); deleteTargetId = null; }
+function confirmDelete() {
+  data = data.filter(r => r.id !== deleteTargetId);
+  save(); renderList(); closeModal();
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'subscriptions_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+function toggleInfo() {
+  const body = document.getElementById('infoBody');
+  const arrow = document.getElementById('infoArrow');
+  const open = body.classList.toggle('open');
+  arrow.textContent = open ? '▲' : '▼';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.activeElement.id === 'inputName' || document.activeElement.id === 'inputFee') addRecord();
+  }
+  if (e.key === 'Escape') { cancelEdit(); closeModal(); }
+});
+
+renderList();
+</script>
+</body>
+</html>

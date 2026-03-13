@@ -47,7 +47,7 @@
   .container { max-width: 720px; margin: 0 auto; padding: 20px 16px; }
 
   /* ── Controls ── */
-  .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+  .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
   .controls label { font-size: 14px; color: #555; }
   .controls select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; background: white; font-size: 14px; cursor: pointer; outline: none; }
   .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -56,25 +56,11 @@
   .btn-import { padding: 8px 16px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
   .btn-import:hover { background: #1558c0; }
 
-  /* ── Storage Info Bar ── */
-  .storage-info {
-    background: white; border-radius: 10px; padding: 10px 16px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 14px;
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-  }
-  .storage-info-icon { font-size: 18px; }
-  .storage-detail { flex: 1; min-width: 180px; }
-  .storage-detail-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-  .storage-detail-row span { font-size: 12px; color: #555; }
-  .storage-detail-row strong { font-size: 12px; color: #333; }
-  .storage-progress { height: 6px; background: #e8eaed; border-radius: 3px; overflow: hidden; }
-  .storage-progress-bar { height: 100%; background: linear-gradient(90deg, #1a73e8, #34a853); border-radius: 3px; transition: width 0.4s; min-width: 2px; }
-  .storage-badges { display: flex; gap: 6px; flex-wrap: wrap; }
-  .s-badge { font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: 600; }
-  .s-badge-green { background: #e6f4ea; color: #1e8e3e; }
-  .s-badge-orange { background: #fef7e0; color: #b06000; }
-  .s-badge-blue { background: #e8f0fe; color: #1a73e8; }
-  .s-badge-grey { background: #f1f3f4; color: #666; }
+  /* ── Persist Badge ── */
+  .persist-badge { display: inline-flex; align-items: center; font-size: 12px; padding: 4px 10px; border-radius: 12px; font-weight: 600; }
+  .persist-badge-green { background: #e6f4ea; color: #1e8e3e; }
+  .persist-badge-orange { background: #fef7e0; color: #b06000; }
+  .persist-badge-grey { background: #f1f3f4; color: #666; }
 
   /* ── Add Form ── */
   .add-form { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
@@ -221,27 +207,12 @@
         <option value="low">年費 低 → 高</option>
       </select>
     </div>
-    <div class="btn-group">
-      <button class="btn-import" onclick="triggerImport()">📤 匯入備份</button>
-      <button class="btn-export" onclick="exportJSON()">📥 匯出備份</button>
-    </div>
-  </div>
-
-  <!-- ── Storage Info Bar ── -->
-  <div class="storage-info" id="storageInfo">
-    <div class="storage-info-icon">💾</div>
-    <div class="storage-detail">
-      <div class="storage-detail-row">
-        <span>儲存空間使用量</span>
-        <strong id="storageText">讀取中…</strong>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span class="persist-badge persist-badge-grey" id="badgePersist">⏳ 持久化…</span>
+      <div class="btn-group">
+        <button class="btn-import" onclick="triggerImport()">📤 匯入備份</button>
+        <button class="btn-export" onclick="exportJSON()">📥 匯出備份</button>
       </div>
-      <div class="storage-progress">
-        <div class="storage-progress-bar" id="storageBar" style="width:0%"></div>
-      </div>
-    </div>
-    <div class="storage-badges">
-      <span class="s-badge s-badge-grey" id="badgePersist">⏳ 持久化…</span>
-      <span class="s-badge s-badge-blue" id="badgeCount">0 條記錄</span>
     </div>
   </div>
 
@@ -286,7 +257,7 @@
       <h3>🔐 持久化儲存（Storage Persist）</h3>
       <p>本工具啟動時會自動呼叫 <code>navigator.storage.persist()</code> 申請持久化儲存。取得授權後，即使裝置儲存空間不足，瀏覽器也<strong>不會自動清除</strong>本工具的資料。</p>
       <ul>
-        <li>頁面右上方的「🔒 持久化」標記表示已成功申請</li>
+        <li>控制列的「🔒 持久化已啟用」標記表示已成功申請</li>
         <li>Chrome 通常會靜默授予；Firefox 可能彈出提示；Safari 支援有限</li>
         <li>即使未能取得持久化，資料仍受 LocalStorage 保護，只需避免手動清除瀏覽器資料</li>
       </ul>
@@ -329,7 +300,6 @@
 
       <hr class="divider">
       <h3>🌐 瀏覽器相容性</h3>
-      <p>LocalStorage 及所有使用的 Web API 均為現代瀏覽器標準功能，相容性如下：</p>
       <ul>
         <li><span class="badge badge-green">✓</span> Chrome / Edge 79+</li>
         <li><span class="badge badge-green">✓</span> Firefox 75+</li>
@@ -399,10 +369,7 @@ let importedData = null;
 let deferredA2hs = null;
 
 // ── Core Helpers ───────────────────────────────────────
-function save() {
-  localStorage.setItem('subscriptions', JSON.stringify(data));
-  updateStorageInfo();
-}
+function save() { localStorage.setItem('subscriptions', JSON.stringify(data)); }
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function fmt(n) { return '$' + Number(n).toLocaleString('zh-HK', {minimumFractionDigits: 0, maximumFractionDigits: 1}); }
 function escHtml(s) {
@@ -451,7 +418,6 @@ function renderList() {
   document.getElementById('totalAnnual').textContent = fmt(totalAnnual);
   document.getElementById('totalMonthly').textContent = fmt(totalAnnual / 12);
   document.getElementById('totalCount').textContent = active.length;
-  document.getElementById('badgeCount').textContent = data.length + ' 條記錄';
 
   if (sorted.length === 0) {
     list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div>尚未有訂閱記錄<br>請在上方新增</div></div>';
@@ -556,10 +522,8 @@ function handleFileSelect(e) {
   reader.onload = function(ev) {
     try {
       const json = JSON.parse(ev.target.result);
-      // Support both legacy array format and new object format
       const arr = Array.isArray(json) ? json : (Array.isArray(json.subscriptions) ? json.subscriptions : null);
       if (!arr) { showToast('❌ 無效的備份檔案格式'); return; }
-      // Validate basic structure
       const valid = arr.every(r => r && typeof r.id === 'string' && typeof r.name === 'string' && typeof r.annualFee === 'number');
       if (!valid) { showToast('❌ 備份檔案資料格式錯誤'); return; }
       importedData = arr;
@@ -584,7 +548,6 @@ function doImport() {
     data = importedData.map(r => ({...r}));
     added = data.length;
   } else {
-    // merge: use id as key, backup wins on conflict
     const map = new Map(data.map(r => [r.id, r]));
     importedData.forEach(r => {
       if (map.has(r.id)) { map.set(r.id, {...r}); updated++; }
@@ -599,53 +562,33 @@ function doImport() {
   showToast(msg, 3500);
 }
 
-// ── Storage Info ───────────────────────────────────────
-async function updateStorageInfo() {
-  if (!navigator.storage || !navigator.storage.estimate) return;
-  try {
-    const est = await navigator.storage.estimate();
-    const used = est.usage || 0;
-    const quota = est.quota || 1;
-    const pct = Math.min((used / quota) * 100, 100);
-    const usedMB = (used / 1048576).toFixed(2);
-    const quotaMB = quota >= 1073741824
-      ? (quota / 1073741824).toFixed(1) + ' GB'
-      : (quota / 1048576).toFixed(0) + ' MB';
-    document.getElementById('storageText').textContent = usedMB + ' MB / ' + quotaMB;
-    document.getElementById('storageBar').style.width = pct.toFixed(1) + '%';
-  } catch(e) {
-    document.getElementById('storageText').textContent = '無法讀取';
-  }
-}
-
 // ── Persistent Storage ─────────────────────────────────
 async function requestPersistStorage() {
   const badge = document.getElementById('badgePersist');
   if (!navigator.storage || !navigator.storage.persist) {
     badge.textContent = '⚠️ 不支援持久化';
-    badge.className = 's-badge s-badge-orange';
+    badge.className = 'persist-badge persist-badge-orange';
     return;
   }
   try {
-    // Check existing first
     const already = await navigator.storage.persisted();
     if (already) {
       badge.textContent = '🔒 持久化已啟用';
-      badge.className = 's-badge s-badge-green';
+      badge.className = 'persist-badge persist-badge-green';
       return;
     }
     const granted = await navigator.storage.persist();
     if (granted) {
       badge.textContent = '🔒 持久化已啟用';
-      badge.className = 's-badge s-badge-green';
+      badge.className = 'persist-badge persist-badge-green';
       showToast('🔒 已取得持久化儲存授權');
     } else {
       badge.textContent = '🔓 未持久化';
-      badge.className = 's-badge s-badge-orange';
+      badge.className = 'persist-badge persist-badge-orange';
     }
   } catch(e) {
     badge.textContent = '⚠️ 持久化失敗';
-    badge.className = 's-badge s-badge-orange';
+    badge.className = 'persist-badge persist-badge-orange';
   }
 }
 
@@ -653,7 +596,6 @@ async function requestPersistStorage() {
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredA2hs = e;
-  // Don't show if user previously dismissed
   if (!localStorage.getItem('a2hs_dismissed')) {
     document.getElementById('a2hsBanner').classList.add('show');
   }
@@ -697,7 +639,6 @@ document.addEventListener('keydown', e => {
 // ── Init ───────────────────────────────────────────────
 renderList();
 requestPersistStorage();
-updateStorageInfo();
 </script>
 </body>
 </html>

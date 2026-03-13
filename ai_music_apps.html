@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Music Apps Database</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6c3fc5;
+      --primary-light: #8b5cf6;
+      --accent: #ec4899;
+      --dark-bg: #0f0f1a;
+      --card-bg: #1a1a2e;
+      --card-border: #2d2d4e;
+      --text-muted-custom: #8888aa;
+    }
+    body {
+      background: var(--dark-bg);
+      color: #e2e2f0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    /* Header */
+    .site-header {
+      background: linear-gradient(135deg, #1a0533 0%, #0f0f1a 60%);
+      border-bottom: 1px solid var(--card-border);
+      padding: 2rem 0 1.5rem;
+    }
+    .site-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .site-header .subtitle { color: var(--text-muted-custom); font-size: 0.9rem; }
+
+    /* Stats bar */
+    .stat-pill {
+      background: rgba(108,63,197,0.18);
+      border: 1px solid rgba(108,63,197,0.35);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 0.8rem;
+      color: #c4b5fd;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0.85rem 0;
+    }
+    .filter-bar .form-control,
+    .filter-bar .form-select {
+      background: #0f0f1a;
+      border: 1px solid var(--card-border);
+      color: #e2e2f0;
+      font-size: 0.875rem;
+    }
+    .filter-bar .form-control:focus,
+    .filter-bar .form-select:focus {
+      background: #0f0f1a;
+      border-color: var(--primary-light);
+      color: #e2e2f0;
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.2);
+    }
+    .filter-bar .form-control::placeholder { color: #555577; }
+    .filter-bar .form-select option { background: #1a1a2e; }
+    .btn-reset {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted-custom);
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .btn-reset:hover { border-color: var(--primary-light); color: #c4b5fd; }
+
+    /* Filter chips */
+    .filter-chip {
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-muted-custom);
+      background: transparent;
+      white-space: nowrap;
+    }
+    .filter-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .filter-chip:hover:not(.active) { border-color: var(--primary-light); color: #c4b5fd; }
+
+    /* Cards */
+    .app-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      height: 100%;
+      transition: all 0.25s;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .app-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .app-card:hover { border-color: var(--primary-light); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(108,63,197,0.25); }
+    .app-card:hover::before { opacity: 1; }
+
+    .app-name { font-size: 1.05rem; font-weight: 700; color: #e2e2f0; margin-bottom: 2px; }
+    .app-company { font-size: 0.75rem; color: var(--text-muted-custom); }
+
+    /* Origin badge */
+    .badge-cn { background: rgba(239,68,68,0.18); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; }
+    .badge-intl { background: rgba(59,130,246,0.18); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; }
+    .badge-opensource { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; }
+    .badge-research { background: rgba(251,191,36,0.15); color: #fcd34d; border: 1px solid rgba(251,191,36,0.3); font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; }
+
+    /* Score bar */
+    .score-bar-wrap { margin: 0.6rem 0; }
+    .score-label { font-size: 0.72rem; color: var(--text-muted-custom); display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .score-bar { height: 5px; border-radius: 3px; background: #2d2d4e; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.6s ease; }
+
+    /* Info rows */
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text-muted-custom); }
+    .info-value { color: #c4b5fd; font-weight: 500; text-align: right; max-width: 60%; }
+
+    /* Price tag */
+    .price-tag { font-size: 0.78rem; }
+    .price-free { color: #86efac; }
+    .price-paid { color: #fcd34d; }
+
+    /* Tech tag */
+    .tech-tag {
+      display: inline-block;
+      background: rgba(139,92,246,0.15);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 8px;
+      padding: 2px 8px;
+      font-size: 0.68rem;
+      color: #c4b5fd;
+      margin: 2px 2px 2px 0;
+    }
+    .tech-tag.deepseek { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+
+    /* Modal */
+    .modal-content { background: var(--card-bg); border: 1px solid var(--card-border); color: #e2e2f0; border-radius: 16px; }
+    .modal-header { border-bottom: 1px solid var(--card-border); }
+    .modal-footer { border-top: 1px solid var(--card-border); }
+    .btn-close { filter: invert(1); }
+    .modal-title { font-weight: 700; font-size: 1.2rem; }
+
+    .detail-section { margin-bottom: 1.25rem; }
+    .detail-section h6 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted-custom);
+      margin-bottom: 0.6rem;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .plan-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .plan-name { font-weight: 600; font-size: 0.85rem; color: #c4b5fd; }
+    .plan-price { font-size: 1rem; font-weight: 700; }
+    .plan-feature { font-size: 0.75rem; color: var(--text-muted-custom); }
+    .quality-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; padding: 4px 0; }
+    .verdict-box {
+      background: linear-gradient(135deg, rgba(108,63,197,0.2), rgba(236,72,153,0.1));
+      border: 1px solid rgba(108,63,197,0.4);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* Results count */
+    .results-count { font-size: 0.8rem; color: var(--text-muted-custom); }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 4rem 1rem; color: var(--text-muted-custom); }
+    .empty-state i { font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--dark-bg); }
+    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+
+    /* View toggle */
+    .view-btn { background: transparent; border: 1px solid var(--card-border); color: var(--text-muted-custom); padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; }
+    .view-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+    /* Table view */
+    .table-dark-custom { background: var(--card-bg); border-color: var(--card-border); font-size: 0.82rem; }
+    .table-dark-custom thead th { background: rgba(108,63,197,0.2); color: #c4b5fd; font-weight: 600; border-color: var(--card-border); white-space: nowrap; }
+    .table-dark-custom tbody tr { border-color: var(--card-border); cursor: pointer; transition: background 0.15s; }
+    .table-dark-custom tbody tr:hover { background: rgba(139,92,246,0.1); }
+    .table-dark-custom td { border-color: var(--card-border); vertical-align: middle; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container">
+    <div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
+      <div>
+        <h1 class="mb-0"><i class="bi bi-music-note-beamed me-2"></i>AI Music Apps DB</h1>
+        <p class="subtitle mb-0">全球AI音樂生成平台完整資料庫 · v2.0 · 2026-03</p>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-3" id="statsBar"></div>
+  </div>
+</header>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="container">
+    <div class="row g-2 align-items-center">
+      <div class="col-12 col-md-4">
+        <div class="input-group">
+          <span class="input-group-text" style="background:#0f0f1a;border-color:#2d2d4e;color:#555577"><i class="bi bi-search"></i></span>
+          <input type="text" id="searchInput" class="form-control" placeholder="搜尋平台名稱、公司、技術...">
+        </div>
+      </div>
+      <div class="col-6 col-md-2">
+        <select id="filterOrigin" class="form-select">
+          <option value="">所有來源</option>
+          <option value="中國">🇨🇳 中國</option>
+          <option value="intl">🌐 國際</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select id="filterType" class="form-select">
+          <option value="">所有類型</option>
+          <option value="app">商業 APP</option>
+          <option value="research">研究/開源模型</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select id="filterPrice" class="form-select">
+          <option value="">所有定價</option>
+          <option value="free">有免費方案</option>
+          <option value="opensource">完全免費開源</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2 d-flex gap-2 align-items-center">
+        <button class="btn-reset" onclick="resetFilters()"><i class="bi bi-arrow-counterclockwise me-1"></i>重置</button>
+        <button class="view-btn active" id="btnGrid" onclick="setView('grid')" title="卡片視圖"><i class="bi bi-grid-3x3-gap"></i></button>
+        <button class="view-btn" id="btnTable" onclick="setView('table')" title="表格視圖"><i class="bi bi-table"></i></button>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-2" id="chipFilters">
+      <button class="filter-chip active" data-lang="">全部語言</button>
+      <button class="filter-chip" data-lang="中文">中文</button>
+      <button class="filter-chip" data-lang="粵語">粵語</button>
+      <button class="filter-chip" data-lang="English">English</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="results-count" id="resultsCount"></span>
+    <select id="sortBy" class="form-select" style="width:auto;background:#1a1a2e;border-color:#2d2d4e;color:#e2e2f0;font-size:0.8rem;">
+      <option value="rating">排序: 評分 ↓</option>
+      <option value="quality">排序: 音質評分 ↓</option>
+      <option value="name">排序: 名稱 A-Z</option>
+      <option value="founded">排序: 成立年份 ↓</option>
+    </select>
+  </div>
+
+  <!-- Grid View -->
+  <div id="gridView" class="row g-3"></div>
+
+  <!-- Table View -->
+  <div id="tableView" class="d-none">
+    <div class="table-responsive">
+      <table class="table table-dark-custom table-hover align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>平台</th>
+            <th>來源</th>
+            <th>AI技術</th>
+            <th>音質評分</th>
+            <th>免費方案</th>
+            <th>入門年費</th>
+            <th>最佳用途</th>
+            <th>詳情</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="emptyState" class="empty-state d-none">
+    <i class="bi bi-music-note-list"></i>
+    <p>沒有符合條件的結果，請調整篩選條件</p>
+  </div>
+</main>
+
+<!-- DETAIL MODAL -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title" id="modalTitle"></h5>
+          <div id="modalBadges" class="mt-1 d-flex flex-wrap gap-1"></div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <a id="modalWebsite" href="#" target="_blank" class="btn btn-sm" style="background:var(--primary);color:#fff;border:none">
+          <i class="bi bi-globe me-1"></i>官方網站
+        </a>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">關閉</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let allApps = [];
+let currentView = 'grid';
+let activeChipLang = '';
+
+async function loadData() {
+  try {
+    const res = await fetch('json/ai_music_apps.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    allApps = json.apps || [];
+    renderStats(json.statistics || {});
+    renderAll();
+  } catch (e) {
+    document.getElementById('gridView').innerHTML =
+      `<div class="col-12"><div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        無法載入 <code>json/ai_music_apps.json</code>：${e.message}<br>
+        <small>請確認 JSON 檔案已放置於正確路徑。</small>
+      </div></div>`;
+  }
+}
+
+function renderStats(stats) {
+  const bar = document.getElementById('statsBar');
+  const items = [
+    ['bi-collection','總平台', stats.total_entries || allApps.length],
+    ['bi-shop','商業APP', stats.commercial_apps || ''],
+    ['bi-flag','中國AI平台', stats.chinese_origin_platforms || ''],
+    ['bi-unlock','開源免費', stats.open_source_free || ''],
+    ['bi-cpu','DeepSeek整合', stats.deepseek_integrated || ''],
+  ];
+  bar.innerHTML = items.map(([icon,label,val]) =>
+    `<span class="stat-pill"><i class="bi ${icon}"></i>${label}: <strong>${val}</strong></span>`
+  ).join('');
+}
+
+function getScore(app) {
+  const s = app.quality_assessment?.audio_quality_score || '0';
+  return parseFloat(s.split('/')[0]);
+}
+
+function getFilteredApps() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const origin = document.getElementById('filterOrigin').value;
+  const type = document.getElementById('filterType').value;
+  const price = document.getElementById('filterPrice').value;
+  const sort = document.getElementById('sortBy').value;
+
+  let apps = allApps.filter(app => {
+    const text = [app.name, app.company, app.description,
+      app.ai_technology?.model_type, app.ai_technology?.current_model,
+      app.best_for].join(' ').toLowerCase();
+    if (search && !text.includes(search)) return false;
+
+    const isChinese = ['中國','中國 (中港聯合研究)'].includes(app.origin || '');
+    if (origin === '中國' && !isChinese) return false;
+    if (origin === 'intl' && isChinese) return false;
+
+    const isApp = app.product_status?.is_standalone_app !== false && !app.product_status;
+    const isResearch = app.product_status?.is_standalone_app === false;
+    if (type === 'app' && isResearch) return false;
+    if (type === 'research' && !isResearch) return false;
+
+    if (price === 'free') {
+      const hasFreePlan = app.pricing?.plans?.some(p => (p.monthly_price_usd || p.monthly_price || p.monthly_price_cny || 0) === 0);
+      if (!hasFreePlan) return false;
+    }
+    if (price === 'opensource' && !app.ai_technology?.open_source) return false;
+
+    if (activeChipLang) {
+      const langs = (app.languages_supported || []).join(' ');
+      if (!langs.includes(activeChipLang)) return false;
+    }
+    return true;
+  });
+
+  apps.sort((a, b) => {
+    if (sort === 'rating') return (b.rating||0) - (a.rating||0);
+    if (sort === 'quality') return getScore(b) - getScore(a);
+    if (sort === 'name') return a.name.localeCompare(b.name);
+    if (sort === 'founded') return (b.founded||0) - (a.founded||0);
+    return 0;
+  });
+
+  return apps;
+}
+
+function renderAll() {
+  const apps = getFilteredApps();
+  document.getElementById('resultsCount').textContent = `顯示 ${apps.length} / ${allApps.length} 個平台`;
+  document.getElementById('emptyState').classList.toggle('d-none', apps.length > 0);
+  if (currentView === 'grid') renderGrid(apps);
+  else renderTable(apps);
+}
+
+function getBadges(app) {
+  const isChinese = ['中國','中國 (中港聯合研究)'].includes(app.origin || '');
+  const isResearch = app.product_status?.is_standalone_app === false;
+  const isOpen = app.ai_technology?.open_source;
+  const hasDeepSeek = app.ai_technology?.deepseek_integration;
+  let b = '';
+  if (isChinese) b += `<span class="badge-cn">🇨🇳 中國AI</span> `;
+  else b += `<span class="badge-intl">🌐 國際</span> `;
+  if (isOpen) b += `<span class="badge-opensource">🔓 開源</span> `;
+  if (isResearch) b += `<span class="badge-research">🔬 研究模型</span> `;
+  if (hasDeepSeek) b += `<span class="badge-cn">⚡ DeepSeek</span> `;
+  return b;
+}
+
+function getEntryPrice(app) {
+  const plans = app.pricing?.plans || [];
+  const paid = plans.filter(p => {
+    const mp = p.monthly_price_usd ?? p.monthly_price ?? p.one_time_payment_usd;
+    return mp && mp > 0;
+  });
+  if (!paid.length) return '<span class="price-free">完全免費</span>';
+  const p = paid[0];
+  const annual = p.annual_price_usd ?? p.annual_total ?? p.annual_price;
+  const monthly = p.annual_price_per_month ?? p.monthly_price_usd ?? p.monthly_price;
+  const oneTime = p.one_time_payment_usd;
+  if (oneTime) return `<span class="price-paid">$${oneTime} 一次性</span>`;
+  if (annual) return `<span class="price-paid">$${annual}/年</span>`;
+  if (monthly) return `<span class="price-paid">$${monthly}/月</span>`;
+  return '<span class="price-paid">按量計費</span>';
+}
+
+function renderGrid(apps) {
+  const grid = document.getElementById('gridView');
+  if (!apps.length) { grid.innerHTML=''; return; }
+  grid.innerHTML = apps.map(app => {
+    const score = getScore(app);
+    const pct = (score/10*100).toFixed(0);
+    const vocal = app.quality_assessment?.vocal_quality?.split(' ')[0] || 'N/A';
+    const inst = app.quality_assessment?.instrumental_quality?.split(' ')[0] || 'N/A';
+    const model = app.ai_technology?.current_model || 'N/A';
+    const speed = app.quality_assessment?.generation_speed || 'N/A';
+    const bestLang = app.quality_assessment?.best_language || (app.languages_supported||[]).join(', ');
+    const hasFree = app.pricing?.plans?.some(p => (p.monthly_price_usd??p.monthly_price??p.monthly_price_cny??0) === 0);
+
+    return `<div class="col-12 col-sm-6 col-lg-4">
+      <div class="app-card h-100" onclick="openDetail(${app.id})">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <div class="app-name">${app.name}</div>
+            <div class="app-company">${app.company}</div>
+          </div>
+          <div class="text-end">
+            <div style="font-size:1.1rem;font-weight:700;color:#c4b5fd">${score.toFixed(1)}</div>
+            <div style="font-size:0.65rem;color:#555577">音質</div>
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-1 mb-2">${getBadges(app)}</div>
+        <div class="score-bar-wrap">
+          <div class="score-label"><span>音質評分</span><span>${score}/10</span></div>
+          <div class="score-bar"><div class="score-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="mt-2">
+          <div class="info-row"><span class="info-label">當前模型</span><span class="info-value" style="font-size:0.72rem">${model.length>30?model.substring(0,30)+'…':model}</span></div>
+          <div class="info-row"><span class="info-label">人聲品質</span><span class="info-value">${vocal}</span></div>
+          <div class="info-row"><span class="info-label">器樂品質</span><span class="info-value">${inst}</span></div>
+          <div class="info-row"><span class="info-label">生成速度</span><span class="info-value">${speed}</span></div>
+          <div class="info-row"><span class="info-label">最佳語言</span><span class="info-value">${bestLang.length>20?bestLang.substring(0,20)+'…':bestLang}</span></div>
+          <div class="info-row"><span class="info-label">入門年費</span><span>${getEntryPrice(app)}</span></div>
+          ${hasFree?'<div class="info-row"><span class="info-label">免費方案</span><span class="price-free">✓ 有</span></div>':''}
+        </div>
+        <div class="mt-2 pt-2" style="border-top:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:0.72rem;color:#8888aa">${app.quality_assessment?.industry_verdict || ''}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTable(apps) {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = apps.map(app => {
+    const score = getScore(app);
+    const pct = (score/10*100).toFixed(0);
+    const model = (app.ai_technology?.current_model||'').split(' ')[0];
+    return `<tr onclick="openDetail(${app.id})">
+      <td style="color:#555577">${app.id}</td>
+      <td><strong style="color:#e2e2f0">${app.name}</strong><br><small style="color:#555577">${app.company}</small></td>
+      <td>${getBadges(app)}</td>
+      <td>
+        <span class="tech-tag">${model.length>20?model.substring(0,20)+'…':model}</span>
+        ${app.ai_technology?.deepseek_integration?'<span class="tech-tag deepseek">DeepSeek</span>':''}
+        ${app.ai_technology?.open_source?'<span class="tech-tag" style="color:#86efac;border-color:rgba(34,197,94,0.3)">Open Source</span>':''}
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:4px;background:#2d2d4e;border-radius:2px;min-width:50px">
+            <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:2px"></div>
+          </div>
+          <span style="color:#c4b5fd;font-weight:700;font-size:0.85rem">${score}</span>
+        </div>
+      </td>
+      <td>${app.pricing?.plans?.some(p=>(p.monthly_price_usd??p.monthly_price??p.monthly_price_cny??0)===0)?'<span class="price-free">✓ 有</span>':'<span style="color:#555577">—</span>'}</td>
+      <td class="price-tag">${getEntryPrice(app)}</td>
+      <td style="font-size:0.75rem;color:#aaa;max-width:180px">${app.best_for||''}</td>
+      <td><button class="btn btn-sm" style="background:rgba(108,63,197,0.3);color:#c4b5fd;border:none;font-size:0.75rem" onclick="event.stopPropagation();openDetail(${app.id})">詳情</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openDetail(id) {
+  const app = allApps.find(a => a.id === id);
+  if (!app) return;
+  const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+
+  document.getElementById('modalTitle').textContent = app.name;
+  document.getElementById('modalBadges').innerHTML = getBadges(app) +
+    `<span class="stat-pill" style="font-size:0.7rem"><i class="bi bi-calendar3"></i>${app.founded}</span>` +
+    `<span class="stat-pill" style="font-size:0.7rem"><i class="bi bi-geo-alt"></i>${app.headquarters}</span>`;
+  document.getElementById('modalWebsite').href = app.website || '#';
+
+  const qa = app.quality_assessment || {};
+  const ai = app.ai_technology || {};
+  const pricing = app.pricing || {};
+  const plans = pricing.plans || [];
+
+  let body = `
+  <!-- Description -->
+  <div class="detail-section">
+    <p style="color:#aaa;font-size:0.85rem">${app.description || ''}</p>
+    ${app.product_status?.note ? `<div class="alert alert-warning py-2 px-3" style="background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);color:#fcd34d;font-size:0.8rem"><i class="bi bi-info-circle me-1"></i>${app.product_status.note}</div>` : ''}
+  </div>
+
+  <div class="row g-3">
+    <!-- AI Technology -->
+    <div class="col-12 col-md-6">
+      <div class="detail-section">
+        <h6><i class="bi bi-cpu me-1"></i>AI 技術架構</h6>
+        <div class="info-row"><span class="info-label">模型類型</span><span class="info-value" style="font-size:0.76rem">${ai.model_type||'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">當前模型</span><span class="info-value" style="font-size:0.76rem;color:#86efac">${ai.current_model||'N/A'}</span></div>
+        ${ai.parameters?`<div class="info-row"><span class="info-label">參數量</span><span class="info-value">${ai.parameters}</span></div>`:''}
+        ${ai.output_quality||ai.max_song_length?`<div class="info-row"><span class="info-label">最長時長</span><span class="info-value">${ai.max_song_length||'N/A'}</span></div>`:''}
+        <div class="info-row"><span class="info-label">DeepSeek整合</span><span class="info-value">${ai.deepseek_integration?'<span style="color:#fca5a5">✅ 是</span>':'<span style="color:#555577">否</span>'}</span></div>
+        <div class="info-row"><span class="info-label">開源</span><span class="info-value">${ai.open_source?'<span style="color:#86efac">✅ 是 ('+ai.license+')</span>':'<span style="color:#555577">否</span>'}</span></div>
+        <div class="mt-2">
+          ${(ai.modalities||[]).map(m=>`<span class="tech-tag">${m}</span>`).join('')}
+        </div>
+        ${ai.features?.length?`<div class="mt-2"><small style="color:#555577">主要功能：</small><br>${ai.features.map(f=>`<span class="tech-tag" style="margin-top:3px">${f}</span>`).join('')}</div>`:''}
+      </div>
+    </div>
+
+    <!-- Quality Assessment -->
+    <div class="col-12 col-md-6">
+      <div class="detail-section">
+        <h6><i class="bi bi-star me-1"></i>音質評估</h6>
+        ${qa.audio_quality_score?`
+        <div class="score-bar-wrap mb-2">
+          <div class="score-label"><span>綜合音質評分</span><span style="color:#c4b5fd;font-weight:700;font-size:0.9rem">${qa.audio_quality_score}</span></div>
+          <div class="score-bar"><div class="score-bar-fill" style="width:${(parseFloat(qa.audio_quality_score)*10).toFixed(0)}%"></div></div>
+        </div>`:''}
+        <div class="quality-row"><span style="color:#8888aa">人聲品質</span><span>${qa.vocal_quality||'N/A'}</span></div>
+        <div class="quality-row"><span style="color:#8888aa">器樂品質</span><span>${qa.instrumental_quality||'N/A'}</span></div>
+        <div class="quality-row"><span style="color:#8888aa">結構連貫性</span><span>${qa.structure_coherence||'N/A'}</span></div>
+        <div class="quality-row"><span style="color:#8888aa">Prompt跟隨</span><span>${qa.prompt_adherence||'N/A'}</span></div>
+        <div class="quality-row"><span style="color:#8888aa">中文音樂品質</span><span>${qa.chinese_music_quality||'N/A'}</span></div>
+        <div class="quality-row"><span style="color:#8888aa">生成速度</span><span style="color:#fcd34d">${qa.generation_speed||'N/A'}</span></div>
+        <div class="quality-row"><span style="color:#8888aa">取樣率</span><span style="color:#86efac">${qa.sample_rate||'N/A'}</span></div>
+        <div class="quality-row"><span style="color:#8888aa">最佳語言</span><span style="color:#c4b5fd">${qa.best_language||'N/A'}</span></div>
+        ${qa.industry_verdict?`<div class="verdict-box mt-2">${qa.industry_verdict}</div>`:''}
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing -->
+  <div class="detail-section">
+    <h6><i class="bi bi-currency-dollar me-1"></i>定價方案 ${pricing.currency?`<span style="font-weight:400;text-transform:none">(${pricing.currency}${pricing.currency_cny?'/CNY':''})</span>`:''}</h6>
+    ${pricing.note?`<p style="font-size:0.78rem;color:#8888aa"><i class="bi bi-info-circle me-1"></i>${pricing.note}</p>`:''}
+    <div class="row g-2">
+      ${plans.slice(0,6).map(plan => {
+        const mp = plan.monthly_price_usd ?? plan.monthly_price ?? plan.one_time_payment_usd;
+        const isFree = mp === 0 || mp === undefined;
+        const priceStr = plan.one_time_payment_usd ? `$${plan.one_time_payment_usd} 一次性` :
+          plan.annual_total ? `$${plan.annual_price_per_month ?? plan.monthly_price_usd}/月 ($${plan.annual_total}/年)` :
+          plan.monthly_price_usd > 0 ? `$${plan.monthly_price_usd}/月` :
+          plan.monthly_price_cny > 0 ? `¥${plan.monthly_price_cny}/月 (¥${plan.annual_price_cny}/年)` :
+          plan.per_generation_usd_fal ? `$${plan.per_generation_usd_fal}/首 (fal.ai)` :
+          mp === 0 ? '免費' : '按量計費';
+        return `<div class="col-12 col-sm-6">
+          <div class="plan-card">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="plan-name">${plan.name}</span>
+              <span class="plan-price" style="color:${isFree?'#86efac':'#fcd34d'}">${priceStr}</span>
+            </div>
+            <div style="margin-top:4px">
+              ${plan.commercial_use===true?'<span class="tech-tag" style="color:#86efac;border-color:rgba(34,197,94,0.3)">✓ 商業授權</span>':
+                plan.commercial_use===false?'<span class="tech-tag" style="color:#555577">✗ 非商業</span>':
+                `<span class="tech-tag" style="color:#fcd34d;border-color:rgba(251,191,36,0.3)">${plan.commercial_use}</span>`}
+              ${plan.songs_per_month||plan.tracks_per_month||plan.credits_per_month?`<span class="tech-tag">${plan.songs_per_month||plan.tracks_per_month||plan.credits_per_month}</span>`:''}
+            </div>
+            ${plan.features?.slice(0,4).map(f=>`<div class="plan-feature mt-1">• ${f}</div>`).join('')||''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <!-- Strengths & Weaknesses -->
+  ${(qa.strengths||qa.weaknesses)?`
+  <div class="row g-3">
+    ${qa.strengths?`<div class="col-12 col-sm-6">
+      <div class="detail-section">
+        <h6><i class="bi bi-hand-thumbs-up me-1"></i>優勢</h6>
+        ${qa.strengths.map(s=>`<div style="font-size:0.8rem;padding:3px 0;color:#86efac">✓ ${s}</div>`).join('')}
+      </div>
+    </div>`:''}
+    ${qa.weaknesses?`<div class="col-12 col-sm-6">
+      <div class="detail-section">
+        <h6><i class="bi bi-hand-thumbs-down me-1"></i>弱點</h6>
+        ${qa.weaknesses.map(w=>`<div style="font-size:0.8rem;padding:3px 0;color:#fca5a5">✗ ${w}</div>`).join('')}
+      </div>
+    </div>`:''}
+  </div>`:''}
+
+  <!-- Platforms & Languages -->
+  <div class="detail-section">
+    <h6><i class="bi bi-grid me-1"></i>平台 / 語言</h6>
+    <div class="d-flex flex-wrap gap-1">
+      ${(app.platforms||[]).map(p=>`<span class="tech-tag">${p}</span>`).join('')}
+      ${(app.languages_supported||[]).map(l=>`<span class="tech-tag" style="background:rgba(236,72,153,0.1);border-color:rgba(236,72,153,0.3);color:#f9a8d4">${l}</span>`).join('')}
+    </div>
+  </div>`;
+
+  document.getElementById('modalBody').innerHTML = body;
+  modal.show();
+}
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('gridView').classList.toggle('d-none', v !== 'grid');
+  document.getElementById('tableView').classList.toggle('d-none', v !== 'table');
+  document.getElementById('btnGrid').classList.toggle('active', v === 'grid');
+  document.getElementById('btnTable').classList.toggle('active', v === 'table');
+  renderAll();
+}
+
+function resetFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('filterOrigin').value = '';
+  document.getElementById('filterType').value = '';
+  document.getElementById('filterPrice').value = '';
+  document.getElementById('sortBy').value = 'rating';
+  activeChipLang = '';
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.lang === ''));
+  renderAll();
+}
+
+// Chip filters
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    activeChipLang = chip.dataset.lang;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c === chip));
+    renderAll();
+  });
+});
+
+// Live filters
+['searchInput','filterOrigin','filterType','filterPrice','sortBy'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderAll);
+  document.getElementById(id).addEventListener('change', renderAll);
+});
+
+loadData();
+</script>
+</body>
+</html>

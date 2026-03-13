@@ -4,11 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>年費訂閱追蹤</title>
+<meta name="theme-color" content="#1a73e8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="訂閱追蹤">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f0f2f5; color: #333; }
 
-  /* Summary Bar */
+  /* ── A2HS Banner ── */
+  .a2hs-banner {
+    display: none;
+    background: linear-gradient(135deg, #0d47a1, #1565c0);
+    color: white; padding: 12px 16px;
+    align-items: center; gap: 10px;
+    font-size: 14px; flex-wrap: wrap;
+  }
+  .a2hs-banner.show { display: flex; }
+  .a2hs-icon { font-size: 22px; flex-shrink: 0; }
+  .a2hs-text { flex: 1; min-width: 160px; }
+  .a2hs-text strong { display: block; font-size: 15px; margin-bottom: 2px; }
+  .a2hs-text span { opacity: 0.85; font-size: 13px; }
+  .a2hs-btns { display: flex; gap: 8px; flex-shrink: 0; }
+  .btn-a2hs-install { padding: 7px 16px; background: white; color: #0d47a1; border: none; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 700; }
+  .btn-a2hs-dismiss { padding: 7px 12px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 13px; }
+
+  /* ── Summary Bar ── */
   .summary-bar {
     position: sticky; top: 0; z-index: 100;
     background: linear-gradient(135deg, #1a73e8, #0d47a1);
@@ -24,24 +46,47 @@
 
   .container { max-width: 720px; margin: 0 auto; padding: 20px 16px; }
 
-  /* Controls */
-  .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  /* ── Controls ── */
+  .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
   .controls label { font-size: 14px; color: #555; }
   .controls select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; background: white; font-size: 14px; cursor: pointer; outline: none; }
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn-export { padding: 8px 16px; background: #34a853; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
   .btn-export:hover { background: #2d9147; }
+  .btn-import { padding: 8px 16px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+  .btn-import:hover { background: #1558c0; }
 
-  /* Add Form */
+  /* ── Storage Info Bar ── */
+  .storage-info {
+    background: white; border-radius: 10px; padding: 10px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .storage-info-icon { font-size: 18px; }
+  .storage-detail { flex: 1; min-width: 180px; }
+  .storage-detail-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .storage-detail-row span { font-size: 12px; color: #555; }
+  .storage-detail-row strong { font-size: 12px; color: #333; }
+  .storage-progress { height: 6px; background: #e8eaed; border-radius: 3px; overflow: hidden; }
+  .storage-progress-bar { height: 100%; background: linear-gradient(90deg, #1a73e8, #34a853); border-radius: 3px; transition: width 0.4s; min-width: 2px; }
+  .storage-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .s-badge { font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: 600; }
+  .s-badge-green { background: #e6f4ea; color: #1e8e3e; }
+  .s-badge-orange { background: #fef7e0; color: #b06000; }
+  .s-badge-blue { background: #e8f0fe; color: #1a73e8; }
+  .s-badge-grey { background: #f1f3f4; color: #666; }
+
+  /* ── Add Form ── */
   .add-form { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
   .add-form input { flex: 1; min-width: 120px; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s; }
   .add-form input:focus { border-color: #1a73e8; }
   .btn-add { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
   .btn-add:hover { background: #1558c0; }
 
-  /* List */
+  /* ── List ── */
   .list { display: flex; flex-direction: column; gap: 10px; }
 
-  /* Card */
+  /* ── Card ── */
   .card { background: white; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 12px; transition: opacity 0.2s; }
   .card.muted { opacity: 0.45; }
   .card-info { flex: 1; min-width: 0; }
@@ -51,13 +96,13 @@
   .card-fees span { margin-right: 12px; }
   .card-fees .monthly { color: #1a73e8; }
 
-  /* Inline Edit */
+  /* ── Inline Edit ── */
   .card-edit-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .card-edit-row input { flex: 1; min-width: 80px; padding: 6px 10px; border: 1px solid #1a73e8; border-radius: 6px; font-size: 14px; outline: none; }
   .btn-save { padding: 6px 14px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .btn-cancel { padding: 6px 14px; background: #eee; color: #333; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
 
-  /* Action Buttons */
+  /* ── Action Buttons ── */
   .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .btn-icon { width: 34px; height: 34px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
   .btn-edit { background: #e8f0fe; color: #1a73e8; }
@@ -69,11 +114,11 @@
   .card.muted .btn-mute { background: #e6f4ea; color: #34a853; }
   .card.muted .btn-mute:hover { background: #ceead6; }
 
-  /* Empty State */
+  /* ── Empty State ── */
   .empty { text-align: center; padding: 40px 20px; color: #aaa; }
   .empty-icon { font-size: 48px; margin-bottom: 10px; }
 
-  /* Confirm overlay */
+  /* ── Overlay / Modal ── */
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
   .overlay.active { display: flex; }
   .modal { background: white; border-radius: 16px; padding: 24px; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
@@ -83,7 +128,27 @@
   .btn-confirm { padding: 10px 24px; background: #d93025; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
   .btn-cancel-modal { padding: 10px 24px; background: #eee; color: #333; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
 
-  /* Info Section */
+  /* ── Import Modal ── */
+  .import-modal { background: white; border-radius: 16px; padding: 24px; max-width: 360px; width: 92%; text-align: left; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+  .import-modal h3 { margin-bottom: 8px; font-size: 18px; }
+  .import-modal p { color: #666; font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
+  .import-radio-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+  .import-radio-group label { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; cursor: pointer; }
+  .import-radio-group input[type=radio] { margin-top: 2px; flex-shrink: 0; }
+  .import-radio-group .desc { font-size: 12px; color: #888; margin-top: 2px; }
+  .import-modal .modal-btns { justify-content: flex-end; }
+  .btn-confirm-import { padding: 10px 24px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: #323232; color: white; padding: 12px 20px; border-radius: 24px;
+    font-size: 14px; z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Info Section ── */
   .info-section { margin-top: 40px; }
   .info-toggle { width: 100%; background: white; border: none; border-radius: 12px; padding: 16px 20px; text-align: left; font-size: 15px; font-weight: 600; color: #1a73e8; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
   .info-toggle:hover { background: #f8f9ff; }
@@ -105,12 +170,26 @@
   @media (max-width: 480px) {
     .summary-value { font-size: 22px; }
     .card-name { font-size: 15px; }
+    .btn-export, .btn-import { font-size: 13px; padding: 7px 12px; }
   }
 </style>
 </head>
 <body>
 
-<!-- Summary Bar -->
+<!-- ── Add to Home Screen Banner ── -->
+<div class="a2hs-banner" id="a2hsBanner">
+  <div class="a2hs-icon">📲</div>
+  <div class="a2hs-text">
+    <strong>加至主畫面</strong>
+    <span>安裝為 App，隨時快速存取</span>
+  </div>
+  <div class="a2hs-btns">
+    <button class="btn-a2hs-install" id="btnA2hsInstall">安裝</button>
+    <button class="btn-a2hs-dismiss" id="btnA2hsDismiss">✕</button>
+  </div>
+</div>
+
+<!-- ── Summary Bar ── -->
 <div class="summary-bar">
   <div class="summary-item">
     <div class="summary-label">年費總計</div>
@@ -131,7 +210,7 @@
 
 <div class="container">
 
-  <!-- Controls -->
+  <!-- ── Controls ── -->
   <div class="controls">
     <div>
       <label>排序：</label>
@@ -142,20 +221,41 @@
         <option value="low">年費 低 → 高</option>
       </select>
     </div>
-    <button class="btn-export" onclick="exportJSON()">📥 匯出備份</button>
+    <div class="btn-group">
+      <button class="btn-import" onclick="triggerImport()">📤 匯入備份</button>
+      <button class="btn-export" onclick="exportJSON()">📥 匯出備份</button>
+    </div>
   </div>
 
-  <!-- Add Form -->
+  <!-- ── Storage Info Bar ── -->
+  <div class="storage-info" id="storageInfo">
+    <div class="storage-info-icon">💾</div>
+    <div class="storage-detail">
+      <div class="storage-detail-row">
+        <span>儲存空間使用量</span>
+        <strong id="storageText">讀取中…</strong>
+      </div>
+      <div class="storage-progress">
+        <div class="storage-progress-bar" id="storageBar" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="storage-badges">
+      <span class="s-badge s-badge-grey" id="badgePersist">⏳ 持久化…</span>
+      <span class="s-badge s-badge-blue" id="badgeCount">0 條記錄</span>
+    </div>
+  </div>
+
+  <!-- ── Add Form ── -->
   <div class="add-form">
     <input type="text" id="inputName" placeholder="訂閱名稱（如 Netflix）" maxlength="40">
     <input type="number" id="inputFee" placeholder="年費（HKD）" min="0" step="0.01">
     <button class="btn-add" onclick="addRecord()">＋ 新增</button>
   </div>
 
-  <!-- List -->
+  <!-- ── List ── -->
   <div class="list" id="list"></div>
 
-  <!-- Info Section -->
+  <!-- ── Info Section ── -->
   <div class="info-section">
     <button class="info-toggle" onclick="toggleInfo()">
       <span>ℹ️ &nbsp;關於此工具 · 技術說明 · 常見疑問</span>
@@ -183,19 +283,32 @@
       </ul>
 
       <hr class="divider">
+      <h3>🔐 持久化儲存（Storage Persist）</h3>
+      <p>本工具啟動時會自動呼叫 <code>navigator.storage.persist()</code> 申請持久化儲存。取得授權後，即使裝置儲存空間不足，瀏覽器也<strong>不會自動清除</strong>本工具的資料。</p>
+      <ul>
+        <li>頁面右上方的「🔒 持久化」標記表示已成功申請</li>
+        <li>Chrome 通常會靜默授予；Firefox 可能彈出提示；Safari 支援有限</li>
+        <li>即使未能取得持久化，資料仍受 LocalStorage 保護，只需避免手動清除瀏覽器資料</li>
+      </ul>
+
+      <hr class="divider">
+      <h3>📤 匯入 / 📥 匯出備份</h3>
+      <p>點擊「📥 匯出備份」按鈕，即可將所有記錄下載為 <code>.json</code> 檔案。點擊「📤 匯入備份」可從備份檔案還原資料，支援<strong>合併</strong>（保留現有資料並加入新記錄）或<strong>取代</strong>（清除現有資料後完整還原）兩種模式。</p>
+      <p><span class="badge badge-blue">提示</span>建議每隔一段時間匯出一次，存放在雲端硬碟（如 Google Drive、iCloud）以確保安全。</p>
+
+      <hr class="divider">
+      <h3>📲 加至主畫面（Add to Home Screen）</h3>
+      <p>在 Android Chrome 瀏覽器開啟此頁面時，頂部會出現「加至主畫面」提示橫幅，點擊「安裝」即可將本工具安裝為 App 圖示，方便日後快速存取。iOS Safari 用戶可點擊分享按鈕，選擇「加至主畫面」手動安裝。</p>
+
+      <hr class="divider">
       <h3>⚠️ 何時資料會消失？</h3>
       <p><span class="badge badge-orange">注意</span>以下情況會導致資料遺失，請定期使用「📥 匯出備份」功能：</p>
       <ul>
         <li>在瀏覽器設定中手動「清除瀏覽資料」並勾選了 Cookie / 本地儲存</li>
         <li>使用無痕模式（Incognito）開啟此頁面——無痕模式關閉後資料即消失</li>
         <li>更換瀏覽器或裝置（不同瀏覽器的 LocalStorage 互不相通）</li>
-        <li>部分手機在儲存空間極度不足時，系統可能自動清除瀏覽器快取</li>
+        <li>部分手機在儲存空間極度不足時，系統可能自動清除瀏覽器快取（已申請持久化則可避免）</li>
       </ul>
-
-      <hr class="divider">
-      <h3>📥 匯出與備份</h3>
-      <p>點擊右上角「📥 匯出備份」按鈕，即可將所有記錄下載為 <code>.json</code> 檔案。備份檔案可用文字編輯器查閱，格式為標準 JSON，方便日後遷移至其他工具。</p>
-      <p><span class="badge badge-blue">提示</span>建議每隔一段時間匯出一次，存放在雲端硬碟（如 Google Drive、iCloud）以確保安全。</p>
 
       <hr class="divider">
       <h3>🔇 Mute 功能說明</h3>
@@ -231,7 +344,7 @@
   <div class="footer">年費訂閱追蹤 · 資料儲存於本地裝置 · 不上傳任何資料</div>
 </div>
 
-<!-- Delete Confirm Modal -->
+<!-- ── Delete Confirm Modal ── -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <h3>確認刪除</h3>
@@ -243,27 +356,82 @@
   </div>
 </div>
 
+<!-- ── Import Modal ── -->
+<div class="overlay" id="importOverlay">
+  <div class="import-modal">
+    <h3>📤 匯入備份</h3>
+    <p>請選擇匯入模式：</p>
+    <div class="import-radio-group">
+      <label>
+        <input type="radio" name="importMode" value="merge" checked>
+        <div>
+          <div><strong>合併</strong>（推薦）</div>
+          <div class="desc">將備份中的記錄加入現有資料，重複 ID 的項目將以備份版本覆蓋。</div>
+        </div>
+      </label>
+      <label>
+        <input type="radio" name="importMode" value="replace">
+        <div>
+          <div><strong>取代</strong></div>
+          <div class="desc">清除所有現有資料，完整還原備份檔案的內容。此操作不可復原。</div>
+        </div>
+      </label>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel-modal" onclick="closeImportModal()">取消</button>
+      <button class="btn-confirm-import" onclick="doImport()">確認匯入</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Hidden File Input ── -->
+<input type="file" id="fileInput" accept=".json,application/json" style="display:none" onchange="handleFileSelect(event)">
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
 <script>
+// ── State ──────────────────────────────────────────────
 let data = JSON.parse(localStorage.getItem('subscriptions') || '[]');
 let deleteTargetId = null;
 let editingId = null;
+let importedData = null;
+let deferredA2hs = null;
 
-function save() { localStorage.setItem('subscriptions', JSON.stringify(data)); }
+// ── Core Helpers ───────────────────────────────────────
+function save() {
+  localStorage.setItem('subscriptions', JSON.stringify(data));
+  updateStorageInfo();
+}
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function fmt(n) { return '$' + Number(n).toLocaleString('zh-HK', {minimumFractionDigits: 0, maximumFractionDigits: 1}); }
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
+// ── Toast ──────────────────────────────────────────────
+function showToast(msg, duration = 2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── Add Record ─────────────────────────────────────────
 function addRecord() {
   const name = document.getElementById('inputName').value.trim();
   const fee  = parseFloat(document.getElementById('inputFee').value);
-  if (!name) { alert('請輸入訂閱名稱'); return; }
-  if (isNaN(fee) || fee < 0) { alert('請輸入有效年費'); return; }
+  if (!name) { showToast('⚠️ 請輸入訂閱名稱'); return; }
+  if (isNaN(fee) || fee < 0) { showToast('⚠️ 請輸入有效年費'); return; }
   data.unshift({ id: genId(), name, annualFee: fee, muted: false });
   save(); renderList();
   document.getElementById('inputName').value = '';
   document.getElementById('inputFee').value = '';
   document.getElementById('inputName').focus();
+  showToast('✅ 已新增「' + name + '」');
 }
 
+// ── Sort ───────────────────────────────────────────────
 function getSorted() {
   const sort = document.getElementById('sortSelect').value;
   let arr = [...data];
@@ -274,6 +442,7 @@ function getSorted() {
   return arr;
 }
 
+// ── Render ─────────────────────────────────────────────
 function renderList() {
   const list = document.getElementById('list');
   const sorted = getSorted();
@@ -282,6 +451,7 @@ function renderList() {
   document.getElementById('totalAnnual').textContent = fmt(totalAnnual);
   document.getElementById('totalMonthly').textContent = fmt(totalAnnual / 12);
   document.getElementById('totalCount').textContent = active.length;
+  document.getElementById('badgeCount').textContent = data.length + ' 條記錄';
 
   if (sorted.length === 0) {
     list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div>尚未有訂閱記錄<br>請在上方新增</div></div>';
@@ -321,28 +491,28 @@ function renderList() {
   }).join('');
 }
 
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
+// ── Edit ───────────────────────────────────────────────
 function startEdit(id) { editingId = id; renderList(); setTimeout(()=>document.getElementById('edit-name-'+id)?.focus(),50); }
 function cancelEdit() { editingId = null; renderList(); }
 function saveEdit(id) {
   const name = document.getElementById('edit-name-'+id).value.trim();
   const fee  = parseFloat(document.getElementById('edit-fee-'+id).value);
-  if (!name) { alert('請輸入名稱'); return; }
-  if (isNaN(fee) || fee < 0) { alert('請輸入有效年費'); return; }
+  if (!name) { showToast('⚠️ 請輸入名稱'); return; }
+  if (isNaN(fee) || fee < 0) { showToast('⚠️ 請輸入有效年費'); return; }
   const r = data.find(r => r.id === id);
   if (r) { r.name = name; r.annualFee = fee; }
   editingId = null; save(); renderList();
+  showToast('✅ 已更新「' + name + '」');
 }
 
+// ── Mute ───────────────────────────────────────────────
 function toggleMute(id) {
   const r = data.find(r => r.id === id);
-  if (r) r.muted = !r.muted;
+  if (r) { r.muted = !r.muted; showToast(r.muted ? '🔇 已 Mute「' + r.name + '」' : '🔊 已取消 Mute「' + r.name + '」'); }
   save(); renderList();
 }
 
+// ── Delete ─────────────────────────────────────────────
 function askDelete(id, name) {
   deleteTargetId = id;
   document.getElementById('modalMsg').textContent = `確定要刪除「${name}」嗎？`;
@@ -350,18 +520,165 @@ function askDelete(id, name) {
 }
 function closeModal() { document.getElementById('overlay').classList.remove('active'); deleteTargetId = null; }
 function confirmDelete() {
+  const r = data.find(r => r.id === deleteTargetId);
   data = data.filter(r => r.id !== deleteTargetId);
   save(); renderList(); closeModal();
+  if (r) showToast('🗑️ 已刪除「' + r.name + '」');
 }
 
+// ── Export JSON ────────────────────────────────────────
 function exportJSON() {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    count: data.length,
+    subscriptions: data
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'subscriptions_backup_' + new Date().toISOString().slice(0,10) + '.json';
   a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('📥 備份已匯出（' + data.length + ' 條記錄）');
 }
 
+// ── Import JSON ────────────────────────────────────────
+function triggerImport() {
+  document.getElementById('fileInput').value = '';
+  document.getElementById('fileInput').click();
+}
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const json = JSON.parse(ev.target.result);
+      // Support both legacy array format and new object format
+      const arr = Array.isArray(json) ? json : (Array.isArray(json.subscriptions) ? json.subscriptions : null);
+      if (!arr) { showToast('❌ 無效的備份檔案格式'); return; }
+      // Validate basic structure
+      const valid = arr.every(r => r && typeof r.id === 'string' && typeof r.name === 'string' && typeof r.annualFee === 'number');
+      if (!valid) { showToast('❌ 備份檔案資料格式錯誤'); return; }
+      importedData = arr;
+      document.getElementById('importOverlay').classList.add('active');
+    } catch(err) {
+      showToast('❌ 無法解析 JSON 檔案，請確認格式正確');
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function closeImportModal() {
+  document.getElementById('importOverlay').classList.remove('active');
+  importedData = null;
+}
+
+function doImport() {
+  if (!importedData) return;
+  const mode = document.querySelector('input[name="importMode"]:checked').value;
+  let added = 0, updated = 0;
+  if (mode === 'replace') {
+    data = importedData.map(r => ({...r}));
+    added = data.length;
+  } else {
+    // merge: use id as key, backup wins on conflict
+    const map = new Map(data.map(r => [r.id, r]));
+    importedData.forEach(r => {
+      if (map.has(r.id)) { map.set(r.id, {...r}); updated++; }
+      else { map.set(r.id, {...r}); added++; }
+    });
+    data = [...map.values()];
+  }
+  save(); renderList(); closeImportModal();
+  const msg = mode === 'replace'
+    ? `✅ 已取代還原 ${added} 條記錄`
+    : `✅ 已合併：新增 ${added} 條，更新 ${updated} 條`;
+  showToast(msg, 3500);
+}
+
+// ── Storage Info ───────────────────────────────────────
+async function updateStorageInfo() {
+  if (!navigator.storage || !navigator.storage.estimate) return;
+  try {
+    const est = await navigator.storage.estimate();
+    const used = est.usage || 0;
+    const quota = est.quota || 1;
+    const pct = Math.min((used / quota) * 100, 100);
+    const usedMB = (used / 1048576).toFixed(2);
+    const quotaMB = quota >= 1073741824
+      ? (quota / 1073741824).toFixed(1) + ' GB'
+      : (quota / 1048576).toFixed(0) + ' MB';
+    document.getElementById('storageText').textContent = usedMB + ' MB / ' + quotaMB;
+    document.getElementById('storageBar').style.width = pct.toFixed(1) + '%';
+  } catch(e) {
+    document.getElementById('storageText').textContent = '無法讀取';
+  }
+}
+
+// ── Persistent Storage ─────────────────────────────────
+async function requestPersistStorage() {
+  const badge = document.getElementById('badgePersist');
+  if (!navigator.storage || !navigator.storage.persist) {
+    badge.textContent = '⚠️ 不支援持久化';
+    badge.className = 's-badge s-badge-orange';
+    return;
+  }
+  try {
+    // Check existing first
+    const already = await navigator.storage.persisted();
+    if (already) {
+      badge.textContent = '🔒 持久化已啟用';
+      badge.className = 's-badge s-badge-green';
+      return;
+    }
+    const granted = await navigator.storage.persist();
+    if (granted) {
+      badge.textContent = '🔒 持久化已啟用';
+      badge.className = 's-badge s-badge-green';
+      showToast('🔒 已取得持久化儲存授權');
+    } else {
+      badge.textContent = '🔓 未持久化';
+      badge.className = 's-badge s-badge-orange';
+    }
+  } catch(e) {
+    badge.textContent = '⚠️ 持久化失敗';
+    badge.className = 's-badge s-badge-orange';
+  }
+}
+
+// ── Add to Home Screen ─────────────────────────────────
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredA2hs = e;
+  // Don't show if user previously dismissed
+  if (!localStorage.getItem('a2hs_dismissed')) {
+    document.getElementById('a2hsBanner').classList.add('show');
+  }
+});
+
+document.getElementById('btnA2hsInstall').addEventListener('click', async () => {
+  if (!deferredA2hs) return;
+  deferredA2hs.prompt();
+  const { outcome } = await deferredA2hs.userChoice;
+  deferredA2hs = null;
+  document.getElementById('a2hsBanner').classList.remove('show');
+  if (outcome === 'accepted') showToast('✅ 已加至主畫面！');
+});
+
+document.getElementById('btnA2hsDismiss').addEventListener('click', () => {
+  document.getElementById('a2hsBanner').classList.remove('show');
+  localStorage.setItem('a2hs_dismissed', '1');
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('a2hsBanner').classList.remove('show');
+  showToast('🎉 已成功安裝至主畫面！');
+});
+
+// ── Info Toggle ────────────────────────────────────────
 function toggleInfo() {
   const body = document.getElementById('infoBody');
   const arrow = document.getElementById('infoArrow');
@@ -369,14 +686,18 @@ function toggleInfo() {
   arrow.textContent = open ? '▲' : '▼';
 }
 
+// ── Keyboard Shortcuts ─────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     if (document.activeElement.id === 'inputName' || document.activeElement.id === 'inputFee') addRecord();
   }
-  if (e.key === 'Escape') { cancelEdit(); closeModal(); }
+  if (e.key === 'Escape') { cancelEdit(); closeModal(); closeImportModal(); }
 });
 
+// ── Init ───────────────────────────────────────────────
 renderList();
+requestPersistStorage();
+updateStorageInfo();
 </script>
 </body>
 </html>

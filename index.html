@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pages Index</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── Header / Greeting ── */
+    .hero {
+      text-align: center;
+      padding: 3rem 1rem 2.5rem;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      border-radius: var(--radius);
+      color: #fff;
+      margin-bottom: 2.5rem;
+      max-width: 860px;
+      margin-inline: auto;
+      box-shadow: 0 4px 24px rgba(79, 70, 229, 0.3);
+    }
+    .hero h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 700; letter-spacing: -0.5px; }
+    .hero p  { margin-top: .6rem; font-size: 1rem; opacity: .85; }
+
+    /* ── Container ── */
+    .container { max-width: 860px; margin-inline: auto; }
+
+    .section-title {
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      text-decoration: none;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: .85rem;
+      transition: transform .15s, box-shadow .15s, border-color .15s;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(79,70,229,0.15);
+      border-color: var(--primary);
+    }
+    .card-icon {
+      width: 40px; height: 40px; flex-shrink: 0;
+      background: var(--primary-light);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card-icon svg { width: 20px; height: 20px; fill: var(--primary); }
+    .card-name {
+      font-size: .95rem;
+      font-weight: 500;
+      word-break: break-all;
+    }
+
+    /* ── States ── */
+    .state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+    }
+    .state svg { width: 40px; height: 40px; margin-bottom: .75rem; opacity: .4; }
+    .state p { font-size: .95rem; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: .8rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Greeting Banner -->
+  <header class="hero">
+    <h1>👋 歡迎來到我的頁面</h1>
+    <p>以下是此目錄下的所有頁面，點擊即可前往</p>
+  </header>
+
+  <main class="container">
+    <p class="section-title">📄 頁面列表</p>
+    <div id="grid" class="grid">
+      <div class="state" id="loading">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 17.93V18a1 1 0 0 0-2 0v1.93A8 8 0 0 1 4.07 13H6a1 1 0 0 0 0-2H4.07A8 8 0 0 1 11 4.07V6a1 1 0 0 0 2 0V4.07A8 8 0 0 1 19.93 11H18a1 1 0 0 0 0 2h1.93A8 8 0 0 1 13 19.93z"/></svg>
+        <p>載入中，請稍候…</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    由 GitHub Pages 自動生成 · <span id="year"></span>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* ── Parse GitHub Pages URL ── */
+    function parseGitHubInfo() {
+      const { hostname, pathname } = window.location;
+      if (!hostname.endsWith('.github.io')) return null;
+
+      const owner = hostname.replace('.github.io', '');
+      const segments = pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+
+      // User/org page: owner.github.io  →  repo = owner.github.io, path = ''
+      // Project page:  owner.github.io/repo/sub  →  repo = segments[0], path = rest
+      const isUserPage = segments.length === 0;
+      const repo     = isUserPage ? `${owner}.github.io` : segments[0];
+      const filePath = isUserPage ? '' : segments.slice(1).join('/');
+
+      return { owner, repo, filePath };
+    }
+
+    /* ── Fetch & Render ── */
+    async function loadFiles() {
+      const grid    = document.getElementById('grid');
+      const loading = document.getElementById('loading');
+      const info    = parseGitHubInfo();
+
+      if (!info) {
+        // Not on GitHub Pages — fall back to a friendly notice
+        loading.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <p>此功能需部署到 GitHub Pages 才能自動列出頁面。<br>本機預覽時請手動新增連結。</p>`;
+        return;
+      }
+
+      const { owner, repo, filePath } = info;
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+      try {
+        const res  = await fetch(apiUrl, { headers: { Accept: 'application/vnd.github.v3+json' } });
+        if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+        const items = await res.json();
+
+        const htmlFiles = items.filter(f =>
+          f.type === 'file' &&
+          f.name.endsWith('.html') &&
+          f.name.toLowerCase() !== 'index.html'
+        );
+
+        loading.remove();
+
+        if (htmlFiles.length === 0) {
+          grid.innerHTML = `
+            <div class="state" style="grid-column:1/-1">
+              <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>
+              <p>此目錄下沒有其他 HTML 頁面。</p>
+            </div>`;
+          return;
+        }
+
+        const basePath = filePath ? `/${repo}/${filePath}/` : `/${repo}/`;
+        const isUserPage = filePath === '' && repo === `${owner}.github.io`;
+        const linkBase   = isUserPage ? '/' : basePath;
+
+        htmlFiles.forEach(f => {
+          const label = f.name.replace(/\.html$/i, '').replace(/[-_]/g, ' ');
+          const card  = document.createElement('a');
+          card.href      = linkBase + f.name;
+          card.className = 'card';
+          card.innerHTML = `
+            <span class="card-icon">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+            </span>
+            <span class="card-name">${label}</span>`;
+          grid.appendChild(card);
+        });
+
+      } catch (err) {
+        loading.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <p>無法載入檔案列表：${err.message}</p>`;
+      }
+    }
+
+    loadFiles();
+  </script>
+</body>
+</html>

@@ -4,57 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0d6efd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="靜態筆記本">
 <title>📓 靜態筆記本</title>
+<!-- PWA Manifest 以 Blob URL 動態注入，無需外部 manifest.json -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
-:root {
-  --bg-body:#f5f6fa; --bg-side:#fff; --bg-main:#fff; --bg-bar:#f8f9fb;
-  --bg-card:#f1f3f6; --tx:#1a1d23; --tx2:#6c757d; --bd:#e0e3ea;
-  --acc:#0d6efd; --acc2:#dbeafe; --hov:#eef2ff; --act:#0d6efd; --sw:290px;
-}
-[data-theme=dark]{
-  --bg-body:#12141a; --bg-side:#1a1d26; --bg-main:#1e2130; --bg-bar:#161921;
-  --bg-card:#252a38; --tx:#dde1f0; --tx2:#8891aa; --bd:#2d3347;
-  --acc:#4d8eff; --acc2:#1a2c50; --hov:#252a38; --act:#1f4db8;
-}
+:root{--bg-body:#f5f6fa;--bg-side:#fff;--bg-main:#fff;--bg-bar:#f8f9fb;--bg-card:#f1f3f6;--tx:#1a1d23;--tx2:#6c757d;--bd:#e0e3ea;--acc:#0d6efd;--acc2:#dbeafe;--hov:#eef2ff;--act:#0d6efd;--sw:290px}
+[data-theme=dark]{--bg-body:#12141a;--bg-side:#1a1d26;--bg-main:#1e2130;--bg-bar:#161921;--bg-card:#252a38;--tx:#dde1f0;--tx2:#8891aa;--bd:#2d3347;--acc:#4d8eff;--acc2:#1a2c50;--hov:#252a38;--act:#1f4db8}
 *,*::before,*::after{box-sizing:border-box}
-body{margin:0;height:100dvh;overflow:hidden;background:var(--bg-body);color:var(--tx);
-  font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  transition:background .3s,color .3s}
+body{margin:0;height:100dvh;overflow:hidden;background:var(--bg-body);color:var(--tx);font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;transition:background .3s,color .3s}
 #app{display:flex;height:100dvh}
-
-/* SIDEBAR */
-#sidebar{width:var(--sw);min-width:var(--sw);background:var(--bg-side);
-  border-right:1px solid var(--bd);display:flex;flex-direction:column;
-  overflow:hidden;transition:transform .28s ease,box-shadow .28s;z-index:200}
-@media(max-width:767px){
-  #sidebar{position:fixed;top:0;left:0;height:100dvh;transform:translateX(-100%)}
-  #sidebar.open{transform:translateX(0);box-shadow:6px 0 30px rgba(0,0,0,.25)}
-  #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;backdrop-filter:blur(2px)}
-  #overlay.show{display:block}
-}
+#sidebar{width:var(--sw);min-width:var(--sw);background:var(--bg-side);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;transition:transform .28s ease,box-shadow .28s;z-index:200}
+@media(max-width:767px){#sidebar{position:fixed;top:0;left:0;height:100dvh;transform:translateX(-100%)}#sidebar.open{transform:translateX(0);box-shadow:6px 0 30px rgba(0,0,0,.25)}#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;backdrop-filter:blur(2px)}#overlay.show{display:block}}
 .sb-head{padding:14px 14px 10px;border-bottom:1px solid var(--bd);background:var(--bg-bar)}
 .sb-brand{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.sb-icon{font-size:1.4rem;color:var(--acc)}
-.sb-name{font-weight:700;font-size:1rem}
+.sb-icon{font-size:1.4rem;color:var(--acc)}.sb-name{font-weight:700;font-size:1rem}
 .sb-search{position:relative}
-.sb-search input{width:100%;padding:7px 10px 7px 32px;border-radius:10px;border:1px solid var(--bd);
-  background:var(--bg-card);color:var(--tx);font-size:.82rem;outline:none;transition:border-color .2s}
+.sb-search input{width:100%;padding:7px 10px 7px 32px;border-radius:10px;border:1px solid var(--bd);background:var(--bg-card);color:var(--tx);font-size:.82rem;outline:none;transition:border-color .2s}
 .sb-search input:focus{border-color:var(--acc)}
 .sb-si{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--tx2);font-size:.85rem;pointer-events:none}
 .cat-menu{padding:6px 0;border-bottom:1px solid var(--bd)}
-.cat-item{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:.83rem;
-  color:var(--tx2);cursor:pointer;border-radius:7px;margin:1px 6px;transition:background .15s,color .15s}
-.cat-item:hover{background:var(--hov);color:var(--tx)}
-.cat-item.active{background:var(--acc2);color:var(--acc);font-weight:600}
+.cat-item{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:.83rem;color:var(--tx2);cursor:pointer;border-radius:7px;margin:1px 6px;transition:background .15s,color .15s}
+.cat-item:hover{background:var(--hov);color:var(--tx)}.cat-item.active{background:var(--acc2);color:var(--acc);font-weight:600}
 .cat-cnt{margin-left:auto;font-size:.68rem;background:var(--bg-card);color:var(--tx2);padding:1px 7px;border-radius:10px}
 #tagbar{padding:6px 10px;border-bottom:1px solid var(--bd);display:none;align-items:center;gap:6px}
 #note-list{overflow-y:auto;flex:1;padding:4px 0}
-.ni{padding:11px 14px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .15s}
-.ni:hover{background:var(--hov)}
-.ni.active{background:var(--act)}
+.ni{padding:11px 10px 11px 14px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .15s;border-left:4px solid transparent}
+.ni:hover{background:var(--hov)}.ni.active{background:var(--act)}
 .ni .t{font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ni.active .t{color:#fff}
 .ni .m{font-size:.72rem;color:var(--tx2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -62,152 +42,149 @@ body{margin:0;height:100dvh;overflow:hidden;background:var(--bg-body);color:var(
 .ni .tg{margin-top:4px;display:flex;gap:4px;flex-wrap:wrap}
 .nitag{font-size:.62rem;padding:1px 7px;border-radius:10px;background:var(--acc2);color:var(--acc)}
 .ni.active .nitag{background:rgba(255,255,255,.2);color:#fff}
-
-/* MAIN */
 #main{flex:1;display:flex;flex-direction:column;background:var(--bg-main);overflow:hidden;min-width:0}
-#toolbar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--bd);
-  background:var(--bg-bar);flex-wrap:wrap;flex-shrink:0}
+#toolbar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--bd);background:var(--bg-bar);flex-wrap:wrap;flex-shrink:0}
 #toolbar .btn{border-radius:8px}
 #ham{display:none}
 @media(max-width:767px){#ham{display:inline-flex}}
+#offline-badge{display:none;padding:2px 8px;border-radius:12px;font-size:.7rem;background:#dc3545;color:#fff;white-space:nowrap;flex-shrink:0}
 #editor-wrap{flex:1;display:none;flex-direction:column;padding:18px 24px 10px;overflow:hidden;min-height:0}
-#note-title{border:none;background:transparent;color:var(--tx);font-size:1.45rem;font-weight:700;
-  width:100%;outline:none;padding:4px 0;border-bottom:2px solid var(--bd);margin-bottom:8px;transition:border-color .2s}
+#note-title{border:none;background:transparent;color:var(--tx);font-size:1.45rem;font-weight:700;width:100%;outline:none;padding:4px 0;border-bottom:2px solid var(--bd);margin-bottom:8px;transition:border-color .2s}
 #note-title:focus{border-bottom-color:var(--acc)}
-#tags-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:5px 0;
-  border-bottom:1px dashed var(--bd);margin-bottom:8px}
-.tpill{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;padding:2px 9px;
-  border-radius:12px;background:var(--acc2);color:var(--acc)}
-.tpill .rm{cursor:pointer;opacity:.6;font-size:.65rem}
-.tpill .rm:hover{opacity:1}
-#tag-input{font-size:.75rem;padding:2px 9px;border-radius:12px;border:1px dashed var(--bd);
-  background:transparent;color:var(--tx);width:80px;outline:none}
+#tags-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:5px 0;border-bottom:1px dashed var(--bd);margin-bottom:6px}
+.tpill{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;padding:2px 9px;border-radius:12px;background:var(--acc2);color:var(--acc)}
+.tpill .rm{cursor:pointer;opacity:.6;font-size:.65rem}.tpill .rm:hover{opacity:1}
+#tag-input{font-size:.75rem;padding:2px 9px;border-radius:12px;border:1px dashed var(--bd);background:transparent;color:var(--tx);width:80px;outline:none}
 #tag-input:focus{border-color:var(--acc)}
+#color-row{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px dashed var(--bd);margin-bottom:8px}
+.cdot{width:18px;height:18px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;flex-shrink:0}
+.cdot:hover{transform:scale(1.3)}.cdot.active{border-color:var(--tx)!important;transform:scale(1.2)}
+.cdot-none{background:var(--bg-card);border-color:var(--bd)!important}
 #save-st{font-size:.72rem;color:var(--tx2);margin-left:auto;flex-shrink:0}
-#qwrap{flex:1;display:flex;flex-direction:column;min-height:0;border-radius:10px;
-  overflow:hidden;border:1px solid var(--bd)}
-.ql-toolbar.ql-snow{background:var(--bg-bar);border:none!important;
-  border-bottom:1px solid var(--bd)!important;flex-shrink:0}
+#qwrap{flex:1;display:flex;flex-direction:column;min-height:0;border-radius:10px;overflow:hidden;border:1px solid var(--bd)}
+.ql-toolbar.ql-snow{background:var(--bg-bar);border:none!important;border-bottom:1px solid var(--bd)!important;flex-shrink:0}
 .ql-container.ql-snow{border:none!important;flex:1;overflow-y:auto;background:var(--bg-main)}
 .ql-editor{color:var(--tx);font-size:1rem;min-height:200px}
-[data-theme=dark] .ql-stroke{stroke:var(--tx2)!important}
-[data-theme=dark] .ql-fill{fill:var(--tx2)!important}
+[data-theme=dark] .ql-stroke{stroke:var(--tx2)!important}[data-theme=dark] .ql-fill{fill:var(--tx2)!important}
 [data-theme=dark] .ql-picker-label{color:var(--tx2)!important}
 [data-theme=dark] .ql-picker-options{background:var(--bg-card)!important;border-color:var(--bd)!important}
 [data-theme=dark] .ql-picker-item{color:var(--tx)!important}
-#empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  color:var(--tx2);text-align:center;padding:40px}
+#empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--tx2);text-align:center;padding:40px}
 #empty i{font-size:4rem;opacity:.3}
-
-/* A2HS */
-#a2hs{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
-  width:calc(100% - 32px);max-width:420px;background:var(--bg-side);border:1px solid var(--bd);
-  border-radius:14px;padding:13px 16px;box-shadow:0 6px 30px rgba(0,0,0,.18);z-index:1050;
-  animation:sup .4s ease}
+#a2hs{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:420px;background:var(--bg-side);border:1px solid var(--bd);border-radius:14px;padding:13px 16px;box-shadow:0 6px 30px rgba(0,0,0,.18);z-index:1050;animation:sup .4s ease}
 @keyframes sup{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-
-/* AI modal content bg */
-.modal-ai .modal-content{background:var(--bg-side);color:var(--tx);border-color:var(--bd)}
-.modal-ai .modal-header,.modal-ai .modal-footer{border-color:var(--bd)}
+.modal-ai .modal-content,.modal-kbd .modal-content{background:var(--bg-side);color:var(--tx);border-color:var(--bd)}
+.modal-ai .modal-header,.modal-ai .modal-footer,.modal-kbd .modal-header{border-color:var(--bd)}
 .ai-cfg{background:var(--bg-card);border:1px solid var(--bd);border-radius:10px;padding:12px}
-#ai-out{display:none;white-space:pre-wrap;font-size:.9rem;background:var(--bg-card);
-  border:1px solid var(--bd);border-radius:10px;padding:14px;min-height:80px;
-  max-height:320px;overflow-y:auto}
+#ai-out{display:none;white-space:pre-wrap;font-size:.9rem;background:var(--bg-card);border:1px solid var(--bd);border-radius:10px;padding:14px;min-height:80px;max-height:320px;overflow-y:auto;word-break:break-word}
+kbd{background:var(--bg-card);border:1px solid var(--bd);border-radius:4px;padding:2px 6px;font-size:.75rem;color:var(--tx);font-family:monospace}
+#wc{font-size:.7rem;color:var(--tx2);padding:3px 0}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
 
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+/* ── Folder Section ── */
+.folder-section{border-bottom:1px solid var(--bd);overflow-y:auto;max-height:220px}
+.folder-hd{display:flex;align-items:center;padding:7px 14px 3px;font-size:.7rem;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;gap:4px;flex-shrink:0}
+.folder-hd span{flex:1}
+.folder-hd button{border:none;background:none;color:var(--tx2);cursor:pointer;padding:3px 5px;border-radius:6px;font-size:.9rem;transition:color .15s,background .15s;line-height:1}
+.folder-hd button:hover{color:var(--acc);background:var(--hov)}
+.folder-item{display:flex;align-items:center;gap:7px;padding:7px 14px;font-size:.83rem;color:var(--tx2);cursor:pointer;border-radius:7px;margin:1px 6px;transition:background .15s,color .15s}
+.folder-item:hover{background:var(--hov);color:var(--tx)}.folder-item.active{background:var(--acc2);color:var(--acc);font-weight:600}
+.folder-item .fi-cnt{font-size:.68rem;background:var(--bg-card);color:var(--tx2);padding:1px 7px;border-radius:10px;flex-shrink:0}
+.folder-item.active .fi-cnt{background:rgba(255,255,255,.18);color:rgba(255,255,255,.75)}
+.folder-item .fi-acts{display:none;gap:2px;margin-left:auto}
+.folder-item:hover .fi-acts,.folder-item.active .fi-acts{display:flex}
+.fi-btn{border:none;background:none;color:var(--tx2);cursor:pointer;padding:2px 4px;border-radius:4px;font-size:.78rem;line-height:1;transition:color .15s}
+.fi-btn:hover{color:var(--acc)}
+/* ── Tag Management Panel ── */
+#tags-panel{flex:1;display:none;flex-direction:column;padding:18px 24px;overflow-y:auto;min-height:0}
+.tp-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tag-mgr-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;background:var(--bg-card);border:1px solid var(--bd);margin-bottom:7px;transition:background .15s}
+.tag-mgr-row:hover{background:var(--hov)}
+.tmr-cb{width:15px;height:15px;cursor:pointer;flex-shrink:0;accent-color:var(--acc)}
+.tmr-name{flex:1;font-size:.9rem;font-weight:500;cursor:pointer;padding:2px 6px;border-radius:6px;transition:background .15s,color .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tmr-name:hover{background:var(--acc2);color:var(--acc)}
+.tmr-edit{flex:1;font-size:.9rem;border:1.5px solid var(--acc);border-radius:6px;padding:3px 8px;background:var(--bg-main);color:var(--tx);outline:none}
+.tmr-cnt{font-size:.72rem;padding:2px 9px;border-radius:10px;background:var(--acc2);color:var(--acc);flex-shrink:0;white-space:nowrap}
+/* ── Drag & Drop ── */
+.ni{position:relative;display:flex;align-items:flex-start;gap:2px}
+.ni.drag-over-top::before{content:"";position:absolute;top:-1px;left:0;right:0;height:2px;background:var(--acc);border-radius:2px;z-index:10;pointer-events:none}
+.ni.drag-over-bot::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--acc);border-radius:2px;z-index:10;pointer-events:none}
+.ni.dragging{opacity:.35}
+.ni-body{min-width:0;flex:1}
+.drag-handle{color:var(--tx2);font-size:.8rem;padding:13px 1px 0 3px;opacity:0;cursor:grab;flex-shrink:0;transition:opacity .15s;line-height:1}
+.ni:hover .drag-handle{opacity:.55}.ni.active .drag-handle{opacity:.4}
+/* ── Sort toggle ── */
+#sort-wrap{padding:5px 10px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:5px;flex-shrink:0}
+.sort-btn{font-size:.7rem;padding:2px 8px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--tx2);cursor:pointer;transition:all .15s}
+.sort-btn.active{background:var(--acc2);color:var(--acc);border-color:var(--acc)}
+/* ── Folder row in editor ── */
+#folder-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px dashed var(--bd);margin-bottom:6px}
+#note-folder{font-size:.75rem;border:1px dashed var(--bd);border-radius:8px;background:transparent;color:var(--tx2);padding:2px 8px;outline:none;cursor:pointer;max-width:190px}
+#note-folder:focus{border-color:var(--acc);color:var(--tx)}
 </style>
 </head>
 <body>
-
 <div id="overlay"></div>
-
 <div id="app">
-
-  <!-- SIDEBAR -->
   <aside id="sidebar">
     <div class="sb-head">
       <div class="sb-brand">
         <span class="sb-icon"><i class="bi bi-journal-richtext"></i></span>
         <span class="sb-name">靜態筆記本</span>
-        <button class="btn btn-sm btn-primary ms-auto rounded-circle"
-          style="width:30px;height:30px;padding:0" id="btn-new" title="新增筆記 (Ctrl+N)">
-          <i class="bi bi-plus-lg"></i>
-        </button>
+        <button class="btn btn-sm btn-primary ms-auto rounded-circle" style="width:30px;height:30px;padding:0" id="btn-new" title="新增筆記 (Ctrl+N)"><i class="bi bi-plus-lg"></i></button>
       </div>
       <div class="sb-search">
         <i class="bi bi-search sb-si"></i>
-        <input type="search" id="search-input" placeholder="搜尋筆記…" autocomplete="off">
+        <input type="search" id="search-input" placeholder="搜尋筆記… (Ctrl+F)" autocomplete="off">
       </div>
     </div>
-
     <nav class="cat-menu">
-      <div class="cat-item active" id="cat-all">
-        <i class="bi bi-grid-3x3-gap"></i> 全部筆記
-        <span class="cat-cnt" id="cnt-all">0</span>
-      </div>
-      <div class="cat-item" id="cat-pinned">
-        <i class="bi bi-pin-angle"></i> 已釘選
-        <span class="cat-cnt" id="cnt-pinned">0</span>
-      </div>
-      <div class="cat-item" id="cat-trash">
-        <i class="bi bi-trash3"></i> 回收桶
-        <span class="cat-cnt" id="cnt-trash">0</span>
-      </div>
+      <div class="cat-item active" id="cat-all"><i class="bi bi-grid-3x3-gap"></i> 全部筆記<span class="cat-cnt" id="cnt-all">0</span></div>
+      <div class="cat-item" id="cat-pinned"><i class="bi bi-pin-angle"></i> 已釘選<span class="cat-cnt" id="cnt-pinned">0</span></div>
+      <div class="cat-item" id="cat-trash"><i class="bi bi-trash3"></i> 回收桶<span class="cat-cnt" id="cnt-trash">0</span></div>
+      <div class="cat-item" id="cat-tags"><i class="bi bi-tags"></i> 標籤管理</div>
     </nav>
-
+    <div class="folder-section">
+      <div class="folder-hd"><span><i class="bi bi-folder2 me-1"></i>資料夾</span><button id="btn-add-folder" title="新增資料夾"><i class="bi bi-folder-plus"></i></button></div>
+      <div id="folder-list"></div>
+    </div>
+    <div id="sort-wrap">
+      <small class="text-muted me-1" style="font-size:.68rem">排序：</small>
+      <button class="sort-btn active" id="sort-time" title="依最後更新時間排序">⏱ 時間</button>
+      <button class="sort-btn" id="sort-manual" title="手動拖拉排序">☰ 手動</button>
+    </div>
     <div id="tagbar">
       <small class="text-muted">標籤：</small>
       <span id="active-tag"></span>
-      <button class="btn btn-sm btn-link p-0 ms-1 text-muted" id="btn-clrtag">
-        <i class="bi bi-x-circle"></i>
-      </button>
+      <button class="btn btn-sm btn-link p-0 ms-1 text-muted" id="btn-clrtag"><i class="bi bi-x-circle"></i></button>
     </div>
-
     <div id="note-list"></div>
   </aside>
 
-  <!-- MAIN -->
   <main id="main">
     <div id="toolbar">
-      <button class="btn btn-sm btn-outline-secondary" id="ham">
-        <i class="bi bi-list fs-5"></i>
-      </button>
-      <button class="btn btn-sm btn-outline-warning" id="btn-pin" disabled title="釘選">
-        <i class="bi bi-pin"></i>
-      </button>
-      <button class="btn btn-sm btn-outline-primary" id="btn-copy" disabled title="一鍵複製">
-        <i class="bi bi-clipboard"></i> 複製
-      </button>
+      <button class="btn btn-sm btn-outline-secondary" id="ham"><i class="bi bi-list fs-5"></i></button>
+      <button class="btn btn-sm btn-outline-warning" id="btn-pin" disabled title="釘選 (Ctrl+P)"><i class="bi bi-pin"></i></button>
+      <button class="btn btn-sm btn-outline-primary" id="btn-copy" disabled title="複製 (Ctrl+Shift+C)"><i class="bi bi-clipboard"></i> 複製</button>
       <div class="dropdown">
-        <button class="btn btn-sm btn-outline-success dropdown-toggle"
-          id="btn-export" data-bs-toggle="dropdown" disabled>
-          <i class="bi bi-download"></i> 匯出
-        </button>
+        <button class="btn btn-sm btn-outline-success dropdown-toggle" id="btn-export" data-bs-toggle="dropdown" disabled><i class="bi bi-download"></i> 匯出</button>
         <ul class="dropdown-menu shadow-sm">
-          <li><a class="dropdown-item" id="mi-json" href="#">
-            <i class="bi bi-filetype-json me-2 text-warning"></i>此筆記 → JSON</a></li>
-          <li><a class="dropdown-item" id="mi-txt" href="#">
-            <i class="bi bi-filetype-txt me-2 text-secondary"></i>此筆記 → TXT</a></li>
+          <li><a class="dropdown-item" id="mi-json" href="#"><i class="bi bi-filetype-json me-2 text-warning"></i>此筆記 → JSON</a></li>
+          <li><a class="dropdown-item" id="mi-txt" href="#"><i class="bi bi-filetype-txt me-2 text-secondary"></i>此筆記 → TXT</a></li>
           <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" id="mi-backup" href="#">
-            <i class="bi bi-archive me-2 text-primary"></i>備份全部筆記</a></li>
-          <li><a class="dropdown-item" id="mi-import" href="#">
-            <i class="bi bi-upload me-2 text-success"></i>匯入備份</a></li>
+          <li><a class="dropdown-item" id="mi-backup" href="#"><i class="bi bi-archive me-2 text-primary"></i>備份全部筆記</a></li>
+          <li><a class="dropdown-item" id="mi-import" href="#"><i class="bi bi-upload me-2 text-success"></i>匯入備份</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" id="mi-sw" href="#"><i class="bi bi-wifi me-2 text-info"></i>匯出 sw.js（離線支援）</a></li>
         </ul>
       </div>
       <input type="file" id="file-import" accept=".json" style="display:none">
-      <button class="btn btn-sm btn-outline-danger" id="btn-del" disabled title="刪除">
-        <i class="bi bi-trash3"></i>
-      </button>
+      <button class="btn btn-sm btn-outline-danger" id="btn-del" disabled title="刪除 (Ctrl+Backspace)"><i class="bi bi-trash3"></i></button>
       <div class="ms-auto d-flex align-items-center gap-2">
-        <button class="btn btn-sm btn-outline-info" id="btn-ai" disabled>
-          <i class="bi bi-robot"></i> AI
-        </button>
-        <button class="btn btn-sm btn-outline-secondary" id="btn-theme">
-          <i class="bi bi-moon-stars" id="theme-icon"></i>
-        </button>
+        <span id="offline-badge"><i class="bi bi-wifi-off me-1"></i>離線</span>
+        <button class="btn btn-sm btn-outline-info" id="btn-ai" disabled><i class="bi bi-robot"></i> AI</button>
+        <button class="btn btn-sm btn-outline-secondary" id="btn-theme" title="深色模式 (Ctrl+D)"><i class="bi bi-moon-stars" id="theme-icon"></i></button>
+        <button class="btn btn-sm btn-outline-secondary" id="btn-kbd" title="快捷鍵 (?)"><i class="bi bi-keyboard"></i></button>
         <small class="text-muted d-none d-md-inline" id="storage-info"></small>
       </div>
     </div>
@@ -215,28 +192,39 @@ body{margin:0;height:100dvh;overflow:hidden;background:var(--bg-body);color:var(
     <div id="editor-wrap">
       <div class="d-flex align-items-center gap-2 mb-1">
         <input type="text" id="note-title" placeholder="筆記標題…">
-        <span id="save-st">
-          <i class="bi bi-check-circle-fill text-success"></i>
-          <span class="d-none d-sm-inline text-muted" style="font-size:.72rem"> 已儲存</span>
-        </span>
+        <span id="save-st"><i class="bi bi-check-circle-fill text-success"></i><span class="d-none d-sm-inline text-muted" style="font-size:.72rem"> 已儲存</span></span>
       </div>
       <div id="tags-row">
         <i class="bi bi-tags text-muted" style="font-size:.8rem"></i>
         <div id="tags-con"></div>
         <input type="text" id="tag-input" placeholder="+ 標籤" maxlength="20">
       </div>
-      <div id="qwrap">
-        <div id="quill-editor"></div>
+      <div id="folder-row">
+        <i class="bi bi-folder2 text-muted" style="font-size:.8rem"></i>
+        <select id="note-folder"><option value="">無資料夾</option></select>
       </div>
+      <div id="color-row">
+        <i class="bi bi-palette text-muted" style="font-size:.8rem"></i>
+        <div id="color-dots" class="d-flex gap-1"></div>
+        <small class="text-muted ms-1" style="font-size:.68rem">顏色</small>
+        <span id="wc" class="ms-auto">0 字</span>
+      </div>
+      <div id="qwrap"><div id="quill-editor"></div></div>
     </div>
 
+    <div id="tags-panel">
+      <div class="tp-toolbar">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-tags me-2 text-primary"></i>標籤管理</h6>
+        <small class="text-muted" style="font-size:.75rem">點擊名稱可重命名</small>
+        <button class="btn btn-sm btn-outline-danger ms-auto" id="btn-del-tags" style="display:none"><i class="bi bi-trash3 me-1"></i>刪除已選</button>
+      </div>
+      <div id="tag-mgr-list"></div>
+    </div>
     <div id="empty">
       <i class="bi bi-journal-plus"></i>
       <h5 class="mt-3">選擇筆記或新增一篇</h5>
       <p class="text-muted small">所有資料儲存於瀏覽器 IndexedDB，不上傳伺服器。</p>
-      <button class="btn btn-primary" id="btn-new2">
-        <i class="bi bi-plus-lg me-1"></i>新增筆記
-      </button>
+      <button class="btn btn-primary" id="btn-new2"><i class="bi bi-plus-lg me-1"></i>新增筆記</button>
     </div>
   </main>
 </div>
@@ -251,10 +239,10 @@ body{margin:0;height:100dvh;overflow:hidden;background:var(--bg-body);color:var(
       </div>
       <div class="modal-body">
         <div class="ai-cfg mb-3">
-          <div class="d-flex align-items-center mb-2">
+          <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
             <span class="fw-bold small"><i class="bi bi-gear me-1"></i>API 設定</span>
-            <span class="ms-2 badge bg-secondary" title="設定儲存於 localStorage">localStorage ✓</span>
-            <span class="ms-1 badge" style="background:#ff6b35">🐱 LongCat 免費 50M/day</span>
+            <span class="badge bg-secondary" title="設定儲存於 localStorage">localStorage ✓</span>
+            <span class="badge" style="background:#ff6b35">🐱 LongCat 免費 50M/day</span>
           </div>
           <div class="row g-2">
             <div class="col-12 col-md-4">
@@ -266,68 +254,131 @@ body{margin:0;height:100dvh;overflow:hidden;background:var(--bg-body);color:var(
               </select>
             </div>
             <div class="col-12 col-md-5">
-              <input type="password" class="form-control form-control-sm"
-                id="ai-key" placeholder="API Key">
+              <input type="password" class="form-control form-control-sm" id="ai-key" placeholder="API Key">
             </div>
             <div class="col-12 col-md-3">
-              <input type="text" class="form-control form-control-sm"
-                id="ai-model" placeholder="模型名稱" value="LongCat-Flash-Lite">
+              <input type="text" class="form-control form-control-sm" id="ai-model" value="LongCat-Flash-Lite" placeholder="模型名稱">
             </div>
           </div>
           <div class="mt-2" id="ollama-row" style="display:none">
-            <input type="text" class="form-control form-control-sm"
-              id="ollama-url" value="http://localhost:11434">
-            <div class="form-text" style="font-size:.7rem">需設定 OLLAMA_ORIGINS=* 開放 CORS</div>
+            <input type="text" class="form-control form-control-sm" id="ollama-url" value="http://localhost:11434">
+            <div class="form-text" style="font-size:.7rem">需設定 OLLAMA_ORIGINS=*</div>
           </div>
         </div>
         <div class="d-flex gap-2 flex-wrap mb-3">
-          <button class="btn btn-sm btn-info"    id="ai-btn-sum">
-            <i class="bi bi-card-text me-1"></i>摘要</button>
-          <button class="btn btn-sm btn-primary"  id="ai-btn-cont">
-            <i class="bi bi-arrow-right-circle me-1"></i>補全</button>
-          <button class="btn btn-sm btn-success"  id="ai-btn-imp">
-            <i class="bi bi-stars me-1"></i>改善文字</button>
-          <button class="btn btn-sm btn-warning text-dark" id="ai-btn-tr">
-            <i class="bi bi-translate me-1"></i>翻譯英文</button>
-          <button class="btn btn-sm btn-secondary" id="ai-btn-cus">
-            <i class="bi bi-chat-dots me-1"></i>自訂提示</button>
+          <button class="btn btn-sm btn-info"    id="ai-sum"><i class="bi bi-card-text me-1"></i>摘要</button>
+          <button class="btn btn-sm btn-primary"  id="ai-cont"><i class="bi bi-arrow-right-circle me-1"></i>補全</button>
+          <button class="btn btn-sm btn-success"  id="ai-imp"><i class="bi bi-stars me-1"></i>改善文字</button>
+          <button class="btn btn-sm btn-warning text-dark" id="ai-tr"><i class="bi bi-translate me-1"></i>翻譯英文</button>
+          <button class="btn btn-sm btn-secondary" id="ai-cus"><i class="bi bi-chat-dots me-1"></i>自訂提示</button>
         </div>
         <div id="cus-wrap" style="display:none" class="mb-3">
           <div class="input-group input-group-sm">
-            <textarea class="form-control" id="cus-prompt" rows="2"
-              placeholder="輸入提示詞，AI 會結合筆記內容回答…"
-              style="background:var(--bg-card);color:var(--tx);border-color:var(--bd)"></textarea>
-            <button class="btn btn-sm btn-primary" id="ai-btn-cusgo">送出</button>
+            <textarea class="form-control" id="cus-prompt" rows="2" placeholder="輸入提示詞，AI 會結合筆記內容回答…" style="background:var(--bg-card);color:var(--tx);border-color:var(--bd)"></textarea>
+            <button class="btn btn-sm btn-primary" id="ai-cus-go">送出</button>
           </div>
         </div>
-        <div id="ai-spin" class="text-center py-4" style="display:none">
-          <div class="spinner-border text-info spinner-border-sm me-2"></div>
-          <span class="text-muted">AI 處理中…</span>
+        <div id="ai-loading" style="display:none" class="d-flex align-items-center gap-2 mb-2">
+          <div class="spinner-border text-info spinner-border-sm"></div>
+          <span class="text-muted small" id="ai-lbl">串流中…</span>
+          <button class="btn btn-sm btn-outline-danger ms-2" id="ai-stop"><i class="bi bi-stop-fill me-1"></i>停止</button>
         </div>
         <div id="ai-out"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-sm btn-outline-secondary" id="ai-btn-cp">
-          <i class="bi bi-clipboard me-1"></i>複製結果</button>
-        <button class="btn btn-sm btn-primary" id="ai-btn-ins">
-          <i class="bi bi-plus-lg me-1"></i>插入筆記</button>
+        <button class="btn btn-sm btn-outline-secondary" id="ai-cp"><i class="bi bi-clipboard me-1"></i>複製結果</button>
+        <button class="btn btn-sm btn-primary" id="ai-ins"><i class="bi bi-plus-lg me-1"></i>插入筆記</button>
         <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">關閉</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- A2HS -->
+<!-- Keyboard Shortcuts Modal -->
+<div class="modal fade modal-kbd" id="kbd-modal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title mb-0"><i class="bi bi-keyboard me-2"></i>鍵盤快捷鍵</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <table class="table table-sm mb-0" style="font-size:.82rem">
+          <tbody>
+            <tr><td><kbd>Ctrl+N</kbd></td><td>新增筆記</td></tr>
+            <tr><td><kbd>Ctrl+S</kbd></td><td>立即儲存</td></tr>
+            <tr><td><kbd>Ctrl+F</kbd></td><td>聚焦搜尋</td></tr>
+            <tr><td><kbd>Ctrl+D</kbd></td><td>切換深色模式</td></tr>
+            <tr><td><kbd>Ctrl+Z</kbd></td><td>復原 (Undo)</td></tr>
+            <tr><td><kbd>Ctrl+Y</kbd></td><td>重做 (Redo)</td></tr>
+            <tr><td><kbd>Ctrl+Shift+C</kbd></td><td>一鍵複製筆記</td></tr>
+            <tr><td><kbd>Ctrl+Backspace</kbd></td><td>刪除當前筆記</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>關閉側邊欄（手機）</td></tr>
+            <tr><td><kbd>?</kbd></td><td>顯示此說明</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- A2HS Banner（非 iOS：顯示安裝按鈕；iOS：顯示「查看步驟」） -->
 <div id="a2hs">
   <div class="d-flex align-items-center gap-3">
     <i class="bi bi-phone fs-3 text-primary"></i>
     <div class="flex-grow-1">
       <div class="fw-bold small">加入主螢幕</div>
-      <div class="text-muted" style="font-size:.72rem">像原生 App 般使用</div>
+      <div class="text-muted" style="font-size:.72rem" id="a2hs-sub">像原生 App 般使用</div>
     </div>
     <button class="btn btn-sm btn-primary" id="a2hs-install">安裝</button>
-    <button class="btn btn-sm btn-link p-0 text-muted" id="a2hs-dismiss">
-      <i class="bi bi-x-lg"></i></button>
+    <button class="btn btn-sm btn-link p-0 text-muted" id="a2hs-dismiss"><i class="bi bi-x-lg"></i></button>
+  </div>
+</div>
+
+<!-- iOS A2HS 步驟說明 Modal -->
+<div class="modal fade modal-kbd" id="ios-a2hs-modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title mb-0">
+          <i class="bi bi-phone me-2 text-primary"></i>加入主畫面教學
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- 7天警告 -->
+        <div class="alert alert-warning py-2 mb-3" style="font-size:.82rem">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          <strong>重要：</strong>Safari 會在 <strong>7 天內未開啟</strong>時自動清除筆記資料。
+          加入主畫面後資料更受保護，並定期匯出備份。
+        </div>
+        <!-- Steps -->
+        <ol class="list-group list-group-flush list-group-numbered mb-0" style="font-size:.88rem">
+          <li class="list-group-item px-0" style="background:transparent;border-color:var(--bd)">
+            在 <strong>Safari</strong> 底部點擊
+            <span style="display:inline-flex;align-items:center;gap:3px;background:var(--acc2);color:var(--acc);padding:2px 8px;border-radius:6px;font-size:.82rem">
+              <i class="bi bi-box-arrow-up"></i> 分享
+            </span>
+            按鈕
+          </li>
+          <li class="list-group-item px-0" style="background:transparent;border-color:var(--bd)">
+            在分享選單向下捲動，點選
+            <span style="display:inline-flex;align-items:center;gap:3px;background:var(--acc2);color:var(--acc);padding:2px 8px;border-radius:6px;font-size:.82rem">
+              <i class="bi bi-plus-square"></i> 加入主畫面
+            </span>
+          </li>
+          <li class="list-group-item px-0" style="background:transparent;border-color:var(--bd)">
+            確認名稱後，點右上角 <strong>「新增」</strong>
+          </li>
+          <li class="list-group-item px-0" style="background:transparent;border-color:var(--bd)">
+            從主畫面開啟，以 <strong>獨立 App 模式</strong> 使用 ✅
+          </li>
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">關閉</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -336,737 +387,848 @@ body{margin:0;height:100dvh;overflow:hidden;background:var(--bg-body);color:var(
   <div id="toast" class="toast text-white border-0" role="alert">
     <div class="d-flex">
       <div class="toast-body" id="toast-msg"></div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto"
-        data-bs-dismiss="toast"></button>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
     </div>
   </div>
 </div>
 
-<!-- ============================================================
-  載入順序：Bootstrap → Dexie → Quill → 自訂 JS
-  全部放在 </body> 前確保 DOM 已就緒
-============================================================ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
 <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
 <script>
-(function () {
-  "use strict";
+(function(){
+"use strict";
+var db,quill,aiModal,kbdModal;
+var S={notes:[],folders:[],cur:null,cat:"all",tagF:null,folderId:null,editing:false,timer:null,sortManual:false,dragSrcId:null};
+var deferredInstall=null,aiAbort=null;
 
-  /* ── 狀態 ── */
-  var db, quill, aiModal;
-  var S = {
-    notes: [], cur: null, cat: "all",
-    tagF: null, editing: false, timer: null
-  };
-  var deferredInstall = null;
+var COLORS=[
+  {id:"none",hex:null,label:"無色"},
+  {id:"red",hex:"#ef4444",label:"紅色"},
+  {id:"orange",hex:"#f97316",label:"橙色"},
+  {id:"yellow",hex:"#eab308",label:"黃色"},
+  {id:"green",hex:"#22c55e",label:"綠色"},
+  {id:"blue",hex:"#3b82f6",label:"藍色"},
+  {id:"purple",hex:"#a855f7",label:"紫色"}
+];
 
-  /* ══════════════════════════════════════
-     INIT — 等 DOM + 外部腳本全部就緒
-  ══════════════════════════════════════ */
-  document.addEventListener("DOMContentLoaded", function () {
+var AI_EP={
+  longcat:"https://api.longcat.chat/openai/v1/chat/completions",
+  openai:"https://api.openai.com/v1/chat/completions",
+  openrouter:"https://openrouter.ai/api/v1/chat/completions"
+};
+var AI_MDL={longcat:"LongCat-Flash-Lite",openai:"gpt-4o-mini",openrouter:"openai/gpt-4o-mini",ollama:"llama3"};
 
-    /* 1. Dexie DB */
-    db = new Dexie("NoteApp_v2");
-    db.version(1).stores({ notes: "id, updatedAt, isPinned, isDeleted" });
+/* SW 源碼內嵌 — 用戶可透過「匯出 sw.js」按鈕下載，放同一資料夾即啟用離線快取 */
+var SW_SRC=[
+  "const CACHE='noteapp-v2';",
+  "const CDN=['https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',",
+  "'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css',",
+  "'https://cdn.quilljs.com/1.3.7/quill.snow.css',",
+  "'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',",
+  "'https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js',",
+  "'https://cdn.quilljs.com/1.3.7/quill.js'];",
+  "self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return Promise.allSettled(CDN.map(function(u){return c.add(u).catch(function(){});}));}).then(function(){self.skipWaiting();}));});",
+  "self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));}).then(function(){self.clients.claim();}));});",
+  "self.addEventListener('fetch',function(e){var u=e.request.url;var isCDN=['cdn.jsdelivr.net','quilljs.com','bootstrap-icons'].some(function(h){return u.includes(h);});if(isCDN){e.respondWith(caches.match(e.request).then(function(c){return c||fetch(e.request).then(function(r){caches.open(CACHE).then(function(ca){ca.put(e.request,r.clone());});return r;});}));}else{e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));}});"
+].join("\n");
 
-    /* 2. Quill */
-    quill = new Quill("#quill-editor", {
-      theme: "snow",
-      placeholder: "開始書寫…",
-      modules: {
-        toolbar: [
-          [{ header: [1, 2, 3, false] }],
-          ["bold", "italic", "underline", "strike"],
-          [{ color: [] }, { background: [] }],
-          [{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
-          ["blockquote", "code-block", "link"],
-          ["clean"]
-        ]
-      }
+/* ══ INIT ══ */
+document.addEventListener("DOMContentLoaded",function(){
+  db=new Dexie("NoteApp_v2");
+  db.version(1).stores({notes:"id, updatedAt, isPinned, isDeleted"});
+  db.version(2).stores({notes:"id, updatedAt, isPinned, isDeleted, folderId, sortOrder",folders:"id, createdAt"}).upgrade(function(tx){
+    return tx.table("notes").toCollection().modify(function(n){
+      if(n.folderId===undefined)n.folderId=null;
+      if(n.sortOrder===undefined)n.sortOrder=n.updatedAt||Date.now();
     });
-    quill.on("text-change", function () {
-      if (S.editing) schedSave();
-    });
-
-    /* 3. Bootstrap AI modal */
-    aiModal = new bootstrap.Modal(document.getElementById("ai-modal"));
-
-    /* 4. 主題 */
-    applyTheme(localStorage.getItem("theme") || "light");
-
-    /* 5. 載入筆記 */
-    loadNotes();
-
-    /* 6. 持久化儲存 */
-    initPersist();
-
-    /* 7. A2HS */
-    initA2HS();
-
-    /* 8. AI 設定 */
-    loadAICfg();
-
-    /* 9. 綁定所有事件 */
-    bindEvents();
   });
 
-  /* ══════════════════════════════════════
-     BIND EVENTS（全部用 addEventListener）
-  ══════════════════════════════════════ */
-  function bindEvents() {
-    /* sidebar + hamburger */
-    $("ham").addEventListener("click", openSidebar);
-    $("overlay").addEventListener("click", closeSidebar);
-    $("btn-new").addEventListener("click", createNote);
-    $("btn-new2").addEventListener("click", createNote);
-
-    /* 分類 */
-    $("cat-all").addEventListener("click",    function () { setCat("all"); });
-    $("cat-pinned").addEventListener("click", function () { setCat("pinned"); });
-    $("cat-trash").addEventListener("click",  function () { setCat("trash"); });
-
-    /* 搜尋 */
-    $("search-input").addEventListener("input", renderList);
-
-    /* 標籤清除 */
-    $("btn-clrtag").addEventListener("click", function () {
-      S.tagF = null;
-      $("tagbar").style.display = "none";
-      renderList();
-    });
-
-    /* toolbar 按鈕 */
-    $("btn-pin").addEventListener("click",    doPin);
-    $("btn-copy").addEventListener("click",   doCopy);
-    $("btn-del").addEventListener("click",    doDel);
-    $("btn-ai").addEventListener("click",     openAI);
-    $("btn-theme").addEventListener("click",  toggleTheme);
-
-    /* 匯出 */
-    $("mi-json").addEventListener("click",   function (e) { e.preventDefault(); exportNote("json"); });
-    $("mi-txt").addEventListener("click",    function (e) { e.preventDefault(); exportNote("txt"); });
-    $("mi-backup").addEventListener("click", function (e) { e.preventDefault(); backupAll(); });
-    $("mi-import").addEventListener("click", function (e) { e.preventDefault(); $("file-import").click(); });
-    $("file-import").addEventListener("change", importBackup);
-
-    /* 編輯器欄位 */
-    $("note-title").addEventListener("input", schedSave);
-    $("tag-input").addEventListener("keydown", onTagKey);
-
-    /* AI modal 內部按鈕 */
-    $("ai-prov").addEventListener("change",   onProvChange);
-    $("ai-key").addEventListener("input",     saveAICfg);
-    $("ai-model").addEventListener("input",   saveAICfg);
-    $("ollama-url").addEventListener("input", saveAICfg);
-    $("ai-btn-sum").addEventListener("click", function () { aiRun("summarize"); });
-    $("ai-btn-cont").addEventListener("click",function () { aiRun("continue"); });
-    $("ai-btn-imp").addEventListener("click", function () { aiRun("improve"); });
-    $("ai-btn-tr").addEventListener("click",  function () { aiRun("translate"); });
-    $("ai-btn-cus").addEventListener("click", function () {
-      $("cus-wrap").style.display = "block";
-      $("cus-prompt").focus();
-    });
-    $("ai-btn-cusgo").addEventListener("click", function () { aiRun("custom"); });
-    $("ai-btn-cp").addEventListener("click",  copyAI);
-    $("ai-btn-ins").addEventListener("click", insertAI);
-
-    /* A2HS */
-    $("a2hs-install").addEventListener("click",  doInstall);
-    $("a2hs-dismiss").addEventListener("click",  dismissA2HS);
-
-    /* Ctrl+N */
-    document.addEventListener("keydown", function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === "n") {
-        e.preventDefault();
-        createNote();
-      }
-    });
-  }
-
-  /* ══════════════════════════════════════
-     DATABASE
-  ══════════════════════════════════════ */
-  function loadNotes() {
-    db.notes.orderBy("updatedAt").reverse().toArray().then(function (rows) {
-      S.notes = rows;
-      renderList();
-      updateCounts();
-      updateTagBar();
-    });
-  }
-
-  /* ══════════════════════════════════════
-     RENDER NOTE LIST
-  ══════════════════════════════════════ */
-  function renderList() {
-    var q = ($("search-input").value || "").toLowerCase();
-    var list = S.notes.slice();
-
-    if (S.cat === "pinned")     list = list.filter(function (n) { return n.isPinned && !n.isDeleted; });
-    else if (S.cat === "trash") list = list.filter(function (n) { return n.isDeleted; });
-    else                        list = list.filter(function (n) { return !n.isDeleted; });
-
-    if (S.tagF) list = list.filter(function (n) { return (n.tags || []).indexOf(S.tagF) >= 0; });
-
-    if (q) list = list.filter(function (n) {
-      return (n.title || "").toLowerCase().indexOf(q) >= 0 ||
-             (n.plain  || "").toLowerCase().indexOf(q) >= 0 ||
-             (n.tags   || []).some(function (t) { return t.toLowerCase().indexOf(q) >= 0; });
-    });
-
-    var el = $("note-list");
-    if (!list.length) {
-      el.innerHTML = '<div class="text-center py-5 text-muted small">' +
-        '<i class="bi bi-journal-x d-block mb-2" style="font-size:2rem;opacity:.3"></i>沒有筆記</div>';
-      return;
+  quill=new Quill("#quill-editor",{
+    theme:"snow",placeholder:"開始書寫…",
+    modules:{
+      toolbar:[[{header:[1,2,3,false]}],["bold","italic","underline","strike"],[{color:[]},{background:[]}],[{list:"ordered"},{list:"bullet"},{list:"check"}],["blockquote","code-block","link"],["clean"]],
+      history:{delay:500,maxStack:100,userOnly:true}
     }
-    el.innerHTML = list.map(function (n) {
-      var active = n.id === S.cur ? "active" : "";
-      var date = new Date(n.updatedAt).toLocaleDateString("zh-TW", { month: "short", day: "numeric" });
-      var prev = (n.plain || "尚無內容").slice(0, 55);
-      var pin  = n.isPinned
-        ? '<i class="bi bi-pin-fill me-1" style="color:#ffc107;font-size:.7rem"></i>' : "";
-      var tags = (n.tags || []).map(function (t) {
-        return '<span class="nitag">' + esc(t) + "</span>";
-      }).join("");
-      return '<div class="ni ' + active + '" data-id="' + n.id + '">' +
-        '<div class="t">' + pin + (esc(n.title) || "（無標題）") + "</div>" +
-        '<div class="m">' + esc(date) + " · " + esc(prev) + "</div>" +
-        (tags ? '<div class="tg">' + tags + "</div>" : "") +
-        "</div>";
-    }).join("");
+  });
+  quill.on("text-change",function(){if(S.editing){schedSave();updateWC();}});
 
-    /* 點擊事件用事件委派 */
-    el.querySelectorAll(".ni").forEach(function (el) {
-      el.addEventListener("click", function () { openNote(this.dataset.id); });
-    });
-  }
+  aiModal=new bootstrap.Modal($("ai-modal"));
+  kbdModal=new bootstrap.Modal($("kbd-modal"));
 
-  function updateCounts() {
-    var active = S.notes.filter(function (n) { return !n.isDeleted; });
-    $("cnt-all").textContent    = active.length;
-    $("cnt-pinned").textContent = active.filter(function (n) { return n.isPinned; }).length;
-    $("cnt-trash").textContent  = S.notes.filter(function (n) { return n.isDeleted; }).length;
-  }
+  applyTheme(localStorage.getItem("theme")||"light");
+  loadNotes();
+  loadFolders();
+  initPersist();
+  initA2HS();
+  initOnline();
+  setupManifest();
+  registerSW();
+  setupColorDots();
+  loadAICfg();
+  bindEvents();
+});
 
-  function updateTagBar() {
-    var tb = $("tagbar");
-    if (!S.tagF) { tb.style.display = "none"; return; }
-    tb.style.display = "flex";
-    $("active-tag").innerHTML = '<span class="tpill">' + esc(S.tagF) + "</span>";
-  }
+/* ══ EVENTS ══ */
+function bindEvents(){
+  $("ham").addEventListener("click",openSidebar);
+  $("overlay").addEventListener("click",closeSidebar);
+  $("btn-new").addEventListener("click",createNote);
+  $("btn-new2").addEventListener("click",createNote);
+  $("cat-all").addEventListener("click",function(){setCat("all");});
+  $("cat-pinned").addEventListener("click",function(){setCat("pinned");});
+  $("cat-trash").addEventListener("click",function(){setCat("trash");});
+  $("search-input").addEventListener("input",renderList);
+  $("btn-clrtag").addEventListener("click",function(){S.tagF=null;$("tagbar").style.display="none";renderList();});
+  $("btn-pin").addEventListener("click",doPin);
+  $("btn-copy").addEventListener("click",doCopy);
+  $("btn-del").addEventListener("click",doDel);
+  $("btn-ai").addEventListener("click",openAI);
+  $("btn-theme").addEventListener("click",toggleTheme);
+  $("btn-kbd").addEventListener("click",function(){kbdModal.show();});
+  $("mi-json").addEventListener("click",function(e){e.preventDefault();exportNote("json");});
+  $("mi-txt").addEventListener("click",function(e){e.preventDefault();exportNote("txt");});
+  $("mi-backup").addEventListener("click",function(e){e.preventDefault();backupAll();});
+  $("mi-import").addEventListener("click",function(e){e.preventDefault();$("file-import").click();});
+  $("mi-sw").addEventListener("click",function(e){e.preventDefault();exportSW();});
+  $("file-import").addEventListener("change",importBackup);
+  $("note-title").addEventListener("input",schedSave);
+  $("tag-input").addEventListener("keydown",onTagKey);
+  $("ai-prov").addEventListener("change",onProvChange);
+  $("ai-key").addEventListener("input",saveAICfg);
+  $("ai-model").addEventListener("input",saveAICfg);
+  $("ollama-url").addEventListener("input",saveAICfg);
+  $("ai-sum").addEventListener("click",function(){aiRun("summarize");});
+  $("ai-cont").addEventListener("click",function(){aiRun("continue");});
+  $("ai-imp").addEventListener("click",function(){aiRun("improve");});
+  $("ai-tr").addEventListener("click",function(){aiRun("translate");});
+  $("ai-cus").addEventListener("click",function(){$("cus-wrap").style.display="block";$("cus-prompt").focus();});
+  $("ai-cus-go").addEventListener("click",function(){aiRun("custom");});
+  $("ai-stop").addEventListener("click",stopAI);
+  $("ai-cp").addEventListener("click",copyAI);
+  $("ai-ins").addEventListener("click",insertAI);
+  $("a2hs-install").addEventListener("click",doInstall);
+  $("a2hs-dismiss").addEventListener("click",dismissA2HS);
 
-  /* ══════════════════════════════════════
-     CREATE NOTE
-  ══════════════════════════════════════ */
-  function createNote() {
-    var note = {
-      id: crypto.randomUUID(),
-      title: "", content: "", plain: "", tags: [],
-      isPinned: false, isDeleted: false,
-      createdAt: Date.now(), updatedAt: Date.now()
-    };
-    db.notes.add(note).then(function () {
-      S.notes.unshift(note);
-      renderList();
-      updateCounts();
-      openNote(note.id);
-      closeSidebar();
-    });
-  }
-
-  /* ══════════════════════════════════════
-     OPEN NOTE
-  ══════════════════════════════════════ */
-  function openNote(id) {
-    S.editing = false;
-    S.cur = id;
-    var n = S.notes.find(function (x) { return x.id === id; });
-    if (!n) return;
-    $("note-title").value = n.title || "";
-    quill.root.innerHTML  = n.content || "";
-    renderTags(n.tags || []);
-    $("editor-wrap").style.display = "flex";
-    $("editor-wrap").style.flexDirection = "column";
-    $("empty").style.display = "none";
-    setToolbar(true, n.isPinned);
-    setSaveSt("saved");
+  /* ── 資料夾 / 標籤管理 / 排序 ── */
+  $("cat-tags").addEventListener("click",showTagsPanel);
+  $("btn-add-folder").addEventListener("click",createFolder);
+  $("sort-time").addEventListener("click",function(){
+    S.sortManual=false;
+    $("sort-time").classList.add("active");$("sort-manual").classList.remove("active");
     renderList();
-    setTimeout(function () { S.editing = true; }, 120);
-  }
-
-  /* ══════════════════════════════════════
-     SAVE
-  ══════════════════════════════════════ */
-  function schedSave() {
-    setSaveSt("saving");
-    clearTimeout(S.timer);
-    S.timer = setTimeout(saveNote, 900);
-  }
-
-  function saveNote() {
-    if (!S.cur) return;
-    var n = S.notes.find(function (x) { return x.id === S.cur; });
-    if (!n) return;
-    n.title     = $("note-title").value;
-    n.content   = quill.root.innerHTML;
-    n.plain     = quill.getText().trim();
-    n.updatedAt = Date.now();
-    db.notes.put(n).then(function () {
-      renderList();
-      setSaveSt("saved");
-      refreshStorage();
-    });
-  }
-
-  function setSaveSt(s) {
-    $("save-st").innerHTML = s === "saved"
-      ? '<i class="bi bi-check-circle-fill text-success"></i>' +
-        '<span class="d-none d-sm-inline text-muted" style="font-size:.72rem"> 已儲存</span>'
-      : '<i class="bi bi-circle text-warning"></i>' +
-        '<span class="d-none d-sm-inline text-muted" style="font-size:.72rem"> 儲存中…</span>';
-  }
-
-  /* ══════════════════════════════════════
-     TAGS
-  ══════════════════════════════════════ */
-  function renderTags(tags) {
-    $("tags-con").innerHTML = tags.map(function (t) {
-      return '<span class="tpill">' + esc(t) +
-        '<span class="rm" data-tag="' + esc(t) + '">✕</span></span>';
-    }).join("");
-    $("tags-con").querySelectorAll(".rm").forEach(function (el) {
-      el.addEventListener("click", function () { removeTag(this.dataset.tag); });
-    });
-  }
-
-  function onTagKey(e) {
-    if (e.key !== "Enter" && e.key !== ",") return;
-    e.preventDefault();
-    var val = e.target.value.replace(",", "").trim();
-    if (!val) return;
-    e.target.value = "";
-    var n = S.notes.find(function (x) { return x.id === S.cur; });
-    if (!n || n.tags.indexOf(val) >= 0) return;
-    n.tags.push(val);
-    db.notes.put(n).then(function () {
-      renderTags(n.tags);
-      renderList();
-    });
-  }
-
-  function removeTag(tag) {
-    var n = S.notes.find(function (x) { return x.id === S.cur; });
-    if (!n) return;
-    n.tags = n.tags.filter(function (t) { return t !== tag; });
-    db.notes.put(n).then(function () {
-      renderTags(n.tags);
-      renderList();
-    });
-  }
-
-  /* ══════════════════════════════════════
-     PIN / DELETE
-  ══════════════════════════════════════ */
-  function doPin() {
-    var n = S.notes.find(function (x) { return x.id === S.cur; });
-    if (!n) return;
-    n.isPinned = !n.isPinned;
-    db.notes.put(n).then(function () {
-      setToolbar(true, n.isPinned);
-      updateCounts();
-      renderList();
-      toast(n.isPinned ? "📌 已釘選" : "📌 取消釘選");
-    });
-  }
-
-  function doDel() {
-    var n = S.notes.find(function (x) { return x.id === S.cur; });
-    if (!n) return;
-    if (n.isDeleted) {
-      if (!confirm("永久刪除此筆記？")) return;
-      db.notes.delete(n.id).then(function () {
-        S.notes = S.notes.filter(function (x) { return x.id !== n.id; });
-        closeEditor();
-        renderList();
-        updateCounts();
-        toast("🗑️ 已永久刪除");
-      });
-    } else {
-      n.isDeleted = true;
-      db.notes.put(n).then(function () {
-        closeEditor();
-        renderList();
-        updateCounts();
-        toast("🗑️ 已移至回收桶");
-      });
-    }
-  }
-
-  function closeEditor() {
-    S.cur = null; S.editing = false;
-    $("editor-wrap").style.display = "none";
-    $("empty").style.display = "flex";
-    setToolbar(false, false);
-  }
-
-  function setToolbar(on, pinned) {
-    ["btn-pin", "btn-copy", "btn-export", "btn-del", "btn-ai"]
-      .forEach(function (id) { $(id).disabled = !on; });
-    var b = $("btn-pin");
-    b.innerHTML = '<i class="bi bi-pin' + (pinned ? "-fill" : "") + '"></i>';
-    b.className = "btn btn-sm btn-" + (pinned ? "warning" : "outline-warning");
-  }
-
-  /* ══════════════════════════════════════
-     CATEGORY
-  ══════════════════════════════════════ */
-  function setCat(cat) {
-    S.cat = cat; S.tagF = null;
-    document.querySelectorAll(".cat-item").forEach(function (el) {
-      el.classList.remove("active");
-    });
-    $("cat-" + cat).classList.add("active");
-    $("tagbar").style.display = "none";
+  });
+  $("sort-manual").addEventListener("click",function(){
+    S.sortManual=true;
+    $("sort-manual").classList.add("active");$("sort-time").classList.remove("active");
     renderList();
-  }
+  });
+  $("note-folder").addEventListener("change",function(){
+    var n=S.notes.find(function(x){return x.id===S.cur;});if(!n)return;
+    n.folderId=this.value||null;
+    db.notes.put(n).then(function(){renderFolders();});
+  });
+  $("btn-del-tags").addEventListener("click",batchDeleteTags);
 
-  /* ══════════════════════════════════════
-     COPY
-  ══════════════════════════════════════ */
-  function doCopy() {
-    var n = S.notes.find(function (x) { return x.id === S.cur; });
-    if (!n) return;
-    var text = (n.title ? n.title + "\n\n" : "") + quill.getText();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () {
-        toast("📋 已複製到剪貼簿", "success");
-      }).catch(function () { fallbackCopy(text); });
-    } else {
-      fallbackCopy(text);
-    }
-  }
-  function fallbackCopy(text) {
-    var ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.cssText = "position:fixed;opacity:0";
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    document.body.removeChild(ta);
-    toast("📋 已複製（降級模式）", "success");
-  }
+  /* ── 鍵盤快捷鍵 ── */
+  document.addEventListener("keydown",function(e){
+    var inInput=["INPUT","TEXTAREA","SELECT"].indexOf(document.activeElement.tagName)>=0;
+    var ctrl=e.ctrlKey||e.metaKey;
+    if(ctrl&&e.key==="n"){e.preventDefault();createNote();return;}
+    if(ctrl&&e.key==="s"){e.preventDefault();saveNote();toast("💾 已儲存","success");return;}
+    if(ctrl&&e.key==="f"){e.preventDefault();$("search-input").focus();$("search-input").select();return;}
+    if(ctrl&&e.key==="d"){e.preventDefault();toggleTheme();return;}
+    if(ctrl&&e.shiftKey&&e.key==="C"){e.preventDefault();doCopy();return;}
+    if(ctrl&&e.key==="Backspace"&&S.cur){e.preventDefault();doDel();return;}
+    if(e.key==="Escape"){closeSidebar();return;}
+    if(e.key==="?"&&!inInput){kbdModal.show();return;}
+  });
+}
 
-  /* ══════════════════════════════════════
-     EXPORT / IMPORT
-  ══════════════════════════════════════ */
-  function exportNote(fmt) {
-    var n = S.notes.find(function (x) { return x.id === S.cur; });
-    if (!n) return;
-    var content, name, mime;
-    if (fmt === "json") {
-      content = JSON.stringify(n, null, 2);
-      name = (n.title || "note") + ".json";
-      mime = "application/json";
-    } else {
-      content = (n.title || "") + "\n" + "=".repeat(40) + "\n\n" +
-                quill.getText() + "\n\n標籤: " + (n.tags || []).join(", ");
-      name = (n.title || "note") + ".txt";
-      mime = "text/plain;charset=utf-8";
-    }
-    dl(content, name, mime);
-    toast("📥 匯出成功");
-  }
+/* ══ MANIFEST (Blob URL 內嵌) ══ */
+function setupManifest(){
+  var icon="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'512'%20height%3D'512'%20viewBox%3D'0%200%20100%20100'%3E%3Crect%20width%3D'100'%20height%3D'100'%20rx%3D'18'%20fill%3D'%230d6efd'%2F%3E%3Ctext%20x%3D'50'%20y%3D'68'%20text-anchor%3D'middle'%20font-size%3D'55'%20font-family%3D'serif'%3E%F0%9F%93%93%3C%2Ftext%3E%3C%2Fsvg%3E";
+  var m={name:"靜態筆記本",short_name:"筆記本",description:"純前端 PWA 筆記本",start_url:"./notebook.html",display:"standalone",orientation:"any",background_color:"#f5f6fa",theme_color:"#0d6efd",lang:"zh-TW",icons:[{src:icon,sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}],categories:["productivity","utilities"]};
+  var blob=new Blob([JSON.stringify(m)],{type:"application/manifest+json"});
+  var link=document.createElement("link");
+  link.rel="manifest";link.href=URL.createObjectURL(blob);
+  document.head.appendChild(link);
+}
 
-  function backupAll() {
-    db.notes.toArray().then(function (all) {
-      dl(JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), notes: all }, null, 2),
-        "noteapp-backup-" + Date.now() + ".json", "application/json");
-      toast("📦 已備份 " + all.length + " 篇");
-    });
-  }
-
-  function importBackup(ev) {
-    var file = ev.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function (e) {
-      try {
-        var data = JSON.parse(e.target.result);
-        var arr  = data.notes || (Array.isArray(data) ? data : [data]);
-        var count = 0;
-        var chain = Promise.resolve();
-        arr.forEach(function (n) {
-          chain = chain.then(function () {
-            return db.notes.get(n.id).then(function (ex) {
-              if (!ex) { count++; return db.notes.add(n); }
-            });
-          });
-        });
-        chain.then(function () {
-          loadNotes();
-          toast("✅ 匯入 " + count + " 篇", "success");
-        });
-      } catch (err) {
-        toast("❌ 格式錯誤，匯入失敗", "danger");
-      }
-    };
-    reader.readAsText(file);
-    ev.target.value = "";
-  }
-
-  function dl(content, name, mime) {
-    var url = URL.createObjectURL(new Blob([content], { type: mime }));
-    var a = document.createElement("a");
-    a.href = url; a.download = name; a.click();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-  }
-
-  /* ══════════════════════════════════════
-     THEME
-  ══════════════════════════════════════ */
-  function toggleTheme() {
-    var t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    applyTheme(t);
-  }
-  function applyTheme(t) {
-    document.documentElement.setAttribute("data-theme", t);
-    localStorage.setItem("theme", t);
-    $("theme-icon").className = t === "dark" ? "bi bi-sun" : "bi bi-moon-stars";
-    var ed  = document.querySelector(".ql-editor");
-    var con = document.querySelector(".ql-container");
-    if (ed)  { ed.style.color  = t === "dark" ? "#dde1f0" : "#1a1d23";
-               ed.style.background = t === "dark" ? "#1e2130" : "#fff"; }
-    if (con) { con.style.background = t === "dark" ? "#1e2130" : "#fff"; }
-  }
-
-  /* ══════════════════════════════════════
-     SIDEBAR (MOBILE)
-  ══════════════════════════════════════ */
-  function openSidebar()  {
-    $("sidebar").classList.add("open");
-    $("overlay").classList.add("show");
-  }
-  function closeSidebar() {
-    $("sidebar").classList.remove("open");
-    $("overlay").classList.remove("show");
-  }
-
-  /* ══════════════════════════════════════
-     PERSISTENT STORAGE
-     navigator.storage.persist() 讓 IndexedDB
-     不會因瀏覽器空間不足而被自動清除
-  ══════════════════════════════════════ */
-  function initPersist() {
-    if (!navigator.storage || !navigator.storage.persist) return;
-    navigator.storage.persisted().then(function (ok) {
-      if (!ok) {
-        navigator.storage.persist().then(function (granted) {
-          if (granted) toast("💾 持久化儲存已啟用", "success");
-        });
-      }
-    });
-    refreshStorage();
-  }
-  function refreshStorage() {
-    if (!navigator.storage || !navigator.storage.estimate) return;
-    navigator.storage.estimate().then(function (e) {
-      var used  = ((e.usage  || 0) / 1048576).toFixed(2);
-      var quota = ((e.quota  || 0) / 1048576).toFixed(0);
-      $("storage-info").textContent = "\uD83D\uDCBE " + used + "/" + quota + " MB";
-    });
-  }
-
-  /* ══════════════════════════════════════
-     A2HS
-  ══════════════════════════════════════ */
-  function initA2HS() {
-    window.addEventListener("beforeinstallprompt", function (e) {
-      e.preventDefault();
-      deferredInstall = e;
-      if (!localStorage.getItem("a2hs_dismissed")) {
-        setTimeout(function () { $("a2hs").style.display = "block"; }, 3000);
-      }
-    });
-    window.addEventListener("appinstalled", function () {
-      $("a2hs").style.display = "none";
-      toast("🎉 安裝成功！", "success");
-    });
-  }
-  function doInstall() {
-    if (!deferredInstall) {
-      toast("📱 iOS：點 Safari 分享 → 加入主畫面", "info");
-      return;
-    }
-    deferredInstall.prompt();
-    deferredInstall.userChoice.then(function (r) {
-      deferredInstall = null;
-      $("a2hs").style.display = "none";
-      if (r.outcome === "accepted") toast("🎉 安裝成功！", "success");
-    });
-  }
-  function dismissA2HS() {
-    $("a2hs").style.display = "none";
-    localStorage.setItem("a2hs_dismissed", "1");
-  }
-
-  /* ══════════════════════════════════════
-     AI ASSISTANT
-     LongCat API 與 OpenAI 完全相容：
-     POST https://api.longcat.chat/openai/v1/chat/completions
-     Authorization: Bearer <API_KEY>
-  ══════════════════════════════════════ */
-  var AI_EP = {
-    longcat:    "https://api.longcat.chat/openai/v1/chat/completions",
-    openai:     "https://api.openai.com/v1/chat/completions",
-    openrouter: "https://openrouter.ai/api/v1/chat/completions"
-  };
-  var AI_MDL = {
-    longcat: "LongCat-Flash-Lite", openai: "gpt-4o-mini",
-    openrouter: "openai/gpt-4o-mini", ollama: "llama3"
-  };
-
-  function loadAICfg() {
-    var p = localStorage.getItem("ai_prov") || "longcat";
-    $("ai-prov").value   = p;
-    $("ai-key").value    = localStorage.getItem("ai_key")       || "";
-    $("ai-model").value  = localStorage.getItem("ai_model")     || AI_MDL[p];
-    $("ollama-url").value= localStorage.getItem("ollama_url")   || "http://localhost:11434";
-    updateOllamaRow(p);
-  }
-  function saveAICfg() {
-    var p = $("ai-prov").value;
-    localStorage.setItem("ai_prov",     p);
-    localStorage.setItem("ai_key",      $("ai-key").value);
-    localStorage.setItem("ai_model",    $("ai-model").value);
-    localStorage.setItem("ollama_url",  $("ollama-url").value);
-  }
-  function onProvChange() {
-    var p = $("ai-prov").value;
-    $("ai-model").value = AI_MDL[p] || "gpt-4o-mini";
-    updateOllamaRow(p);
-    saveAICfg();
-  }
-  function updateOllamaRow(p) {
-    $("ollama-row").style.display = p === "ollama" ? "block" : "none";
-    var hints = {
-      longcat: "LongCat API Key（從 longcat.chat 申請）",
-      openai:  "sk-…", openrouter: "sk-or-…",
-      ollama:  "（本地無需 API Key）"
-    };
-    $("ai-key").placeholder = hints[p] || "API Key";
-  }
-
-  function openAI() {
-    $("ai-out").style.display = "none";
-    $("cus-wrap").style.display = "none";
-    aiModal.show();
-  }
-
-  function aiRun(action) {
-    saveAICfg();
-    var n = S.notes.find(function (x) { return x.id === S.cur; });
-    if (!n) return;
-    var noteText = (n.title ? "標題：" + n.title + "\n\n" : "") + quill.getText();
-    var prompts = {
-      summarize:  "請用繁體中文為以下筆記生成簡潔摘要（100–150字）：\n\n" + noteText,
-      continue:   "請用繁體中文繼續以下筆記，自然補全內容（約200字）：\n\n" + noteText,
-      improve:    "請用繁體中文改善以下筆記的表達，使其更清晰流暢：\n\n" + noteText,
-      translate:  "Please translate the following note to English:\n\n" + noteText,
-      custom:     $("cus-prompt").value + "\n\n---\n" + noteText
-    };
-    callAI(prompts[action]);
-  }
-
-  function callAI(prompt) {
-    var prov  = $("ai-prov").value;
-    var key   = $("ai-key").value;
-    var model = $("ai-model").value;
-    var oUrl  = $("ollama-url").value;
-
-    $("ai-spin").style.display = "block";
-    $("ai-out").style.display  = "none";
-
-    var p;
-    if (prov === "ollama") {
-      p = fetch(oUrl + "/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: model,
-          messages: [{ role: "user", content: prompt }], stream: false })
-      }).then(function (r) { return r.json(); })
-        .then(function (d) { return d.message && d.message.content || "（無回應）"; });
-    } else {
-      var url = AI_EP[prov] || AI_EP.openai;
-      p = fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json",
-                   "Authorization": "Bearer " + key },
-        body: JSON.stringify({ model: model,
-          messages: [{ role: "user", content: prompt }], max_tokens: 1200 })
-      }).then(function (r) {
-        return r.json().then(function (d) {
-          if (!r.ok) throw new Error(d.error && d.error.message || "HTTP " + r.status);
-          return d.choices && d.choices[0] && d.choices[0].message &&
-                 d.choices[0].message.content || "（無回應）";
+/* ══ SERVICE WORKER ══ */
+function exportSW(){
+  dl(SW_SRC,"sw.js","application/javascript");
+  toast("📥 sw.js 已下載！放在 notebook.html 同一資料夾後重整頁面即啟用離線快取","info");
+}
+function registerSW(){
+  if(!("serviceWorker" in navigator))return;
+  navigator.serviceWorker.register("./sw.js")
+    .then(function(reg){
+      console.log("[SW] 已啟用");
+      reg.addEventListener("updatefound",function(){
+        var w=reg.installing;
+        w.addEventListener("statechange",function(){
+          if(w.state==="installed"&&navigator.serviceWorker.controller)toast("🔄 App 已更新，重整生效","info");
         });
       });
-    }
+    })
+    .catch(function(){console.log("[SW] 未啟動。可至匯出選單下載 sw.js。");});
+}
 
-    p.then(function (result) {
-      $("ai-spin").style.display = "none";
-      var el = $("ai-out");
-      el.style.display = "block";
-      el.textContent   = result;
-    }).catch(function (err) {
-      $("ai-spin").style.display = "none";
-      var el = $("ai-out");
-      el.style.display = "block";
-      el.textContent = "❌ 錯誤：" + err.message +
-        "\n\n請確認 API Key 或網路設定。";
+/* ══ COLOR PICKER ══ */
+function setupColorDots(){
+  var c=$("color-dots");
+  c.innerHTML=COLORS.map(function(x){
+    var s=x.hex?"background:"+x.hex:"background:var(--bg-card);border-color:var(--bd)!important";
+    return'<span class="cdot'+(x.id==="none"?" cdot-none":"")+'" data-cid="'+x.id+'" style="'+s+'" title="'+x.label+'"></span>';
+  }).join("");
+  c.querySelectorAll(".cdot").forEach(function(d){d.addEventListener("click",function(){setNoteColor(this.dataset.cid);});});
+}
+function setNoteColor(cid){
+  var n=S.notes.find(function(x){return x.id===S.cur;});if(!n)return;
+  var c=COLORS.find(function(x){return x.id===cid;});
+  n.color=c?c.hex:null;
+  db.notes.put(n).then(function(){updateColorDots(n.color);renderList();});
+}
+function updateColorDots(hex){
+  $("color-dots").querySelectorAll(".cdot").forEach(function(d){
+    var c=COLORS.find(function(x){return x.id===d.dataset.cid;});
+    d.classList.toggle("active",(c?c.hex:null)===hex);
+  });
+}
+
+/* ══ WORD COUNT ══ */
+function updateWC(){$("wc").textContent=quill.getText().trim().length+" 字";}
+
+/* ══ LOAD / RENDER ══ */
+function loadNotes(){
+  db.notes.orderBy("updatedAt").reverse().toArray().then(function(rows){
+    S.notes=rows;renderList();updateCounts();updateTagBar();
+  });
+}
+function renderList(){
+  var q=($("search-input").value||"").toLowerCase();
+  var list=S.notes.slice();
+  if(S.cat==="pinned")list=list.filter(function(n){return n.isPinned&&!n.isDeleted;});
+  else if(S.cat==="trash")list=list.filter(function(n){return n.isDeleted;});
+  else if(S.cat==="folder")list=list.filter(function(n){return !n.isDeleted&&n.folderId===S.folderId;});
+  else list=list.filter(function(n){return !n.isDeleted;});
+  if(S.tagF)list=list.filter(function(n){return(n.tags||[]).indexOf(S.tagF)>=0;});
+  if(q)list=list.filter(function(n){
+    return(n.title||"").toLowerCase().indexOf(q)>=0||(n.plain||"").toLowerCase().indexOf(q)>=0||
+           (n.tags||[]).some(function(t){return t.toLowerCase().indexOf(q)>=0;});
+  });
+  if(S.sortManual)list.sort(function(a,b){return(a.sortOrder||0)-(b.sortOrder||0);});
+  var el=$("note-list");
+  if(!list.length){el.innerHTML='<div class="text-center py-5 text-muted small"><i class="bi bi-journal-x d-block mb-2" style="font-size:2rem;opacity:.3"></i>沒有筆記</div>';return;}
+  var dh=S.sortManual?'<i class="bi bi-grip-vertical drag-handle"></i>':"";
+  el.innerHTML=list.map(function(n){
+    var active=n.id===S.cur?"active":"";
+    var date=new Date(n.updatedAt).toLocaleDateString("zh-TW",{month:"short",day:"numeric"});
+    var prev=(n.plain||"尚無內容").slice(0,55);
+    var pin=n.isPinned?'<i class="bi bi-pin-fill me-1" style="color:#ffc107;font-size:.7rem"></i>':"";
+    var tags=(n.tags||[]).map(function(t){return'<span class="nitag">'+esc(t)+"</span>";}).join("");
+    var bs=n.color?"border-left-color:"+n.color:"";
+    var da=S.sortManual?' draggable="true"':"";
+    return'<div class="ni '+active+'" data-id="'+n.id+'" style="'+bs+'"'+da+'>'+dh+
+           '<div class="ni-body"><div class="t">'+pin+(esc(n.title)||"（無標題）")+"</div>"+
+           '<div class="m">'+esc(date)+" · "+esc(prev)+"</div>"+
+           (tags?'<div class="tg">'+tags+"</div>":"")+
+           "</div></div>";
+  }).join("");
+  el.querySelectorAll(".ni").forEach(function(item){
+    item.addEventListener("click",function(e){
+      if(e.target.closest(".drag-handle"))return;
+      openNote(this.dataset.id);
+    });
+    if(S.sortManual){
+      item.addEventListener("dragstart",onDragStart);
+      item.addEventListener("dragover",onDragOver);
+      item.addEventListener("dragleave",onDragLeave);
+      item.addEventListener("drop",onDrop);
+      item.addEventListener("dragend",onDragEnd);
+    }
+  });
+}
+function updateCounts(){
+  var a=S.notes.filter(function(n){return!n.isDeleted;});
+  $("cnt-all").textContent=a.length;
+  $("cnt-pinned").textContent=a.filter(function(n){return n.isPinned;}).length;
+  $("cnt-trash").textContent=S.notes.filter(function(n){return n.isDeleted;}).length;
+}
+function updateTagBar(){
+  var tb=$("tagbar");if(!S.tagF){tb.style.display="none";return;}
+  tb.style.display="flex";$("active-tag").innerHTML='<span class="tpill">'+esc(S.tagF)+"</span>";
+}
+
+/* ══ CREATE / OPEN ══ */
+function createNote(){
+  var fid=(S.cat==="folder"?S.folderId:null)||null;
+  var maxOrder=S.notes.reduce(function(m,n){return Math.max(m,n.sortOrder||0);},0);
+  var note={id:crypto.randomUUID(),title:"",content:"",plain:"",tags:[],color:null,
+            folderId:fid,sortOrder:maxOrder+1,isPinned:false,isDeleted:false,
+            createdAt:Date.now(),updatedAt:Date.now()};
+  db.notes.add(note).then(function(){S.notes.unshift(note);renderList();updateCounts();openNote(note.id);closeSidebar();});
+}
+function openNote(id){
+  S.editing=false;S.cur=id;
+  var n=S.notes.find(function(x){return x.id===id;});if(!n)return;
+  $("note-title").value=n.title||"";
+  quill.root.innerHTML=n.content||"";
+  renderTags(n.tags||[]);updateColorDots(n.color||null);updateWC();
+  updateFolderPicker();$("note-folder").value=n.folderId||"";
+  $("tags-panel").style.display="none";
+  $("editor-wrap").style.display="flex";$("editor-wrap").style.flexDirection="column";
+  $("empty").style.display="none";
+  setToolbar(true,n.isPinned);setSaveSt("saved");renderList();
+  setTimeout(function(){S.editing=true;},120);
+}
+
+/* ══ SAVE ══ */
+function schedSave(){setSaveSt("saving");clearTimeout(S.timer);S.timer=setTimeout(saveNote,900);}
+function saveNote(){
+  if(!S.cur)return;var n=S.notes.find(function(x){return x.id===S.cur;});if(!n)return;
+  n.title=$("note-title").value;n.content=quill.root.innerHTML;n.plain=quill.getText().trim();n.updatedAt=Date.now();
+  db.notes.put(n).then(function(){renderList();setSaveSt("saved");refreshStorage();});
+}
+function setSaveSt(s){
+  $("save-st").innerHTML=s==="saved"?'<i class="bi bi-check-circle-fill text-success"></i><span class="d-none d-sm-inline text-muted" style="font-size:.72rem"> 已儲存</span>':'<i class="bi bi-circle text-warning"></i><span class="d-none d-sm-inline text-muted" style="font-size:.72rem"> 儲存中…</span>';
+}
+
+/* ══ TAGS ══ */
+function renderTags(tags){
+  $("tags-con").innerHTML=tags.map(function(t){return'<span class="tpill">'+esc(t)+'<span class="rm" data-tag="'+esc(t)+'">✕</span></span>';}).join("");
+  $("tags-con").querySelectorAll(".rm").forEach(function(el){el.addEventListener("click",function(){removeTag(this.dataset.tag);});});
+}
+function onTagKey(e){
+  if(e.key!=="Enter"&&e.key!==",")return;e.preventDefault();
+  var val=e.target.value.replace(",","").trim();if(!val)return;e.target.value="";
+  var n=S.notes.find(function(x){return x.id===S.cur;});if(!n||n.tags.indexOf(val)>=0)return;
+  n.tags.push(val);db.notes.put(n).then(function(){renderTags(n.tags);renderList();});
+}
+function removeTag(tag){
+  var n=S.notes.find(function(x){return x.id===S.cur;});if(!n)return;
+  n.tags=n.tags.filter(function(t){return t!==tag;});
+  db.notes.put(n).then(function(){renderTags(n.tags);renderList();});
+}
+
+/* ══ PIN / DELETE ══ */
+function doPin(){
+  var n=S.notes.find(function(x){return x.id===S.cur;});if(!n)return;
+  n.isPinned=!n.isPinned;
+  db.notes.put(n).then(function(){setToolbar(true,n.isPinned);updateCounts();renderList();toast(n.isPinned?"📌 已釘選":"📌 取消釘選");});
+}
+function doDel(){
+  var n=S.notes.find(function(x){return x.id===S.cur;});if(!n)return;
+  if(n.isDeleted){
+    if(!confirm("永久刪除此筆記？"))return;
+    db.notes.delete(n.id).then(function(){S.notes=S.notes.filter(function(x){return x.id!==n.id;});closeEditor();renderList();updateCounts();toast("🗑️ 已永久刪除");});
+  }else{
+    n.isDeleted=true;db.notes.put(n).then(function(){closeEditor();renderList();updateCounts();toast("🗑️ 已移至回收桶");});
+  }
+}
+function closeEditor(){
+  S.cur=null;S.editing=false;$("editor-wrap").style.display="none";
+  if(S.cat!=="tags")$("empty").style.display="flex";
+  setToolbar(false,false);
+}
+function setToolbar(on,pinned){
+  ["btn-pin","btn-copy","btn-export","btn-del","btn-ai"].forEach(function(id){$(id).disabled=!on;});
+  var b=$("btn-pin");b.innerHTML='<i class="bi bi-pin'+(pinned?"-fill":"")+'"></i>';b.className="btn btn-sm btn-"+(pinned?"warning":"outline-warning");
+}
+
+/* ══ CATEGORY ══ */
+function setCat(cat){
+  S.cat=cat;S.tagF=null;S.folderId=null;
+  $("tags-panel").style.display="none";
+  document.querySelectorAll(".cat-item").forEach(function(el){el.classList.remove("active");});
+  $("cat-"+cat).classList.add("active");$("tagbar").style.display="none";
+  if(S.cur){$("editor-wrap").style.display="flex";$("empty").style.display="none";}
+  else{$("editor-wrap").style.display="none";$("empty").style.display="flex";}
+  renderFolders();renderList();
+}
+
+/* ══ COPY ══ */
+function doCopy(){
+  var n=S.notes.find(function(x){return x.id===S.cur;});if(!n)return;
+  var text=(n.title?n.title+"\n\n":"")+quill.getText();
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){toast("📋 已複製","success");}).catch(function(){fbCopy(text);});}else{fbCopy(text);}
+}
+function fbCopy(text){var ta=document.createElement("textarea");ta.value=text;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);toast("📋 已複製（降級）","success");}
+
+/* ══ EXPORT / IMPORT ══ */
+function exportNote(fmt){
+  var n=S.notes.find(function(x){return x.id===S.cur;});if(!n)return;
+  if(fmt==="json"){dl(JSON.stringify(n,null,2),(n.title||"note")+".json","application/json");}
+  else{dl((n.title||"")+"\n"+"=".repeat(40)+"\n\n"+quill.getText()+"\n\n標籤:"+(n.tags||[]).join(","),(n.title||"note")+".txt","text/plain;charset=utf-8");}
+  toast("📥 匯出成功");
+}
+function backupAll(){
+  db.notes.toArray().then(function(all){
+    dl(JSON.stringify({version:2,exportedAt:new Date().toISOString(),notes:all},null,2),"noteapp-backup-"+Date.now()+".json","application/json");
+    toast("📦 已備份 "+all.length+" 篇");
+  });
+}
+function importBackup(ev){
+  var file=ev.target.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);var arr=data.notes||(Array.isArray(data)?data:[data]);var count=0;
+      var chain=Promise.resolve();
+      arr.forEach(function(n){chain=chain.then(function(){return db.notes.get(n.id).then(function(ex){if(!ex){count++;return db.notes.add(n);}});});});
+      chain.then(function(){loadNotes();toast("✅ 匯入 "+count+" 篇","success");});
+    }catch(_){toast("❌ 格式錯誤","danger");}
+  };
+  r.readAsText(file);ev.target.value="";
+}
+/* ══ 匯出檔案（三層降級策略）══
+   1. showSaveFilePicker() — Chrome/Edge 桌面，真實「另存新檔」對話框
+   2. Web Share API (navigator.share) — iOS Safari，原生分享選單可存至「檔案」
+   3. <a download> Blob URL — 其他瀏覽器標準下載
+   4. window.open() Blob URL — 最後備援（iOS 無法下載時，開新分頁讓用戶長按儲存）
+*/
+function dl(content,name,mime){
+  var blob=new Blob([content],{type:mime});
+  var ext=name.split(".").pop();
+
+  /* 策略 1：File System Access API（Chrome/Edge 桌面） */
+  if(window.showSaveFilePicker){
+    var typeMap={
+      "json":{"application/json":[".json"]},
+      "txt":{"text/plain":[".txt"]},
+      "js":{"application/javascript":[".js"]}
+    };
+    window.showSaveFilePicker({
+      suggestedName:name,
+      types:[{description:"檔案",accept:typeMap[ext]||{"application/octet-stream":["."+ ext]}}]
+    }).then(function(fh){
+      return fh.createWritable().then(function(w){return w.write(blob).then(function(){return w.close();});});
+    }).then(function(){
+      toast("💾 已儲存："+name,"success");
+    }).catch(function(e){
+      if(e.name!=="AbortError") dlFallback(blob,name); /* 用戶未取消才降級 */
+    });
+    return;
+  }
+
+  dlFallback(blob,name);
+}
+
+function dlFallback(blob,name){
+  /* 策略 2：Web Share API — iOS Safari 原生分享（可存至「檔案」App） */
+  if(isIOS()&&navigator.canShare&&navigator.canShare({files:[new File([blob],name,{type:blob.type})]})){
+    var f=new File([blob],name,{type:blob.type});
+    navigator.share({files:[f],title:name})
+      .then(function(){toast("📤 已開啟分享選單","success");})
+      .catch(function(e){if(e.name!=="AbortError")dlBlobAnchor(blob,name);});
+    return;
+  }
+
+  dlBlobAnchor(blob,name);
+}
+
+function dlBlobAnchor(blob,name){
+  /* 策略 3：<a download> Blob URL（Firefox / Chrome / 桌面 Safari） */
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},1500);
+
+  /* 策略 4：iOS 無法下載時，開新分頁讓用戶長按→儲存 */
+  if(isIOS()){
+    setTimeout(function(){
+      toast("📋 iOS 提示：若未自動下載，請長按新開的分頁內容 → 儲存","info");
+    },800);
+  }
+}
+
+/* ══ THEME ══ */
+function toggleTheme(){applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");}
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme",t);localStorage.setItem("theme",t);
+  $("theme-icon").className=t==="dark"?"bi bi-sun":"bi bi-moon-stars";
+  var ed=document.querySelector(".ql-editor"),cn=document.querySelector(".ql-container");
+  if(ed){ed.style.color=t==="dark"?"#dde1f0":"#1a1d23";ed.style.background=t==="dark"?"#1e2130":"#fff";}
+  if(cn){cn.style.background=t==="dark"?"#1e2130":"#fff";}
+}
+
+/* ══ SIDEBAR ══ */
+function openSidebar(){$("sidebar").classList.add("open");$("overlay").classList.add("show");}
+function closeSidebar(){$("sidebar").classList.remove("open");$("overlay").classList.remove("show");}
+
+/* ══ PERSISTENT STORAGE ══ */
+function initPersist(){
+  if(!navigator.storage||!navigator.storage.persist)return;
+  navigator.storage.persisted().then(function(ok){if(!ok)navigator.storage.persist().then(function(g){if(g)toast("💾 持久化儲存已啟用","success");});});
+  refreshStorage();
+}
+function refreshStorage(){
+  if(!navigator.storage||!navigator.storage.estimate)return;
+  navigator.storage.estimate().then(function(e){
+    var used=((e.usage||0)/1048576).toFixed(2),quota=((e.quota||0)/1048576).toFixed(0);
+    $("storage-info").textContent="\uD83D\uDCBE "+used+"/"+quota+" MB";
+    if(e.quota&&e.usage/e.quota>0.8)toast("⚠️ 儲存空間超過 80%，建議備份","warning");
+  });
+}
+
+/* ══ ONLINE STATUS ══ */
+function initOnline(){
+  function upd(){$("offline-badge").style.display=navigator.onLine?"none":"inline-block";}
+  window.addEventListener("online",upd);window.addEventListener("offline",upd);upd();
+}
+
+
+/* ══ FOLDERS ══ */
+function loadFolders(){
+  db.folders.orderBy("createdAt").toArray().then(function(rows){
+    S.folders=rows;renderFolders();updateFolderPicker();
+  });
+}
+function renderFolders(){
+  var el=$("folder-list");
+  if(!S.folders.length){
+    el.innerHTML='<div class="text-center py-2 text-muted" style="font-size:.75rem;padding:6px 14px">暫無資料夾</div>';
+    return;
+  }
+  el.innerHTML=S.folders.map(function(f){
+    var cnt=S.notes.filter(function(n){return !n.isDeleted&&n.folderId===f.id;}).length;
+    var active=(S.cat==="folder"&&S.folderId===f.id)?"active":"";
+    return'<div class="folder-item '+active+'" data-fid="'+f.id+'">'
+      +'<i class="bi bi-folder'+(active?"-fill":"")+'"></i>'
+      +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+esc(f.name)+'</span>'
+      +'<span class="fi-cnt">'+cnt+'</span>'
+      +'<span class="fi-acts">'
+      +'<button class="fi-btn" data-fid="'+f.id+'" data-act="rename" title="重命名"><i class="bi bi-pencil"></i></button>'
+      +'<button class="fi-btn" data-fid="'+f.id+'" data-act="delete" title="刪除資料夾"><i class="bi bi-trash3"></i></button>'
+      +'</span></div>';
+  }).join("");
+  el.querySelectorAll(".folder-item").forEach(function(item){
+    item.addEventListener("click",function(e){
+      var btn=e.target.closest(".fi-btn");
+      if(btn){e.stopPropagation();
+        if(btn.dataset.act==="rename")renameFolder(btn.dataset.fid);
+        else deleteFolder(btn.dataset.fid);
+        return;
+      }
+      setCatFolder(this.dataset.fid);
+    });
+  });
+}
+function updateFolderPicker(){
+  var sel=$("note-folder");
+  var val=sel.value;
+  sel.innerHTML='<option value="">無資料夾</option>'+
+    S.folders.map(function(f){return'<option value="'+f.id+'">📁 '+esc(f.name)+'</option>';}).join("");
+  sel.value=val;
+}
+function setCatFolder(fid){
+  S.cat="folder";S.folderId=fid;S.tagF=null;
+  $("tags-panel").style.display="none";
+  document.querySelectorAll(".cat-item").forEach(function(el){el.classList.remove("active");});
+  $("tagbar").style.display="none";
+  if(S.cur){$("editor-wrap").style.display="flex";$("empty").style.display="none";}
+  else{$("editor-wrap").style.display="none";$("empty").style.display="flex";}
+  renderFolders();renderList();
+}
+function createFolder(){
+  var name=prompt("資料夾名稱：","新資料夾");
+  if(!name||!name.trim())return;
+  var f={id:crypto.randomUUID(),name:name.trim(),createdAt:Date.now()};
+  db.folders.add(f).then(function(){
+    S.folders.push(f);renderFolders();updateFolderPicker();
+    toast("📁 資料夾已建立","success");
+  });
+}
+function renameFolder(fid){
+  var f=S.folders.find(function(x){return x.id===fid;});if(!f)return;
+  var name=prompt("重命名資料夾：",f.name);
+  if(!name||!name.trim()||name.trim()===f.name)return;
+  f.name=name.trim();
+  db.folders.put(f).then(function(){renderFolders();updateFolderPicker();toast("✏️ 已重命名");});
+}
+function deleteFolder(fid){
+  var f=S.folders.find(function(x){return x.id===fid;});if(!f)return;
+  var cnt=S.notes.filter(function(n){return n.folderId===fid;}).length;
+  if(!confirm("刪除資料夾「"+f.name+"」？"+(cnt>0?"\n（"+cnt+" 篇筆記將移出資料夾）":"")))return;
+  var chain=Promise.resolve();
+  S.notes.filter(function(n){return n.folderId===fid;}).forEach(function(n){
+    n.folderId=null;chain=chain.then(function(){return db.notes.put(n);});
+  });
+  chain.then(function(){return db.folders.delete(fid);}).then(function(){
+    S.folders=S.folders.filter(function(x){return x.id!==fid;});
+    if(S.folderId===fid){S.cat="all";S.folderId=null;document.querySelectorAll(".cat-item").forEach(function(el){el.classList.remove("active");});$("cat-all").classList.add("active");}
+    renderFolders();updateFolderPicker();renderList();toast("🗑️ 資料夾已刪除");
+  });
+}
+
+/* ══ TAG MANAGEMENT ══ */
+function showTagsPanel(){
+  document.querySelectorAll(".cat-item").forEach(function(el){el.classList.remove("active");});
+  $("cat-tags").classList.add("active");
+  S.cat="tags";S.cur=null;S.editing=false;S.folderId=null;
+  $("editor-wrap").style.display="none";
+  $("empty").style.display="none";
+  $("tags-panel").style.display="flex";
+  $("tags-panel").style.flexDirection="column";
+  setToolbar(false,false);
+  renderFolders();
+  renderTagsPanel();
+}
+function renderTagsPanel(){
+  var tagMap={};
+  S.notes.filter(function(n){return !n.isDeleted;}).forEach(function(n){
+    (n.tags||[]).forEach(function(t){tagMap[t]=(tagMap[t]||0)+1;});
+  });
+  var tags=Object.keys(tagMap).sort(function(a,b){return tagMap[b]-tagMap[a];});
+  var el=$("tag-mgr-list");
+  if(!tags.length){
+    el.innerHTML='<div class="text-center py-5 text-muted small"><i class="bi bi-tags d-block mb-2" style="font-size:2.5rem;opacity:.3"></i>尚無標籤</div>';
+    return;
+  }
+  el.innerHTML=tags.map(function(t){
+    return'<div class="tag-mgr-row" data-tag="'+esc(t)+'">'
+      +'<input type="checkbox" class="tmr-cb" data-tag="'+esc(t)+'">'
+      +'<span class="tmr-name" title="點擊重命名">'+esc(t)+'</span>'
+      +'<span class="tmr-cnt">'+tagMap[t]+' 篇</span>'
+      +'</div>';
+  }).join("");
+  el.querySelectorAll(".tmr-name").forEach(function(span){
+    span.addEventListener("click",function(){
+      var row=this.closest(".tag-mgr-row");
+      startRenameTag(row,row.dataset.tag);
+    });
+  });
+  el.querySelectorAll(".tmr-cb").forEach(function(cb){
+    cb.addEventListener("change",function(){
+      var any=el.querySelectorAll(".tmr-cb:checked").length>0;
+      $("btn-del-tags").style.display=any?"inline-flex":"none";
+    });
+  });
+  $("btn-del-tags").style.display="none";
+}
+function startRenameTag(row,oldTag){
+  var span=row.querySelector(".tmr-name");
+  if(!span)return;
+  var inp=document.createElement("input");
+  inp.className="tmr-edit";inp.value=oldTag;
+  row.replaceChild(inp,span);inp.focus();inp.select();
+  var done=false;
+  function commit(){
+    if(done)return;done=true;
+    var nv=inp.value.trim();
+    if(nv&&nv!==oldTag)renameTagGlobal(oldTag,nv);
+    else renderTagsPanel();
+  }
+  inp.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){e.preventDefault();commit();}
+    if(e.key==="Escape"){done=true;renderTagsPanel();}
+  });
+  inp.addEventListener("blur",commit);
+}
+function renameTagGlobal(oldTag,newTag){
+  var affected=S.notes.filter(function(n){return (n.tags||[]).indexOf(oldTag)>=0;});
+  var chain=Promise.resolve();
+  affected.forEach(function(n){
+    n.tags=n.tags.map(function(t){return t===oldTag?newTag:t;});
+    chain=chain.then(function(){return db.notes.put(n);});
+  });
+  chain.then(function(){toast("✏️ 標籤重命名（"+affected.length+" 篇）","success");renderTagsPanel();});
+}
+function batchDeleteTags(){
+  var cbs=$("tag-mgr-list").querySelectorAll(".tmr-cb:checked");
+  var tags=Array.from(cbs).map(function(cb){return cb.dataset.tag;});
+  if(!tags.length)return;
+  if(!confirm("刪除 "+tags.length+" 個標籤？\n此操作將從所有筆記移除這些標籤。"))return;
+  var affected=S.notes.filter(function(n){return (n.tags||[]).some(function(t){return tags.indexOf(t)>=0;});});
+  var chain=Promise.resolve();
+  affected.forEach(function(n){
+    n.tags=n.tags.filter(function(t){return tags.indexOf(t)<0;});
+    chain=chain.then(function(){return db.notes.put(n);});
+  });
+  chain.then(function(){$("btn-del-tags").style.display="none";toast("🗑️ 已刪除 "+tags.length+" 個標籤","success");renderTagsPanel();});
+}
+
+/* ══ DRAG & DROP SORT ══ */
+function onDragStart(e){
+  S.dragSrcId=this.dataset.id;
+  this.classList.add("dragging");
+  e.dataTransfer.effectAllowed="move";
+  e.dataTransfer.setData("text/plain",this.dataset.id);
+}
+function onDragOver(e){
+  e.preventDefault();e.dataTransfer.dropEffect="move";
+  var rect=this.getBoundingClientRect();
+  this.classList.remove("drag-over-top","drag-over-bot");
+  this.classList.add(e.clientY<rect.top+rect.height/2?"drag-over-top":"drag-over-bot");
+}
+function onDragLeave(e){
+  if(!this.contains(e.relatedTarget))this.classList.remove("drag-over-top","drag-over-bot");
+}
+function onDragEnd(){
+  this.classList.remove("dragging");
+  $("note-list").querySelectorAll(".ni").forEach(function(el){el.classList.remove("drag-over-top","drag-over-bot");});
+}
+function onDrop(e){
+  e.preventDefault();
+  var srcId=S.dragSrcId;var tgtId=this.dataset.id;
+  if(!srcId||srcId===tgtId)return;
+  var insertBefore=this.classList.contains("drag-over-top");
+  this.classList.remove("drag-over-top","drag-over-bot");
+  var list=S.notes.filter(function(n){
+    if(S.cat==="folder")return !n.isDeleted&&n.folderId===S.folderId;
+    return !n.isDeleted;
+  }).sort(function(a,b){return(a.sortOrder||0)-(b.sortOrder||0);});
+  var srcIdx=list.findIndex(function(n){return n.id===srcId;});
+  if(srcIdx<0)return;
+  var moved=list.splice(srcIdx,1)[0];
+  var tgtIdx=list.findIndex(function(n){return n.id===tgtId;});
+  if(tgtIdx<0)return;
+  list.splice(insertBefore?tgtIdx:tgtIdx+1,0,moved);
+  var base=Date.now()-list.length;
+  var chain=Promise.resolve();
+  list.forEach(function(n,i){
+    n.sortOrder=base+i;
+    chain=chain.then(function(){return db.notes.put(n);});
+  });
+  chain.then(function(){renderList();});
+}
+
+/* ══ UTILS：平台偵測 ══
+   isIOS()        — 偵測 iPhone / iPad / iPod
+   isStandalone() — 偵測是否已加入主畫面並以 Standalone 模式執行
+*/
+function isIOS(){
+  return(/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream)||
+    (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1); /* iPadOS 13+ */
+}
+function isStandalone(){
+  return window.navigator.standalone===true||
+    window.matchMedia("(display-mode: standalone)").matches;
+}
+
+/* ══ A2HS ══ */
+var iosA2HSModal;
+function initA2HS(){
+  iosA2HSModal=new bootstrap.Modal($("ios-a2hs-modal"));
+
+  /* ── iOS Safari：beforeinstallprompt 不觸發，改顯示手動教學 ── */
+  if(isIOS()&&!isStandalone()&&!localStorage.getItem("a2hs_dismissed")){
+    setTimeout(function(){
+      /* 更新橫幅文案 */
+      $("a2hs-sub").textContent="⚠️ 建議加入主畫面防止資料遺失";
+      $("a2hs-install").textContent="查看步驟";
+      $("a2hs").style.display="block";
+    },2500);
+    return; /* iOS 不需等 beforeinstallprompt */
+  }
+
+  /* ── 非 iOS：使用標準 beforeinstallprompt ── */
+  window.addEventListener("beforeinstallprompt",function(e){
+    e.preventDefault();deferredInstall=e;
+    if(!localStorage.getItem("a2hs_dismissed"))
+      setTimeout(function(){$("a2hs").style.display="block";},3000);
+  });
+  window.addEventListener("appinstalled",function(){
+    $("a2hs").style.display="none";toast("🎉 安裝成功！","success");
+  });
+}
+
+function doInstall(){
+  if(isIOS()){
+    /* iOS：顯示手動步驟 Modal */
+    $("a2hs").style.display="none";
+    iosA2HSModal.show();
+    return;
+  }
+  if(!deferredInstall){toast("📱 請使用 Safari 分享 → 加入主畫面","info");return;}
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(function(r){
+    deferredInstall=null;$("a2hs").style.display="none";
+    if(r.outcome==="accepted")toast("🎉 安裝成功！","success");
+  });
+}
+function dismissA2HS(){$("a2hs").style.display="none";localStorage.setItem("a2hs_dismissed","1");}
+
+/* ══ AI (Streaming) ══ */
+function loadAICfg(){
+  var p=localStorage.getItem("ai_prov")||"longcat";
+  $("ai-prov").value=p;$("ai-key").value=localStorage.getItem("ai_key")||"";
+  $("ai-model").value=localStorage.getItem("ai_model")||AI_MDL[p];
+  $("ollama-url").value=localStorage.getItem("ollama_url")||"http://localhost:11434";
+  updateOllamaRow(p);
+}
+function saveAICfg(){var p=$("ai-prov").value;localStorage.setItem("ai_prov",p);localStorage.setItem("ai_key",$("ai-key").value);localStorage.setItem("ai_model",$("ai-model").value);localStorage.setItem("ollama_url",$("ollama-url").value);}
+function onProvChange(){var p=$("ai-prov").value;$("ai-model").value=AI_MDL[p]||"gpt-4o-mini";updateOllamaRow(p);saveAICfg();}
+function updateOllamaRow(p){
+  $("ollama-row").style.display=p==="ollama"?"block":"none";
+  var h={longcat:"LongCat API Key（longcat.chat）",openai:"sk-…",openrouter:"sk-or-…",ollama:"（本地無需 Key）"};
+  $("ai-key").placeholder=h[p]||"API Key";
+}
+function openAI(){$("ai-out").style.display="none";$("cus-wrap").style.display="none";setAILoad(false);aiModal.show();}
+function setAILoad(on){$("ai-loading").style.display=on?"flex":"none";}
+function stopAI(){if(aiAbort){aiAbort.abort();aiAbort=null;}setAILoad(false);}
+
+var AI_P={
+  summarize:"請用繁體中文為以下筆記生成簡潔摘要（100–150字）：\n\n",
+  continue:"請用繁體中文繼續以下筆記，自然補全內容（約200字）：\n\n",
+  improve:"請用繁體中文改善以下筆記的表達，使其更清晰流暢：\n\n",
+  translate:"Please translate the following note to English:\n\n"
+};
+function aiRun(action){
+  saveAICfg();var n=S.notes.find(function(x){return x.id===S.cur;});if(!n)return;
+  var noteText=(n.title?"標題："+n.title+"\n\n":"")+quill.getText();
+  var prompt=action==="custom"?$("cus-prompt").value+"\n\n---\n"+noteText:(AI_P[action]||"")+noteText;
+  callAI(prompt);
+}
+function callAI(prompt){
+  var prov=$("ai-prov").value,key=$("ai-key").value,model=$("ai-model").value,oUrl=$("ollama-url").value;
+  var outEl=$("ai-out");outEl.style.display="block";outEl.textContent="";setAILoad(true);
+  aiAbort=new AbortController();var signal=aiAbort.signal;
+  var p;
+  if(prov==="ollama"){
+    p=fetch(oUrl+"/api/chat",{method:"POST",signal:signal,headers:{"Content-Type":"application/json"},body:JSON.stringify({model:model,messages:[{role:"user",content:prompt}],stream:true})}).then(function(r){return streamNDJSON(r.body,outEl);});
+  }else{
+    var url=AI_EP[prov]||AI_EP.openai;
+    p=fetch(url,{method:"POST",signal:signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model:model,messages:[{role:"user",content:prompt}],max_tokens:1500,stream:true})}).then(function(r){
+      if(!r.ok)return r.json().then(function(d){throw new Error(d.error&&d.error.message||"HTTP "+r.status);});
+      return streamSSE(r.body,outEl);
     });
   }
+  p.then(function(){setAILoad(false);aiAbort=null;}).catch(function(err){setAILoad(false);aiAbort=null;if(err.name==="AbortError")return;outEl.textContent="❌ 錯誤："+err.message+"\n\n請確認 API Key 或網路設定。";});
+}
+function streamSSE(body,outEl){
+  var reader=body.getReader(),decoder=new TextDecoder(),buf="";
+  function read(){return reader.read().then(function(chunk){
+    if(chunk.done)return;buf+=decoder.decode(chunk.value,{stream:true});
+    var lines=buf.split("\n");buf=lines.pop();
+    lines.forEach(function(line){
+      if(!line.startsWith("data: "))return;var data=line.slice(6).trim();if(data==="[DONE]")return;
+      try{var j=JSON.parse(data);var t=j.choices&&j.choices[0]&&j.choices[0].delta&&j.choices[0].delta.content||"";if(t){outEl.textContent+=t;outEl.scrollTop=outEl.scrollHeight;}}catch(_){}
+    });
+    return read();
+  });}
+  return read();
+}
+function streamNDJSON(body,outEl){
+  var reader=body.getReader(),decoder=new TextDecoder(),buf="";
+  function read(){return reader.read().then(function(chunk){
+    if(chunk.done)return;buf+=decoder.decode(chunk.value,{stream:true});
+    var lines=buf.split("\n");buf=lines.pop();
+    for(var i=0;i<lines.length;i++){var line=lines[i].trim();if(!line)continue;try{var j=JSON.parse(line);var t=j.message&&j.message.content||"";if(t){outEl.textContent+=t;outEl.scrollTop=outEl.scrollHeight;}if(j.done)return;}catch(_){}}
+    return read();
+  });}
+  return read();
+}
+function copyAI(){var text=$("ai-out").textContent;if(!text)return;navigator.clipboard.writeText(text).then(function(){toast("📋 AI 結果已複製","success");}).catch(function(){fbCopy(text);});}
+function insertAI(){var text=$("ai-out").textContent;if(!text||!S.cur)return;quill.insertText(quill.getLength()-1,"\n\n"+text);aiModal.hide();saveNote();toast("✅ 已插入筆記","success");}
 
-  function copyAI() {
-    var text = $("ai-out").textContent;
-    if (!text) return;
-    navigator.clipboard.writeText(text).then(function () {
-      toast("📋 AI 結果已複製", "success");
-    }).catch(function () { fallbackCopy(text); });
-  }
+/* ══ TOAST ══ */
+function toast(msg,type){type=type||"dark";var el=$("toast");el.className="toast text-white border-0 bg-"+type;$("toast-msg").textContent=msg;bootstrap.Toast.getOrCreateInstance(el,{delay:2800}).show();}
 
-  function insertAI() {
-    var text = $("ai-out").textContent;
-    if (!text || !S.cur) return;
-    var len = quill.getLength();
-    quill.insertText(len - 1, "\n\n" + text);
-    aiModal.hide();
-    saveNote();
-    toast("✅ 已插入筆記", "success");
-  }
-
-  /* ══════════════════════════════════════
-     TOAST
-  ══════════════════════════════════════ */
-  function toast(msg, type) {
-    type = type || "dark";
-    var el = $("toast");
-    el.className = "toast text-white border-0 bg-" + type;
-    $("toast-msg").textContent = msg;
-    bootstrap.Toast.getOrCreateInstance(el, { delay: 2800 }).show();
-  }
-
-  /* ══════════════════════════════════════
-     UTIL
-  ══════════════════════════════════════ */
-  function $(id) { return document.getElementById(id); }
-  function esc(s) {
-    if (!s) return "";
-    return String(s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+/* ══ UTILS ══ */
+function $(id){return document.getElementById(id);}
+function esc(s){if(!s)return"";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
 })();
 </script>

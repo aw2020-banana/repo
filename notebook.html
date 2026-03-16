@@ -165,9 +165,9 @@ kbd{background:var(--bg-card);border:1px solid var(--bd);border-radius:4px;paddi
     <div id="toolbar">
       <button class="btn btn-sm btn-outline-secondary" id="ham"><i class="bi bi-list fs-5"></i></button>
       <button class="btn btn-sm btn-outline-warning" id="btn-pin" disabled title="釘選 (Ctrl+P)"><i class="bi bi-pin"></i></button>
-      <button class="btn btn-sm btn-outline-primary" id="btn-copy" disabled title="複製 (Ctrl+Shift+C)"><i class="bi bi-clipboard"></i> 複製</button>
+      <button class="btn btn-sm btn-outline-primary" id="btn-copy" disabled title="複製 (Ctrl+Shift+C)"><i class="bi bi-clipboard"></i></button>
       <div class="dropdown">
-        <button class="btn btn-sm btn-outline-success dropdown-toggle" id="btn-export" data-bs-toggle="dropdown" disabled><i class="bi bi-download"></i> 匯出</button>
+        <button class="btn btn-sm btn-outline-success dropdown-toggle" id="btn-export" data-bs-toggle="dropdown" disabled><i class="bi bi-download"></i></button>
         <ul class="dropdown-menu shadow-sm">
           <li><a class="dropdown-item" id="mi-json" href="#"><i class="bi bi-filetype-json me-2 text-warning"></i>此筆記 → JSON</a></li>
           <li><a class="dropdown-item" id="mi-txt" href="#"><i class="bi bi-filetype-txt me-2 text-secondary"></i>此筆記 → TXT</a></li>
@@ -280,8 +280,7 @@ kbd{background:var(--bg-card);border:1px solid var(--bd);border-radius:4px;paddi
         </div>
         <div id="ai-loading" style="display:none" class="d-flex align-items-center gap-2 mb-2">
           <div class="spinner-border text-info spinner-border-sm"></div>
-          <span class="text-muted small" id="ai-lbl">串流中…</span>
-          <button class="btn btn-sm btn-outline-danger ms-2" id="ai-stop"><i class="bi bi-stop-fill me-1"></i>停止</button>
+          <span class="text-muted small" id="ai-lbl">AI 回應中，請稍候…</span>
         </div>
         <div id="ai-out"></div>
       </div>
@@ -504,7 +503,6 @@ function bindEvents(){
   $("ai-tr").addEventListener("click",function(){aiRun("translate");});
   $("ai-cus").addEventListener("click",function(){$("cus-wrap").style.display="block";$("cus-prompt").focus();});
   $("ai-cus-go").addEventListener("click",function(){aiRun("custom");});
-  $("ai-stop").addEventListener("click",stopAI);
   $("ai-cp").addEventListener("click",copyAI);
   $("ai-ins").addEventListener("click",insertAI);
   $("a2hs-install").addEventListener("click",doInstall);
@@ -1187,38 +1185,29 @@ function callAI(prompt){
   aiAbort=new AbortController();var signal=aiAbort.signal;
   var p;
   if(prov==="ollama"){
-    p=fetch(oUrl+"/api/chat",{method:"POST",signal:signal,headers:{"Content-Type":"application/json"},body:JSON.stringify({model:model,messages:[{role:"user",content:prompt}],stream:true})}).then(function(r){return streamNDJSON(r.body,outEl);});
+    p=fetch(oUrl+"/api/chat",{method:"POST",signal:signal,headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:model,messages:[{role:"user",content:prompt}],stream:false})
+    }).then(function(r){
+      if(!r.ok)return r.json().then(function(d){throw new Error(d.error&&d.error.message||"HTTP "+r.status);});
+      return r.json();
+    }).then(function(j){
+      outEl.textContent=j.message&&j.message.content||"（無回應）";
+    });
   }else{
     var url=AI_EP[prov]||AI_EP.openai;
-    p=fetch(url,{method:"POST",signal:signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model:model,messages:[{role:"user",content:prompt}],max_tokens:1500,stream:true})}).then(function(r){
+    p=fetch(url,{method:"POST",signal:signal,
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+      body:JSON.stringify({model:model,messages:[{role:"user",content:prompt}],max_tokens:1500,stream:false})
+    }).then(function(r){
       if(!r.ok)return r.json().then(function(d){throw new Error(d.error&&d.error.message||"HTTP "+r.status);});
-      return streamSSE(r.body,outEl);
+      return r.json();
+    }).then(function(j){
+      var text=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content||"（無回應）";
+      outEl.textContent=text;
     });
   }
-  p.then(function(){setAILoad(false);aiAbort=null;}).catch(function(err){setAILoad(false);aiAbort=null;if(err.name==="AbortError")return;outEl.textContent="❌ 錯誤："+err.message+"\n\n請確認 API Key 或網路設定。";});
-}
-function streamSSE(body,outEl){
-  var reader=body.getReader(),decoder=new TextDecoder(),buf="";
-  function read(){return reader.read().then(function(chunk){
-    if(chunk.done)return;buf+=decoder.decode(chunk.value,{stream:true});
-    var lines=buf.split("\n");buf=lines.pop();
-    lines.forEach(function(line){
-      if(!line.startsWith("data: "))return;var data=line.slice(6).trim();if(data==="[DONE]")return;
-      try{var j=JSON.parse(data);var t=j.choices&&j.choices[0]&&j.choices[0].delta&&j.choices[0].delta.content||"";if(t){outEl.textContent+=t;outEl.scrollTop=outEl.scrollHeight;}}catch(_){}
-    });
-    return read();
-  });}
-  return read();
-}
-function streamNDJSON(body,outEl){
-  var reader=body.getReader(),decoder=new TextDecoder(),buf="";
-  function read(){return reader.read().then(function(chunk){
-    if(chunk.done)return;buf+=decoder.decode(chunk.value,{stream:true});
-    var lines=buf.split("\n");buf=lines.pop();
-    for(var i=0;i<lines.length;i++){var line=lines[i].trim();if(!line)continue;try{var j=JSON.parse(line);var t=j.message&&j.message.content||"";if(t){outEl.textContent+=t;outEl.scrollTop=outEl.scrollHeight;}if(j.done)return;}catch(_){}}
-    return read();
-  });}
-  return read();
+  p.then(function(){setAILoad(false);aiAbort=null;})
+   .catch(function(err){setAILoad(false);aiAbort=null;if(err.name==="AbortError")return;outEl.textContent="❌ 錯誤："+err.message+"\n\n請確認 API Key 或網路設定。";});
 }
 function copyAI(){var text=$("ai-out").textContent;if(!text)return;navigator.clipboard.writeText(text).then(function(){toast("📋 AI 結果已複製","success");}).catch(function(){fbCopy(text);});}
 function insertAI(){var text=$("ai-out").textContent;if(!text||!S.cur)return;quill.insertText(quill.getLength()-1,"\n\n"+text);aiModal.hide();saveNote();toast("✅ 已插入筆記","success");}

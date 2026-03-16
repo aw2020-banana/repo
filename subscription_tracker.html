@@ -14,155 +14,174 @@
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f0f2f5; color: #333; }
 
   /* ── A2HS Banner ── */
-  .a2hs-banner {
-    display: none;
-    background: linear-gradient(135deg, #0d47a1, #1565c0);
-    color: white; padding: 12px 16px;
-    align-items: center; gap: 10px;
-    font-size: 14px; flex-wrap: wrap;
-  }
-  .a2hs-banner.show { display: flex; }
-  .a2hs-icon { font-size: 22px; flex-shrink: 0; }
-  .a2hs-text { flex: 1; min-width: 160px; }
-  .a2hs-text strong { display: block; font-size: 15px; margin-bottom: 2px; }
-  .a2hs-text span { opacity: 0.85; font-size: 13px; }
-  .a2hs-btns { display: flex; gap: 8px; flex-shrink: 0; }
-  .btn-a2hs-install { padding: 7px 16px; background: white; color: #0d47a1; border: none; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 700; }
-  .btn-a2hs-dismiss { padding: 7px 12px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 13px; }
+  .a2hs-banner { display:none; background:linear-gradient(135deg,#0d47a1,#1565c0); color:white; padding:12px 16px; align-items:center; gap:10px; font-size:14px; flex-wrap:wrap; }
+  .a2hs-banner.show { display:flex; }
+  .a2hs-icon { font-size:22px; flex-shrink:0; }
+  .a2hs-text { flex:1; min-width:160px; }
+  .a2hs-text strong { display:block; font-size:15px; margin-bottom:2px; }
+  .a2hs-text span { opacity:0.85; font-size:13px; }
+  .a2hs-btns { display:flex; gap:8px; flex-shrink:0; }
+  .btn-a2hs-install { padding:7px 16px; background:white; color:#0d47a1; border:none; border-radius:20px; cursor:pointer; font-size:13px; font-weight:700; }
+  .btn-a2hs-dismiss { padding:7px 12px; background:rgba(255,255,255,0.2); color:white; border:none; border-radius:20px; cursor:pointer; font-size:13px; }
 
   /* ── Summary Bar ── */
-  .summary-bar {
-    position: sticky; top: 0; z-index: 100;
-    background: linear-gradient(135deg, #1a73e8, #0d47a1);
-    color: white; padding: 16px 20px;
-    display: flex; justify-content: space-around; align-items: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    flex-wrap: wrap; gap: 8px;
-  }
-  .summary-item { text-align: center; }
-  .summary-label { font-size: 12px; opacity: 0.85; text-transform: uppercase; letter-spacing: 1px; }
-  .summary-value { font-size: 28px; font-weight: 700; }
-  .summary-sub { font-size: 12px; opacity: 0.7; }
+  .summary-bar { position:sticky; top:0; z-index:100; background:linear-gradient(135deg,#1a73e8,#0d47a1); color:white; padding:16px 20px; display:flex; justify-content:space-around; align-items:center; box-shadow:0 2px 8px rgba(0,0,0,0.2); flex-wrap:wrap; gap:8px; }
+  .summary-item { text-align:center; }
+  .summary-label { font-size:12px; opacity:0.85; text-transform:uppercase; letter-spacing:1px; }
+  .summary-value { font-size:28px; font-weight:700; }
+  .summary-sub { font-size:12px; opacity:0.7; }
 
-  .container { max-width: 720px; margin: 0 auto; padding: 20px 16px; }
+  .container { max-width:720px; margin:0 auto; padding:20px 16px; }
 
   /* ── Controls ── */
-  .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-  .controls label { font-size: 14px; color: #555; }
-  .controls select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; background: white; font-size: 14px; cursor: pointer; outline: none; }
-  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
-  .btn-export { padding: 8px 16px; background: #34a853; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
-  .btn-export:hover { background: #2d9147; }
-  .btn-import { padding: 8px 16px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
-  .btn-import:hover { background: #1558c0; }
+  .controls { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px; }
+  .controls label { font-size:14px; color:#555; }
+  .controls select { padding:8px 12px; border:1px solid #ddd; border-radius:8px; background:white; font-size:14px; cursor:pointer; outline:none; }
+  .btn-group { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .btn-export { padding:8px 14px; background:#34a853; color:white; border:none; border-radius:8px; cursor:pointer; font-size:13px; transition:background 0.2s; }
+  .btn-export:hover { background:#2d9147; }
+  .btn-import { padding:8px 14px; background:#5f6368; color:white; border:none; border-radius:8px; cursor:pointer; font-size:13px; transition:background 0.2s; }
+  .btn-import:hover { background:#494d51; }
+  .btn-manage-cat { padding:8px 14px; background:#e8f0fe; color:#1a73e8; border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; transition:background 0.2s; }
+  .btn-manage-cat:hover { background:#d2e3fc; }
+  .persist-badge { display:inline-flex; align-items:center; font-size:12px; padding:4px 10px; border-radius:12px; font-weight:600; }
+  .persist-badge-green { background:#e6f4ea; color:#1e8e3e; }
+  .persist-badge-orange { background:#fef7e0; color:#b06000; }
+  .persist-badge-grey { background:#f1f3f4; color:#666; }
 
-  /* ── Persist Badge ── */
-  .persist-badge { display: inline-flex; align-items: center; font-size: 12px; padding: 4px 10px; border-radius: 12px; font-weight: 600; }
-  .persist-badge-green { background: #e6f4ea; color: #1e8e3e; }
-  .persist-badge-orange { background: #fef7e0; color: #b06000; }
-  .persist-badge-grey { background: #f1f3f4; color: #666; }
+  /* ── Filter Pills ── */
+  .filter-wrap { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .pill { padding:6px 14px; border:1.5px solid #ddd; background:white; border-radius:20px; cursor:pointer; font-size:13px; color:#555; transition:all 0.15s; white-space:nowrap; }
+  .pill:hover { border-color:#1a73e8; color:#1a73e8; }
+  .pill.active { background:#1a73e8; border-color:#1a73e8; color:white; font-weight:600; }
 
   /* ── Add Form ── */
-  .add-form { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
-  .add-form input { flex: 1; min-width: 120px; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s; }
-  .add-form input:focus { border-color: #1a73e8; }
-  .btn-add { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
-  .btn-add:hover { background: #1558c0; }
+  .add-form { background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.1); margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap; }
+  .add-form input, .add-form select { flex:1; min-width:100px; padding:10px 14px; border:1px solid #ddd; border-radius:8px; font-size:15px; outline:none; transition:border-color 0.2s; background:white; }
+  .add-form input:focus, .add-form select:focus { border-color:#1a73e8; }
+  .add-form select { min-width:110px; flex:0.8; cursor:pointer; }
+  .btn-add { padding:10px 20px; background:#1a73e8; color:white; border:none; border-radius:8px; cursor:pointer; font-size:15px; font-weight:600; transition:background 0.2s; white-space:nowrap; }
+  .btn-add:hover { background:#1558c0; }
 
-  /* ── List ── */
-  .list { display: flex; flex-direction: column; gap: 10px; }
+  /* ── Group ── */
+  .group-wrap { margin-bottom:12px; }
+  .group-header { background:white; border-radius:10px; padding:12px 16px; box-shadow:0 1px 4px rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none; transition:background 0.15s; }
+  .group-header:hover { background:#f8f9ff; }
+  .group-body { display:flex; flex-direction:column; gap:8px; padding:8px 0 0 0; }
+  .group-body.collapsed { display:none; }
+  .group-header-left { display:flex; align-items:center; gap:8px; }
+  .group-arrow { font-size:11px; color:#999; width:12px; }
+  .group-name { font-size:15px; font-weight:700; color:#1a73e8; }
+  .group-count { font-size:12px; color:#888; background:#f1f3f4; padding:2px 8px; border-radius:10px; }
+  .group-stats { display:flex; gap:14px; align-items:center; flex-shrink:0; }
+  .group-stats span { font-size:14px; font-weight:600; color:#333; }
+  .group-stats .g-monthly { color:#1a73e8; }
+  .group-stats-label { font-size:11px; color:#aaa; font-weight:400; margin-left:1px; }
 
   /* ── Card ── */
-  .card { background: white; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 12px; transition: opacity 0.2s; }
-  .card.muted { opacity: 0.45; }
-  .card-info { flex: 1; min-width: 0; }
-  .card-name { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card.muted .card-name { text-decoration: line-through; color: #888; }
-  .card-fees { font-size: 13px; color: #666; margin-top: 2px; }
-  .card-fees span { margin-right: 12px; }
-  .card-fees .monthly { color: #1a73e8; }
+  .card { background:white; border-radius:10px; padding:13px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.07); display:flex; align-items:center; gap:12px; transition:opacity 0.2s; margin-left:8px; border-left:3px solid #e8f0fe; }
+  .card.muted { opacity:0.4; }
+  .card-info { flex:1; min-width:0; }
+  .card-name { font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card.muted .card-name { text-decoration:line-through; color:#888; }
+  .card-fees { font-size:13px; color:#666; margin-top:2px; }
+  .card-fees span { margin-right:12px; }
+  .card-fees .monthly { color:#1a73e8; }
 
   /* ── Inline Edit ── */
-  .card-edit-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-  .card-edit-row input { flex: 1; min-width: 80px; padding: 6px 10px; border: 1px solid #1a73e8; border-radius: 6px; font-size: 14px; outline: none; }
-  .btn-save { padding: 6px 14px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
-  .btn-cancel { padding: 6px 14px; background: #eee; color: #333; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .card-edit-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .card-edit-row input, .card-edit-row select { flex:1; min-width:80px; padding:6px 10px; border:1px solid #1a73e8; border-radius:6px; font-size:14px; outline:none; background:white; }
+  .card-edit-row select { min-width:100px; cursor:pointer; }
+  .btn-save { padding:6px 14px; background:#1a73e8; color:white; border:none; border-radius:6px; cursor:pointer; font-size:13px; }
+  .btn-cancel { padding:6px 14px; background:#eee; color:#333; border:none; border-radius:6px; cursor:pointer; font-size:13px; }
 
-  /* ── Action Buttons ── */
-  .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
-  .btn-icon { width: 34px; height: 34px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
-  .btn-edit { background: #e8f0fe; color: #1a73e8; }
-  .btn-edit:hover { background: #d2e3fc; }
-  .btn-mute { background: #fce8e6; color: #d93025; }
-  .btn-mute:hover { background: #f5c6c3; }
-  .btn-delete { background: #fce8e6; color: #d93025; }
-  .btn-delete:hover { background: #f5c6c3; }
-  .card.muted .btn-mute { background: #e6f4ea; color: #34a853; }
-  .card.muted .btn-mute:hover { background: #ceead6; }
+  /* ── Card Actions ── */
+  .card-actions { display:flex; gap:6px; flex-shrink:0; }
+  .btn-icon { width:34px; height:34px; border:none; border-radius:8px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:background 0.15s; }
+  .btn-edit { background:#e8f0fe; color:#1a73e8; }
+  .btn-edit:hover { background:#d2e3fc; }
+  .btn-mute { background:#fce8e6; color:#d93025; }
+  .btn-mute:hover { background:#f5c6c3; }
+  .btn-delete { background:#fce8e6; color:#d93025; }
+  .btn-delete:hover { background:#f5c6c3; }
+  .card.muted .btn-mute { background:#e6f4ea; color:#34a853; }
+  .card.muted .btn-mute:hover { background:#ceead6; }
 
-  /* ── Empty State ── */
-  .empty { text-align: center; padding: 40px 20px; color: #aaa; }
-  .empty-icon { font-size: 48px; margin-bottom: 10px; }
+  /* ── Empty ── */
+  .empty { text-align:center; padding:40px 20px; color:#aaa; }
+  .empty-icon { font-size:48px; margin-bottom:10px; }
 
-  /* ── Overlay / Modal ── */
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
-  .overlay.active { display: flex; }
-  .modal { background: white; border-radius: 16px; padding: 24px; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
-  .modal h3 { margin-bottom: 8px; font-size: 18px; }
-  .modal p { color: #666; font-size: 14px; margin-bottom: 20px; }
-  .modal-btns { display: flex; gap: 10px; justify-content: center; }
-  .btn-confirm { padding: 10px 24px; background: #d93025; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
-  .btn-cancel-modal { padding: 10px 24px; background: #eee; color: #333; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
+  /* ── Overlays ── */
+  .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:200; align-items:center; justify-content:center; }
+  .overlay.active { display:flex; }
+  .modal { background:white; border-radius:16px; padding:24px; max-width:320px; width:90%; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+  .modal h3 { margin-bottom:8px; font-size:18px; }
+  .modal p { color:#666; font-size:14px; margin-bottom:20px; }
+  .modal-btns { display:flex; gap:10px; justify-content:center; }
+  .btn-confirm { padding:10px 24px; background:#d93025; color:white; border:none; border-radius:8px; cursor:pointer; font-size:15px; }
+  .btn-cancel-modal { padding:10px 24px; background:#eee; color:#333; border:none; border-radius:8px; cursor:pointer; font-size:15px; }
 
   /* ── Import Modal ── */
-  .import-modal { background: white; border-radius: 16px; padding: 24px; max-width: 360px; width: 92%; text-align: left; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
-  .import-modal h3 { margin-bottom: 8px; font-size: 18px; }
-  .import-modal p { color: #666; font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
-  .import-radio-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
-  .import-radio-group label { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; cursor: pointer; }
-  .import-radio-group input[type=radio] { margin-top: 2px; flex-shrink: 0; }
-  .import-radio-group .desc { font-size: 12px; color: #888; margin-top: 2px; }
-  .import-modal .modal-btns { justify-content: flex-end; }
-  .btn-confirm-import { padding: 10px 24px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
+  .wide-modal { background:white; border-radius:16px; padding:24px; max-width:380px; width:92%; text-align:left; box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+  .wide-modal h3 { margin-bottom:8px; font-size:18px; }
+  .wide-modal p { color:#666; font-size:13px; line-height:1.6; margin-bottom:14px; }
+  .import-radio-group { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+  .import-radio-group label { display:flex; align-items:flex-start; gap:10px; font-size:14px; cursor:pointer; }
+  .import-radio-group input[type=radio] { margin-top:2px; flex-shrink:0; }
+  .import-radio-group .desc { font-size:12px; color:#888; margin-top:2px; }
+  .wide-modal .modal-btns { justify-content:flex-end; }
+  .btn-confirm-import { padding:10px 24px; background:#1a73e8; color:white; border:none; border-radius:8px; cursor:pointer; font-size:15px; }
+
+  /* ── Category Modal ── */
+  .cat-modal { background:white; border-radius:16px; padding:24px; max-width:380px; width:92%; text-align:left; box-shadow:0 8px 32px rgba(0,0,0,0.2); max-height:80vh; display:flex; flex-direction:column; }
+  .cat-modal h3 { margin-bottom:4px; font-size:18px; }
+  .cat-modal-sub { font-size:13px; color:#888; margin-bottom:16px; }
+  .cat-list { flex:1; overflow-y:auto; margin-bottom:14px; display:flex; flex-direction:column; gap:6px; }
+  .cat-item { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#f8f9fa; border-radius:8px; }
+  .cat-item-name { font-size:14px; font-weight:600; color:#333; }
+  .cat-in-use { font-size:12px; color:#1a73e8; background:#e8f0fe; padding:2px 8px; border-radius:10px; }
+  .cat-lock { font-size:12px; color:#aaa; background:#f1f3f4; padding:2px 8px; border-radius:10px; }
+  .btn-cat-del { width:26px; height:26px; border:none; background:#fce8e6; color:#d93025; border-radius:6px; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; }
+  .btn-cat-del:hover { background:#f5c6c3; }
+  .cat-add-row { display:flex; gap:8px; }
+  .cat-add-row input { flex:1; padding:9px 12px; border:1px solid #ddd; border-radius:8px; font-size:14px; outline:none; }
+  .cat-add-row input:focus { border-color:#1a73e8; }
+  .btn-cat-add { padding:9px 16px; background:#1a73e8; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600; white-space:nowrap; }
+  .cat-modal-footer { margin-top:14px; display:flex; justify-content:flex-end; }
+  .btn-cat-close { padding:9px 20px; background:#eee; color:#333; border:none; border-radius:8px; cursor:pointer; font-size:14px; }
 
   /* ── Toast ── */
-  .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
-    background: #323232; color: white; padding: 12px 20px; border-radius: 24px;
-    font-size: 14px; z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap;
-    pointer-events: none;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:#323232; color:white; padding:12px 20px; border-radius:24px; font-size:14px; z-index:300; opacity:0; transition:all 0.3s; white-space:nowrap; pointer-events:none; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-  /* ── Info Section ── */
-  .info-section { margin-top: 40px; }
-  .info-toggle { width: 100%; background: white; border: none; border-radius: 12px; padding: 16px 20px; text-align: left; font-size: 15px; font-weight: 600; color: #1a73e8; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
-  .info-toggle:hover { background: #f8f9ff; }
-  .info-body { display: none; background: white; border-radius: 0 0 12px 12px; padding: 0 20px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.06); margin-top: -4px; }
-  .info-body.open { display: block; }
-  .info-body h3 { font-size: 14px; color: #1a73e8; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .info-body p { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 8px; }
-  .info-body ul { padding-left: 20px; }
-  .info-body ul li { font-size: 14px; color: #555; line-height: 1.8; }
-  .info-body code { background: #f1f3f4; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; color: #333; }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-right: 6px; }
-  .badge-green { background: #e6f4ea; color: #34a853; }
-  .badge-blue  { background: #e8f0fe; color: #1a73e8; }
-  .badge-orange { background: #fef7e0; color: #f29900; }
-  .divider { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+  /* ── Info ── */
+  .info-section { margin-top:40px; }
+  .info-toggle { width:100%; background:white; border:none; border-radius:12px; padding:16px 20px; text-align:left; font-size:15px; font-weight:600; color:#1a73e8; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center; }
+  .info-toggle:hover { background:#f8f9ff; }
+  .info-body { display:none; background:white; border-radius:0 0 12px 12px; padding:0 20px 20px; box-shadow:0 2px 4px rgba(0,0,0,0.06); margin-top:-4px; }
+  .info-body.open { display:block; }
+  .info-body h3 { font-size:14px; color:#1a73e8; margin:20px 0 8px; text-transform:uppercase; letter-spacing:0.5px; }
+  .info-body p, .info-body li { font-size:14px; color:#555; line-height:1.8; }
+  .info-body ul { padding-left:20px; }
+  .info-body code { background:#f1f3f4; padding:2px 6px; border-radius:4px; font-family:monospace; font-size:13px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:600; margin-right:6px; }
+  .badge-green { background:#e6f4ea; color:#34a853; }
+  .badge-blue  { background:#e8f0fe; color:#1a73e8; }
+  .badge-orange { background:#fef7e0; color:#f29900; }
+  .divider { border:none; border-top:1px solid #eee; margin:16px 0; }
+  .footer { text-align:center; font-size:12px; color:#bbb; margin-top:32px; padding-bottom:24px; }
 
-  .footer { text-align: center; font-size: 12px; color: #bbb; margin-top: 32px; padding-bottom: 24px; }
-
-  @media (max-width: 480px) {
-    .summary-value { font-size: 22px; }
-    .card-name { font-size: 15px; }
-    .btn-export, .btn-import { font-size: 13px; padding: 7px 12px; }
+  @media (max-width:480px) {
+    .summary-value { font-size:22px; }
+    .card-name { font-size:14px; }
+    .btn-export, .btn-import, .btn-manage-cat { font-size:12px; padding:7px 10px; }
+    .group-stats { gap:8px; }
   }
 </style>
 </head>
 <body>
 
-<!-- ── Add to Home Screen Banner ── -->
+<!-- A2HS Banner -->
 <div class="a2hs-banner" id="a2hsBanner">
   <div class="a2hs-icon">📲</div>
   <div class="a2hs-text">
@@ -175,7 +194,7 @@
   </div>
 </div>
 
-<!-- ── Summary Bar ── -->
+<!-- Summary Bar -->
 <div class="summary-bar">
   <div class="summary-item">
     <div class="summary-label">年費總計</div>
@@ -196,129 +215,90 @@
 
 <div class="container">
 
-  <!-- ── Controls ── -->
+  <!-- Controls -->
   <div class="controls">
     <div>
       <label>排序：</label>
-      <select id="sortSelect" onchange="renderList()">
+      <select id="sortSelect" onchange="renderAll()">
         <option value="newest">最新加入</option>
         <option value="name">名稱 A → Z</option>
         <option value="high">年費 高 → 低</option>
         <option value="low">年費 低 → 高</option>
       </select>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div class="btn-group">
       <span class="persist-badge persist-badge-grey" id="badgePersist">⏳ 持久化…</span>
-      <div class="btn-group">
-        <button class="btn-import" onclick="triggerImport()">📤 匯入備份</button>
-        <button class="btn-export" onclick="exportJSON()">📥 匯出備份</button>
-      </div>
+      <button class="btn-manage-cat" onclick="openCatModal()">🏷️ 管理分類</button>
+      <button class="btn-import" onclick="triggerImport()">📤 匯入</button>
+      <button class="btn-export" onclick="exportJSON()">📥 匯出</button>
     </div>
   </div>
 
-  <!-- ── Add Form ── -->
+  <!-- Filter Pills -->
+  <div class="filter-wrap" id="filterBar"></div>
+
+  <!-- Add Form -->
   <div class="add-form">
     <input type="text" id="inputName" placeholder="訂閱名稱（如 Netflix）" maxlength="40">
     <input type="number" id="inputFee" placeholder="年費（HKD）" min="0" step="0.01">
+    <select id="inputCategory"></select>
     <button class="btn-add" onclick="addRecord()">＋ 新增</button>
   </div>
 
-  <!-- ── List ── -->
-  <div class="list" id="list"></div>
+  <!-- List -->
+  <div id="list"></div>
 
-  <!-- ── Info Section ── -->
+  <!-- Info Section -->
   <div class="info-section">
     <button class="info-toggle" onclick="toggleInfo()">
       <span>ℹ️ &nbsp;關於此工具 · 技術說明 · 常見疑問</span>
       <span id="infoArrow">▼</span>
     </button>
     <div class="info-body" id="infoBody">
-
       <h3>📌 工具簡介</h3>
-      <p>這是一個完全在本地瀏覽器運行的靜態網頁工具，專為記錄和計算各類電子媒體、串流服務及軟件的年費訂閱而設計。你只需輸入訂閱名稱和年費，月費及匯總將自動計算。</p>
-
+      <p>這是一個完全在本地瀏覽器運行的靜態網頁工具，支援分類管理、分組顯示及各類別小計。</p>
       <hr class="divider">
-      <h3>🔒 私隱與安全</h3>
-      <p><span class="badge badge-green">✓ 完全離線</span>所有資料只儲存在你自己的裝置上，<strong>絕不上傳至任何伺服器</strong>，亦不需要網絡連線運行。</p>
-      <p><span class="badge badge-green">✓ 無帳號登入</span>無需註冊、無需電郵，沒有任何追蹤或分析代碼。</p>
-      <p><span class="badge badge-green">✓ 開放代碼</span>此頁面為單一 HTML 檔案，你可以直接查閱所有源代碼，確保沒有隱藏功能。</p>
-
+      <h3>🏷️ 分類管理</h3>
+      <p>點擊「🏷️ 管理分類」可新增或刪除自訂分類。刪除有記錄的分類時，該分類下的項目將自動移至「未分類」。「未分類」為系統預設分類，不可刪除。</p>
       <hr class="divider">
       <h3>💾 資料儲存方式</h3>
-      <p>本工具使用瀏覽器內建的 <code>LocalStorage</code> 技術儲存資料。資料以 JSON 格式存放，key 名稱為 <code>subscriptions</code>。</p>
+      <p>使用瀏覽器內建 <code>LocalStorage</code> 儲存，資料包括訂閱記錄（key: <code>subscriptions</code>）及分類列表（key: <code>sub_categories</code>）。</p>
       <ul>
-        <li>每次新增、修改、刪除或 Mute 操作後，資料會立即自動儲存</li>
-        <li>關閉瀏覽器或重啟電腦後，資料仍然保留</li>
-        <li>資料儲存在瀏覽器的本地沙盒內，其他網站無法讀取</li>
-        <li>LocalStorage 上限約為 <strong>5–10 MB</strong>，足夠儲存數千條訂閱記錄</li>
+        <li>每次操作後自動儲存，關閉瀏覽器後資料仍保留</li>
+        <li>LocalStorage 上限約 5–10 MB，足夠數千條記錄</li>
       </ul>
-
       <hr class="divider">
-      <h3>🔐 持久化儲存（Storage Persist）</h3>
-      <p>本工具啟動時會自動呼叫 <code>navigator.storage.persist()</code> 申請持久化儲存。取得授權後，即使裝置儲存空間不足，瀏覽器也<strong>不會自動清除</strong>本工具的資料。</p>
-      <ul>
-        <li>控制列的「🔒 持久化已啟用」標記表示已成功申請</li>
-        <li>Chrome 通常會靜默授予；Firefox 可能彈出提示；Safari 支援有限</li>
-        <li>即使未能取得持久化，資料仍受 LocalStorage 保護，只需避免手動清除瀏覽器資料</li>
-      </ul>
-
+      <h3>🔐 持久化儲存</h3>
+      <p>啟動時自動呼叫 <code>navigator.storage.persist()</code>，取得授權後瀏覽器不會自動清除資料。</p>
       <hr class="divider">
-      <h3>📤 匯入 / 📥 匯出備份</h3>
-      <p>點擊「📥 匯出備份」按鈕，即可將所有記錄下載為 <code>.json</code> 檔案。點擊「📤 匯入備份」可從備份檔案還原資料，支援<strong>合併</strong>（保留現有資料並加入新記錄）或<strong>取代</strong>（清除現有資料後完整還原）兩種模式。</p>
-      <p><span class="badge badge-blue">提示</span>建議每隔一段時間匯出一次，存放在雲端硬碟（如 Google Drive、iCloud）以確保安全。</p>
-
-      <hr class="divider">
-      <h3>📲 加至主畫面（Add to Home Screen）</h3>
-      <p>在 Android Chrome 瀏覽器開啟此頁面時，頂部會出現「加至主畫面」提示橫幅，點擊「安裝」即可將本工具安裝為 App 圖示，方便日後快速存取。iOS Safari 用戶可點擊分享按鈕，選擇「加至主畫面」手動安裝。</p>
-
+      <h3>📤 匯入 / 📥 匯出</h3>
+      <p>匯出的 JSON 包含訂閱記錄及分類列表。匯入時支援<strong>合併</strong>（保留現有資料）或<strong>取代</strong>兩種模式，並自動合併備份中的分類。</p>
       <hr class="divider">
       <h3>⚠️ 何時資料會消失？</h3>
-      <p><span class="badge badge-orange">注意</span>以下情況會導致資料遺失，請定期使用「📥 匯出備份」功能：</p>
       <ul>
-        <li>在瀏覽器設定中手動「清除瀏覽資料」並勾選了 Cookie / 本地儲存</li>
-        <li>使用無痕模式（Incognito）開啟此頁面——無痕模式關閉後資料即消失</li>
-        <li>更換瀏覽器或裝置（不同瀏覽器的 LocalStorage 互不相通）</li>
-        <li>部分手機在儲存空間極度不足時，系統可能自動清除瀏覽器快取（已申請持久化則可避免）</li>
+        <li>手動清除瀏覽器本地儲存資料</li>
+        <li>使用無痕模式——關閉後資料即消失</li>
+        <li>更換瀏覽器或裝置</li>
       </ul>
-
       <hr class="divider">
-      <h3>🔇 Mute 功能說明</h3>
-      <p>Mute 的用途是「暫時停用計算」，例如你已取消某訂閱但仍想保留記錄，或某費用為季節性支出，不想長期計入月費匯總。</p>
-      <ul>
-        <li>Muted 項目會變灰並置於列表底部，不計入年費及月費總計</li>
-        <li>再次點擊 🔊 按鈕即可恢復，資料不會遺失</li>
-      </ul>
-
+      <h3>🔇 Mute 功能</h3>
+      <p>Muted 項目變灰並不計入各類及總計，再次點擊 🔊 即可恢復。</p>
       <hr class="divider">
       <h3>🧮 計算方式</h3>
-      <p>月費換算公式：<code>月費 = 年費 ÷ 12</code>（取小數點後一位顯示）</p>
-      <p>匯總只計算 <strong>未被 Mute</strong> 的項目，公式如下：</p>
       <ul>
-        <li>年費總計 = 所有啟用項目年費之和</li>
-        <li>月費總計 = 年費總計 ÷ 12</li>
+        <li>月費 = 年費 ÷ 12（各類小計及總計只計算未 Mute 項目）</li>
+        <li>頂部總計 = 所有分類合計（不受篩選影響）</li>
       </ul>
-
-      <hr class="divider">
-      <h3>🌐 瀏覽器相容性</h3>
-      <ul>
-        <li><span class="badge badge-green">✓</span> Chrome / Edge 79+</li>
-        <li><span class="badge badge-green">✓</span> Firefox 75+</li>
-        <li><span class="badge badge-green">✓</span> Safari 13+（iPhone / iPad）</li>
-        <li><span class="badge badge-green">✓</span> Samsung Internet 12+</li>
-        <li><span class="badge badge-orange">△</span> IE 11 不支援部分功能，不建議使用</li>
-      </ul>
-
     </div>
   </div>
-
   <div class="footer">年費訂閱追蹤 · 資料儲存於本地裝置 · 不上傳任何資料</div>
 </div>
 
-<!-- ── Delete Confirm Modal ── -->
+<!-- Delete Modal -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <h3>確認刪除</h3>
-    <p id="modalMsg">確定要刪除這項訂閱嗎？</p>
+    <p id="modalMsg"></p>
     <div class="modal-btns">
       <button class="btn-cancel-modal" onclick="closeModal()">取消</button>
       <button class="btn-confirm" onclick="confirmDelete()">刪除</button>
@@ -326,25 +306,19 @@
   </div>
 </div>
 
-<!-- ── Import Modal ── -->
+<!-- Import Modal -->
 <div class="overlay" id="importOverlay">
-  <div class="import-modal">
+  <div class="wide-modal">
     <h3>📤 匯入備份</h3>
     <p>請選擇匯入模式：</p>
     <div class="import-radio-group">
       <label>
         <input type="radio" name="importMode" value="merge" checked>
-        <div>
-          <div><strong>合併</strong>（推薦）</div>
-          <div class="desc">將備份中的記錄加入現有資料，重複 ID 的項目將以備份版本覆蓋。</div>
-        </div>
+        <div><div><strong>合併</strong>（推薦）</div><div class="desc">加入備份記錄，重複 ID 以備份版本覆蓋。</div></div>
       </label>
       <label>
         <input type="radio" name="importMode" value="replace">
-        <div>
-          <div><strong>取代</strong></div>
-          <div class="desc">清除所有現有資料，完整還原備份檔案的內容。此操作不可復原。</div>
-        </div>
+        <div><div><strong>取代</strong></div><div class="desc">清除現有資料，完整還原備份內容。不可復原。</div></div>
       </label>
     </div>
     <div class="modal-btns">
@@ -354,290 +328,409 @@
   </div>
 </div>
 
-<!-- ── Hidden File Input ── -->
+<!-- Category Modal -->
+<div class="overlay" id="catOverlay">
+  <div class="cat-modal">
+    <h3>🏷️ 管理分類</h3>
+    <p class="cat-modal-sub">新增或刪除自訂分類。有記錄的分類刪除後，項目將移至「未分類」。</p>
+    <div class="cat-list" id="catList"></div>
+    <div class="cat-add-row">
+      <input type="text" id="newCatInput" placeholder="新分類名稱（最多 20 字）" maxlength="20">
+      <button class="btn-cat-add" onclick="addCategory()">＋ 新增</button>
+    </div>
+    <div class="cat-modal-footer">
+      <button class="btn-cat-close" onclick="closeCatModal()">完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden File Input -->
 <input type="file" id="fileInput" accept=".json,application/json" style="display:none" onchange="handleFileSelect(event)">
 
-<!-- ── Toast ── -->
+<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ── State ──────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────
 let data = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+data.forEach(r => { if (!r.category) r.category = '未分類'; }); // migrate
+
+const DEFAULT_CATS = ['串流影音', '雲端儲存', '軟件工具', '遊戲', '新聞資訊', '未分類'];
+let categories = JSON.parse(localStorage.getItem('sub_categories') || 'null') || [...DEFAULT_CATS];
+if (!categories.includes('未分類')) categories.push('未分類');
+
+let activeFilter = 'all';
+let collapsedGroups = new Set(JSON.parse(localStorage.getItem('sub_collapsed') || '[]'));
 let deleteTargetId = null;
 let editingId = null;
 let importedData = null;
 let deferredA2hs = null;
 
-// ── Core Helpers ───────────────────────────────────────
-function save() { localStorage.setItem('subscriptions', JSON.stringify(data)); }
+// ── Persist ────────────────────────────────────────────────────
+function save()           { localStorage.setItem('subscriptions', JSON.stringify(data)); }
+function saveCats()       { localStorage.setItem('sub_categories', JSON.stringify(categories)); }
+function saveCollapsed()  { localStorage.setItem('sub_collapsed', JSON.stringify([...collapsedGroups])); }
+
+// ── Helpers ────────────────────────────────────────────────────
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
-function fmt(n) { return '$' + Number(n).toLocaleString('zh-HK', {minimumFractionDigits: 0, maximumFractionDigits: 1}); }
+function fmt(n)  { return '$' + Number(n).toLocaleString('zh-HK', {minimumFractionDigits:0, maximumFractionDigits:1}); }
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Toast ──────────────────────────────────────────────
-function showToast(msg, duration = 2800) {
+// ── Toast ──────────────────────────────────────────────────────
+function showToast(msg, dur=2800) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration);
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
 }
 
-// ── Add Record ─────────────────────────────────────────
+// ── Populate Selects ───────────────────────────────────────────
+function populateCatSelect(id, selected) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = categories.map(c =>
+    `<option value="${escHtml(c)}"${c === selected ? ' selected' : ''}>${escHtml(c)}</option>`
+  ).join('');
+}
+
+// ── Add Record ─────────────────────────────────────────────────
 function addRecord() {
   const name = document.getElementById('inputName').value.trim();
   const fee  = parseFloat(document.getElementById('inputFee').value);
+  const cat  = document.getElementById('inputCategory').value || '未分類';
   if (!name) { showToast('⚠️ 請輸入訂閱名稱'); return; }
   if (isNaN(fee) || fee < 0) { showToast('⚠️ 請輸入有效年費'); return; }
-  data.unshift({ id: genId(), name, annualFee: fee, muted: false });
-  save(); renderList();
+  data.unshift({ id: genId(), name, annualFee: fee, muted: false, category: cat });
+  save(); renderAll();
   document.getElementById('inputName').value = '';
   document.getElementById('inputFee').value = '';
   document.getElementById('inputName').focus();
   showToast('✅ 已新增「' + name + '」');
 }
 
-// ── Sort ───────────────────────────────────────────────
-function getSorted() {
+// ── Sort ───────────────────────────────────────────────────────
+function getSorted(arr) {
   const sort = document.getElementById('sortSelect').value;
-  let arr = [...data];
-  if (sort === 'name') arr.sort((a,b) => a.name.localeCompare(b.name, 'zh-HK'));
-  else if (sort === 'high') arr.sort((a,b) => b.annualFee - a.annualFee);
-  else if (sort === 'low')  arr.sort((a,b) => a.annualFee - b.annualFee);
-  arr.sort((a,b) => (a.muted ? 1 : 0) - (b.muted ? 1 : 0));
-  return arr;
+  let s = [...arr];
+  if (sort === 'name') s.sort((a,b) => a.name.localeCompare(b.name, 'zh-HK'));
+  else if (sort === 'high') s.sort((a,b) => b.annualFee - a.annualFee);
+  else if (sort === 'low')  s.sort((a,b) => a.annualFee - b.annualFee);
+  s.sort((a,b) => (a.muted ? 1 : 0) - (b.muted ? 1 : 0));
+  return s;
 }
 
-// ── Render ─────────────────────────────────────────────
-function renderList() {
-  const list = document.getElementById('list');
-  const sorted = getSorted();
-  const active = data.filter(r => !r.muted);
-  const totalAnnual = active.reduce((s, r) => s + r.annualFee, 0);
-  document.getElementById('totalAnnual').textContent = fmt(totalAnnual);
-  document.getElementById('totalMonthly').textContent = fmt(totalAnnual / 12);
-  document.getElementById('totalCount').textContent = active.length;
+// ── Filter Pills ───────────────────────────────────────────────
+function renderFilters() {
+  const counts = {};
+  data.filter(r => !r.muted).forEach(r => {
+    const c = r.category || '未分類';
+    counts[c] = (counts[c] || 0) + 1;
+  });
+  const total = data.filter(r => !r.muted).length;
+  let html = `<button class="pill${activeFilter === 'all' ? ' active' : ''}" data-filter="all" onclick="setFilter(this.dataset.filter)">全部 (${total})</button>`;
+  categories.forEach(c => {
+    if (!data.some(r => (r.category || '未分類') === c)) return; // hide empty cats
+    const cnt = counts[c] || 0;
+    html += `<button class="pill${activeFilter === c ? ' active' : ''}" data-filter="${escHtml(c)}" onclick="setFilter(this.dataset.filter)">${escHtml(c)} (${cnt})</button>`;
+  });
+  document.getElementById('filterBar').innerHTML = html;
+}
 
-  if (sorted.length === 0) {
-    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div>尚未有訂閱記錄<br>請在上方新增</div></div>';
+function setFilter(val) { activeFilter = val; renderAll(); }
+
+// ── Main Render ────────────────────────────────────────────────
+function renderAll() {
+  const active = data.filter(r => !r.muted);
+  const totalA = active.reduce((s,r) => s + r.annualFee, 0);
+  document.getElementById('totalAnnual').textContent  = fmt(totalA);
+  document.getElementById('totalMonthly').textContent = fmt(totalA / 12);
+  document.getElementById('totalCount').textContent   = active.length;
+  renderFilters();
+  renderGroups();
+  populateCatSelect('inputCategory', document.getElementById('inputCategory').value || '未分類');
+}
+
+// ── Render Groups ──────────────────────────────────────────────
+function renderGroups() {
+  const list = document.getElementById('list');
+  const filtered = activeFilter === 'all' ? data : data.filter(r => (r.category || '未分類') === activeFilter);
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div>此分類尚無訂閱記錄</div></div>';
     return;
   }
 
-  list.innerHTML = sorted.map(r => {
-    const monthly = (r.annualFee / 12).toFixed(1);
-    const isEditing = editingId === r.id;
-    return `
-    <div class="card${r.muted ? ' muted' : ''}" id="card-${r.id}">
-      <div class="card-info">
-        ${isEditing ? `
-          <div class="card-edit-row">
-            <input type="text" id="edit-name-${r.id}" value="${escHtml(r.name)}" maxlength="40" placeholder="名稱">
-            <input type="number" id="edit-fee-${r.id}" value="${r.annualFee}" min="0" step="0.01" placeholder="年費">
-            <button class="btn-save" onclick="saveEdit('${r.id}')">✓ 儲存</button>
-            <button class="btn-cancel" onclick="cancelEdit()">✕</button>
-          </div>
-        ` : `
-          <div class="card-name">${escHtml(r.name)}</div>
-          <div class="card-fees">
-            <span>年費 <strong>${fmt(r.annualFee)}</strong></span>
-            <span class="monthly">月費 <strong>${fmt(monthly)}</strong></span>
-          </div>
-        `}
+  // Group
+  const groupMap = {};
+  categories.forEach(c => { groupMap[c] = []; });
+  filtered.forEach(r => {
+    const c = r.category || '未分類';
+    if (!groupMap[c]) groupMap[c] = [];
+    groupMap[c].push(r);
+  });
+
+  const activeCats = categories.filter(c => groupMap[c] && groupMap[c].length > 0);
+
+  let html = '';
+  activeCats.forEach(cat => {
+    const items = getSorted(groupMap[cat]);
+    const activeItems = items.filter(r => !r.muted);
+    const catA = activeItems.reduce((s,r) => s + r.annualFee, 0);
+    const catM = catA / 12;
+    const collapsed = collapsedGroups.has(cat);
+
+    html += `
+    <div class="group-wrap">
+      <div class="group-header" data-cat="${escHtml(cat)}" onclick="toggleGroup(this.dataset.cat)">
+        <div class="group-header-left">
+          <span class="group-arrow">${collapsed ? '▶' : '▼'}</span>
+          <span class="group-name">${escHtml(cat)}</span>
+          <span class="group-count">${items.length} 項</span>
+        </div>
+        <div class="group-stats">
+          <span>${fmt(catA)}<span class="group-stats-label">/年</span></span>
+          <span class="g-monthly">${fmt(catM)}<span class="group-stats-label">/月</span></span>
+        </div>
       </div>
-      ${!isEditing ? `
-      <div class="card-actions">
-        <button class="btn-icon btn-edit" onclick="startEdit('${r.id}')" title="編輯">✏️</button>
-        <button class="btn-icon btn-mute" onclick="toggleMute('${r.id}')" title="${r.muted ? '取消 Mute' : 'Mute'}">
-          ${r.muted ? '🔊' : '🔇'}
-        </button>
-        <button class="btn-icon btn-delete" onclick="askDelete('${r.id}', '${escHtml(r.name)}')" title="刪除">🗑️</button>
-      </div>` : ''}
+      <div class="group-body${collapsed ? ' collapsed' : ''}">
+        ${items.map(r => renderCard(r)).join('')}
+      </div>
     </div>`;
-  }).join('');
+  });
+
+  list.innerHTML = html;
 }
 
-// ── Edit ───────────────────────────────────────────────
-function startEdit(id) { editingId = id; renderList(); setTimeout(()=>document.getElementById('edit-name-'+id)?.focus(),50); }
-function cancelEdit() { editingId = null; renderList(); }
+// ── Render Card ────────────────────────────────────────────────
+function renderCard(r) {
+  const monthly = (r.annualFee / 12).toFixed(1);
+  const isEditing = editingId === r.id;
+  const catOpts = categories.map(c =>
+    `<option value="${escHtml(c)}"${c === r.category ? ' selected' : ''}>${escHtml(c)}</option>`
+  ).join('');
+  return `
+  <div class="card${r.muted ? ' muted' : ''}" id="card-${r.id}">
+    <div class="card-info">
+      ${isEditing ? `
+        <div class="card-edit-row">
+          <input type="text" id="edit-name-${r.id}" value="${escHtml(r.name)}" maxlength="40" placeholder="名稱">
+          <input type="number" id="edit-fee-${r.id}" value="${r.annualFee}" min="0" step="0.01" placeholder="年費">
+          <select id="edit-cat-${r.id}">${catOpts}</select>
+          <button class="btn-save" onclick="saveEdit('${r.id}')">✓ 儲存</button>
+          <button class="btn-cancel" onclick="cancelEdit()">✕</button>
+        </div>
+      ` : `
+        <div class="card-name">${escHtml(r.name)}</div>
+        <div class="card-fees">
+          <span>年費 <strong>${fmt(r.annualFee)}</strong></span>
+          <span class="monthly">月費 <strong>${fmt(monthly)}</strong></span>
+        </div>
+      `}
+    </div>
+    ${!isEditing ? `
+    <div class="card-actions">
+      <button class="btn-icon btn-edit" data-id="${r.id}" onclick="startEdit(this.dataset.id)" title="編輯">✏️</button>
+      <button class="btn-icon btn-mute" data-id="${r.id}" onclick="toggleMute(this.dataset.id)" title="${r.muted ? '取消 Mute' : 'Mute'}">${r.muted ? '🔊' : '🔇'}</button>
+      <button class="btn-icon btn-delete" data-id="${r.id}" data-name="${escHtml(r.name)}" onclick="askDelete(this.dataset.id, this.dataset.name)" title="刪除">🗑️</button>
+    </div>` : ''}
+  </div>`;
+}
+
+// ── Toggle Group ───────────────────────────────────────────────
+function toggleGroup(cat) {
+  collapsedGroups.has(cat) ? collapsedGroups.delete(cat) : collapsedGroups.add(cat);
+  saveCollapsed(); renderGroups();
+}
+
+// ── Edit ───────────────────────────────────────────────────────
+function startEdit(id) { editingId = id; renderGroups(); setTimeout(()=>document.getElementById('edit-name-'+id)?.focus(), 50); }
+function cancelEdit()  { editingId = null; renderGroups(); }
 function saveEdit(id) {
   const name = document.getElementById('edit-name-'+id).value.trim();
   const fee  = parseFloat(document.getElementById('edit-fee-'+id).value);
+  const cat  = document.getElementById('edit-cat-'+id).value;
   if (!name) { showToast('⚠️ 請輸入名稱'); return; }
   if (isNaN(fee) || fee < 0) { showToast('⚠️ 請輸入有效年費'); return; }
   const r = data.find(r => r.id === id);
-  if (r) { r.name = name; r.annualFee = fee; }
-  editingId = null; save(); renderList();
+  if (r) { r.name = name; r.annualFee = fee; r.category = cat; }
+  editingId = null; save(); renderAll();
   showToast('✅ 已更新「' + name + '」');
 }
 
-// ── Mute ───────────────────────────────────────────────
+// ── Mute ───────────────────────────────────────────────────────
 function toggleMute(id) {
   const r = data.find(r => r.id === id);
-  if (r) { r.muted = !r.muted; showToast(r.muted ? '🔇 已 Mute「' + r.name + '」' : '🔊 已取消 Mute「' + r.name + '」'); }
-  save(); renderList();
+  if (r) { r.muted = !r.muted; showToast(r.muted ? '🔇 已 Mute「'+r.name+'」' : '🔊 已取消 Mute「'+r.name+'」'); }
+  save(); renderAll();
 }
 
-// ── Delete ─────────────────────────────────────────────
+// ── Delete ─────────────────────────────────────────────────────
 function askDelete(id, name) {
   deleteTargetId = id;
-  document.getElementById('modalMsg').textContent = `確定要刪除「${name}」嗎？`;
+  document.getElementById('modalMsg').textContent = '確定要刪除「' + name + '」嗎？';
   document.getElementById('overlay').classList.add('active');
 }
 function closeModal() { document.getElementById('overlay').classList.remove('active'); deleteTargetId = null; }
 function confirmDelete() {
   const r = data.find(r => r.id === deleteTargetId);
   data = data.filter(r => r.id !== deleteTargetId);
-  save(); renderList(); closeModal();
+  save(); renderAll(); closeModal();
   if (r) showToast('🗑️ 已刪除「' + r.name + '」');
 }
 
-// ── Export JSON ────────────────────────────────────────
+// ── Export ─────────────────────────────────────────────────────
 function exportJSON() {
-  const payload = {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    count: data.length,
-    subscriptions: data
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+  const payload = { version: 2, exportedAt: new Date().toISOString(), count: data.length, categories, subscriptions: data };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'subscriptions_backup_' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  a.click(); URL.revokeObjectURL(a.href);
   showToast('📥 備份已匯出（' + data.length + ' 條記錄）');
 }
 
-// ── Import JSON ────────────────────────────────────────
-function triggerImport() {
-  document.getElementById('fileInput').value = '';
-  document.getElementById('fileInput').click();
-}
+// ── Import ─────────────────────────────────────────────────────
+function triggerImport() { document.getElementById('fileInput').value = ''; document.getElementById('fileInput').click(); }
 
 function handleFileSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+  const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(ev) {
+  reader.onload = ev => {
     try {
       const json = JSON.parse(ev.target.result);
       const arr = Array.isArray(json) ? json : (Array.isArray(json.subscriptions) ? json.subscriptions : null);
       if (!arr) { showToast('❌ 無效的備份檔案格式'); return; }
       const valid = arr.every(r => r && typeof r.id === 'string' && typeof r.name === 'string' && typeof r.annualFee === 'number');
       if (!valid) { showToast('❌ 備份檔案資料格式錯誤'); return; }
+      arr.forEach(r => { if (!r.category) r.category = '未分類'; });
+      if (json.categories && Array.isArray(json.categories)) {
+        json.categories.forEach(c => { if (!categories.includes(c)) categories.push(c); });
+        if (!categories.includes('未分類')) categories.push('未分類');
+      }
       importedData = arr;
       document.getElementById('importOverlay').classList.add('active');
-    } catch(err) {
-      showToast('❌ 無法解析 JSON 檔案，請確認格式正確');
-    }
+    } catch(err) { showToast('❌ 無法解析 JSON 檔案'); }
   };
   reader.readAsText(file, 'UTF-8');
 }
 
-function closeImportModal() {
-  document.getElementById('importOverlay').classList.remove('active');
-  importedData = null;
-}
+function closeImportModal() { document.getElementById('importOverlay').classList.remove('active'); importedData = null; }
 
 function doImport() {
   if (!importedData) return;
   const mode = document.querySelector('input[name="importMode"]:checked').value;
   let added = 0, updated = 0;
   if (mode === 'replace') {
-    data = importedData.map(r => ({...r}));
-    added = data.length;
+    data = importedData.map(r => ({...r})); added = data.length;
   } else {
     const map = new Map(data.map(r => [r.id, r]));
-    importedData.forEach(r => {
-      if (map.has(r.id)) { map.set(r.id, {...r}); updated++; }
-      else { map.set(r.id, {...r}); added++; }
-    });
+    importedData.forEach(r => { if (map.has(r.id)) { map.set(r.id, {...r}); updated++; } else { map.set(r.id, {...r}); added++; } });
     data = [...map.values()];
   }
-  save(); renderList(); closeImportModal();
-  const msg = mode === 'replace'
-    ? `✅ 已取代還原 ${added} 條記錄`
-    : `✅ 已合併：新增 ${added} 條，更新 ${updated} 條`;
-  showToast(msg, 3500);
+  save(); saveCats(); renderAll(); closeImportModal();
+  showToast(mode === 'replace' ? `✅ 已取代還原 ${added} 條記錄` : `✅ 已合併：新增 ${added} 條，更新 ${updated} 條`, 3500);
 }
 
-// ── Persistent Storage ─────────────────────────────────
+// ── Category Management ────────────────────────────────────────
+function openCatModal()  { renderCatList(); document.getElementById('catOverlay').classList.add('active'); }
+function closeCatModal() { document.getElementById('catOverlay').classList.remove('active'); document.getElementById('newCatInput').value = ''; }
+
+function renderCatList() {
+  document.getElementById('catList').innerHTML = categories.map(c => {
+    const cnt = data.filter(r => (r.category || '未分類') === c).length;
+    const isDefault = c === '未分類';
+    return `
+    <div class="cat-item">
+      <span class="cat-item-name">${escHtml(c)}</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${cnt > 0 ? `<span class="cat-in-use">${cnt} 項</span>` : ''}
+        ${isDefault
+          ? '<span class="cat-lock">預設</span>'
+          : `<button class="btn-cat-del" data-cat="${escHtml(c)}" onclick="deleteCategory(this.dataset.cat)" title="刪除分類">✕</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addCategory() {
+  const input = document.getElementById('newCatInput');
+  const name = input.value.trim();
+  if (!name) { showToast('⚠️ 請輸入分類名稱'); return; }
+  if (categories.includes(name)) { showToast('⚠️ 此分類已存在'); return; }
+  categories.splice(categories.length - 1, 0, name); // insert before 未分類
+  saveCats(); input.value = ''; renderCatList(); renderAll();
+  showToast('✅ 已新增分類「' + name + '」');
+}
+
+function deleteCategory(name) {
+  if (name === '未分類') return;
+  const cnt = data.filter(r => (r.category || '未分類') === name).length;
+  if (cnt > 0) {
+    data.forEach(r => { if ((r.category || '未分類') === name) r.category = '未分類'; });
+    save();
+    showToast(`⚠️ 已將 ${cnt} 項移至「未分類」`, 3000);
+  } else {
+    showToast('🗑️ 已刪除分類「' + name + '」');
+  }
+  categories = categories.filter(c => c !== name);
+  saveCats(); renderCatList(); renderAll();
+}
+
+// ── Persistent Storage ─────────────────────────────────────────
 async function requestPersistStorage() {
   const badge = document.getElementById('badgePersist');
-  if (!navigator.storage || !navigator.storage.persist) {
-    badge.textContent = '⚠️ 不支援持久化';
-    badge.className = 'persist-badge persist-badge-orange';
-    return;
+  if (!navigator.storage?.persist) {
+    badge.textContent = '⚠️ 不支援持久化'; badge.className = 'persist-badge persist-badge-orange'; return;
   }
   try {
     const already = await navigator.storage.persisted();
-    if (already) {
-      badge.textContent = '🔒 持久化已啟用';
-      badge.className = 'persist-badge persist-badge-green';
-      return;
-    }
+    if (already) { badge.textContent = '🔒 持久化已啟用'; badge.className = 'persist-badge persist-badge-green'; return; }
     const granted = await navigator.storage.persist();
-    if (granted) {
-      badge.textContent = '🔒 持久化已啟用';
-      badge.className = 'persist-badge persist-badge-green';
-      showToast('🔒 已取得持久化儲存授權');
-    } else {
-      badge.textContent = '🔓 未持久化';
-      badge.className = 'persist-badge persist-badge-orange';
-    }
-  } catch(e) {
-    badge.textContent = '⚠️ 持久化失敗';
-    badge.className = 'persist-badge persist-badge-orange';
-  }
+    badge.textContent = granted ? '🔒 持久化已啟用' : '🔓 未持久化';
+    badge.className = granted ? 'persist-badge persist-badge-green' : 'persist-badge persist-badge-orange';
+    if (granted) showToast('🔒 已取得持久化儲存授權');
+  } catch(e) { badge.textContent = '⚠️ 持久化失敗'; badge.className = 'persist-badge persist-badge-orange'; }
 }
 
-// ── Add to Home Screen ─────────────────────────────────
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredA2hs = e;
-  if (!localStorage.getItem('a2hs_dismissed')) {
-    document.getElementById('a2hsBanner').classList.add('show');
-  }
+// ── A2HS ───────────────────────────────────────────────────────
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredA2hs = e;
+  if (!localStorage.getItem('a2hs_dismissed')) document.getElementById('a2hsBanner').classList.add('show');
 });
-
 document.getElementById('btnA2hsInstall').addEventListener('click', async () => {
   if (!deferredA2hs) return;
   deferredA2hs.prompt();
   const { outcome } = await deferredA2hs.userChoice;
-  deferredA2hs = null;
-  document.getElementById('a2hsBanner').classList.remove('show');
+  deferredA2hs = null; document.getElementById('a2hsBanner').classList.remove('show');
   if (outcome === 'accepted') showToast('✅ 已加至主畫面！');
 });
-
 document.getElementById('btnA2hsDismiss').addEventListener('click', () => {
   document.getElementById('a2hsBanner').classList.remove('show');
   localStorage.setItem('a2hs_dismissed', '1');
 });
-
 window.addEventListener('appinstalled', () => {
   document.getElementById('a2hsBanner').classList.remove('show');
   showToast('🎉 已成功安裝至主畫面！');
 });
 
-// ── Info Toggle ────────────────────────────────────────
+// ── Info Toggle ────────────────────────────────────────────────
 function toggleInfo() {
-  const body = document.getElementById('infoBody');
-  const arrow = document.getElementById('infoArrow');
-  const open = body.classList.toggle('open');
-  arrow.textContent = open ? '▲' : '▼';
+  const body = document.getElementById('infoBody'), arrow = document.getElementById('infoArrow');
+  arrow.textContent = body.classList.toggle('open') ? '▲' : '▼';
 }
 
-// ── Keyboard Shortcuts ─────────────────────────────────
+// ── Keyboard ───────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
-    if (document.activeElement.id === 'inputName' || document.activeElement.id === 'inputFee') addRecord();
+    if (['inputName','inputFee','inputCategory'].includes(document.activeElement.id)) addRecord();
+    if (document.activeElement.id === 'newCatInput') addCategory();
   }
-  if (e.key === 'Escape') { cancelEdit(); closeModal(); closeImportModal(); }
+  if (e.key === 'Escape') { cancelEdit(); closeModal(); closeImportModal(); closeCatModal(); }
 });
 
-// ── Init ───────────────────────────────────────────────
-renderList();
+// ── Init ───────────────────────────────────────────────────────
+renderAll();
 requestPersistStorage();
 </script>
 </body>

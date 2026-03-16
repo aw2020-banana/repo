@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="靜態筆記本 Web App — IndexedDB + Quill.js + Bootstrap 5">
+  <meta name="theme-color" content="#0d6efd">
+  <title>📓 靜態筆記本</title>
+
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Quill.js Snow theme -->
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+
+  <style>
+    /* =========================================================
+       CSS 自訂變數 — 支援 Light / Dark Mode
+       切換方式：<html data-theme="dark"> 即可全面覆蓋
+       ========================================================= */
+    :root {
+      --bg-body:      #f5f6fa;
+      --bg-sidebar:   #ffffff;
+      --bg-main:      #ffffff;
+      --bg-toolbar:   #f8f9fb;
+      --bg-card:      #f1f3f6;
+      --text-main:    #1a1d23;
+      --text-muted:   #6c757d;
+      --border:       #e0e3ea;
+      --accent:       #0d6efd;
+      --accent-soft:  #dbeafe;
+      --note-hover:   #eef2ff;
+      --note-active:  #0d6efd;
+      --sidebar-w:    290px;
+      --radius:       10px;
+    }
+    [data-theme="dark"] {
+      --bg-body:      #12141a;
+      --bg-sidebar:   #1a1d26;
+      --bg-main:      #1e2130;
+      --bg-toolbar:   #161921;
+      --bg-card:      #252a38;
+      --text-main:    #dde1f0;
+      --text-muted:   #8891aa;
+      --border:       #2d3347;
+      --accent:       #4d8eff;
+      --accent-soft:  #1a2c50;
+      --note-hover:   #252a38;
+      --note-active:  #1f4db8;
+    }
+
+    /* ---- Reset & Base ---- */
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg-body);
+      color: var(--text-main);
+      font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      transition: background .3s, color .3s;
+    }
+
+    /* ---- App Shell ---- */
+    #app { display: flex; height: 100dvh; }
+
+    /* =========================================================
+       SIDEBAR
+       - Desktop: static 290px
+       - Mobile (<768px): fixed, off-screen via translateX(-100%),
+         .open class slides it in (hamburger btn triggers JS)
+       ========================================================= */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform .28s ease, box-shadow .28s ease;
+      z-index: 200;
+    }
+    @media (max-width: 767px) {
+      #sidebar {
+        position: fixed;
+        top: 0; left: 0;
+        height: 100dvh;
+        transform: translateX(-100%);
+      }
+      #sidebar.open {
+        transform: translateX(0);
+        box-shadow: 6px 0 30px rgba(0,0,0,.25);
+      }
+      /* Semi-transparent overlay behind sidebar on mobile */
+      #overlay {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,.45);
+        z-index: 199;
+        backdrop-filter: blur(2px);
+      }
+      #overlay.show { display: block; }
+    }
+
+    /* ---- Sidebar Header ---- */
+    .sb-header {
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-toolbar);
+    }
+    .sb-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .sb-brand-icon { font-size: 1.4rem; color: var(--accent); }
+    .sb-brand-name { font-weight: 700; font-size: 1rem; }
+
+    /* ---- Search box ---- */
+    .sb-search {
+      position: relative;
+    }
+    .sb-search input {
+      width: 100%;
+      padding: 7px 10px 7px 32px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-main);
+      font-size: .82rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .sb-search input:focus { border-color: var(--accent); }
+    .sb-search .search-icon {
+      position: absolute;
+      left: 9px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: .85rem;
+      pointer-events: none;
+    }
+
+    /* ---- Category Menu ---- */
+    .cat-menu { padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .cat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      font-size: .83rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 7px;
+      margin: 1px 6px;
+      transition: background .15s, color .15s;
+    }
+    .cat-item:hover { background: var(--note-hover); color: var(--text-main); }
+    .cat-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+    .cat-count {
+      margin-left: auto;
+      font-size: .68rem;
+      background: var(--bg-card);
+      color: var(--text-muted);
+      padding: 1px 7px;
+      border-radius: 10px;
+    }
+
+    /* ---- Tag Filter ---- */
+    #tag-filter-bar {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+      display: none;
+    }
+
+    /* ---- Note List ---- */
+    #note-list { overflow-y: auto; flex: 1; padding: 4px 0; }
+    .note-item {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .15s;
+      position: relative;
+    }
+    .note-item:hover { background: var(--note-hover); }
+    .note-item.active { background: var(--note-active); }
+    .note-item .ni-title {
+      font-size: .88rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .note-item.active .ni-title { color: #fff; }
+    .note-item .ni-meta {
+      font-size: .72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .note-item.active .ni-meta { color: rgba(255,255,255,.7); }
+    .note-item .ni-tags { margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap; }
+    .ni-tag {
+      font-size: .62rem;
+      padding: 1px 7px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .note-item.active .ni-tag { background: rgba(255,255,255,.2); color: #fff; }
+
+    /* =========================================================
+       MAIN EDITOR AREA
+       ========================================================= */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-main);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    /* ---- Toolbar ---- */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-toolbar);
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    #toolbar .btn { border-radius: 8px; }
+    #hamburger-btn { display: none; }
+    @media (max-width: 767px) { #hamburger-btn { display: inline-flex; } }
+
+    /* ---- Editor wrapper ---- */
+    #editor-wrap {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      padding: 18px 24px 10px;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ---- Note title input ---- */
+    #note-title {
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 1.45rem;
+      font-weight: 700;
+      width: 100%;
+      outline: none;
+      padding: 4px 0;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 8px;
+      transition: border-color .2s;
+    }
+    #note-title:focus { border-bottom-color: var(--accent); }
+
+    /* ---- Tags row ---- */
+    #tags-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 5px 0;
+      border-bottom: 1px dashed var(--border);
+      margin-bottom: 8px;
+    }
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: .72rem;
+      padding: 2px 9px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      cursor: default;
+    }
+    .tag-pill .rm { cursor: pointer; opacity: .6; font-size: .65rem; }
+    .tag-pill .rm:hover { opacity: 1; }
+    #tag-input {
+      font-size: .75rem;
+      padding: 2px 9px;
+      border-radius: 12px;
+      border: 1px dashed var(--border);
+      background: transparent;
+      color: var(--text-main);
+      width: 80px;
+      outline: none;
+    }
+    #tag-input:focus { border-color: var(--accent); }
+
+    /* ---- Save status ---- */
+    #save-status {
+      font-size: .72rem;
+      color: var(--text-muted);
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* ---- Quill overrides ---- */
+    #quill-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .ql-toolbar.ql-snow {
+      background: var(--bg-toolbar);
+      border: none;
+      border-bottom: 1px solid var(--border) !important;
+      flex-shrink: 0;
+    }
+    .ql-container.ql-snow {
+      border: none !important;
+      flex: 1;
+      overflow-y: auto;
+      background: var(--bg-main);
+    }
+    .ql-editor {
+      color: var(--text-main);
+      font-size: 1rem;
+      min-height: 200px;
+    }
+    /* Dark mode Quill icon colours */
+    [data-theme="dark"] .ql-stroke { stroke: var(--text-muted) !important; }
+    [data-theme="dark"] .ql-fill   { fill:   var(--text-muted) !important; }
+    [data-theme="dark"] .ql-picker-label { color: var(--text-muted) !important; }
+    [data-theme="dark"] .ql-picker-options {
+      background: var(--bg-card) !important;
+      border-color: var(--border) !important;
+    }
+    [data-theme="dark"] .ql-picker-item { color: var(--text-main) !important; }
+
+    /* ---- Empty state ---- */
+    #empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 40px;
+    }
+    #empty-state i { font-size: 4rem; opacity: .3; }
+
+    /* =========================================================
+       ADD-TO-HOME-SCREEN BANNER
+       - Appears 3 s after load if PWA install event fires
+       - Dismissed state saved in localStorage
+       ========================================================= */
+    #a2hs-banner {
+      display: none;
+      position: fixed;
+      bottom: 18px; left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 420px;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px 16px;
+      box-shadow: 0 6px 30px rgba(0,0,0,.18);
+      z-index: 1050;
+      animation: slideUp .4s ease;
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform: translateX(-50%) translateY(20px); }
+      to   { opacity:1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* ---- Scrollbar styling ---- */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- Mobile overlay -->
+<div id="overlay" onclick="closeSidebar()"></div>
+
+<!-- ============================================================
+     APP SHELL
+     ============================================================ -->
+<div id="app">
+
+  <!-- ====================== SIDEBAR ====================== -->
+  <aside id="sidebar" aria-label="筆記側邊欄">
+
+    <!-- Sidebar header: brand + search -->
+    <div class="sb-header">
+      <div class="sb-brand">
+        <span class="sb-brand-icon"><i class="bi bi-journal-richtext"></i></span>
+        <span class="sb-brand-name">靜態筆記本</span>
+        <!-- New note btn -->
+        <button class="btn btn-sm btn-primary ms-auto rounded-circle"
+                style="width:30px;height:30px;padding:0;"
+                onclick="createNote()" title="新增筆記 (Ctrl+N)">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      <div class="sb-search">
+        <i class="bi bi-search search-icon"></i>
+        <!-- 搜尋用純 JS Array.filter() + String.includes() 實現，無需外部函式庫 -->
+        <input type="search" id="search-input" placeholder="搜尋筆記…"
+               oninput="renderNoteList()" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- Category filter -->
+    <nav class="cat-menu" aria-label="分類">
+      <div class="cat-item active" id="cat-all"    onclick="setCategory('all')"   >
+        <i class="bi bi-grid-3x3-gap"></i> 全部筆記
+        <span class="cat-count" id="cnt-all">0</span>
+      </div>
+      <div class="cat-item"        id="cat-pinned" onclick="setCategory('pinned')">
+        <i class="bi bi-pin-angle"></i> 已釘選
+        <span class="cat-count" id="cnt-pinned">0</span>
+      </div>
+      <div class="cat-item"        id="cat-trash"  onclick="setCategory('trash')" >
+        <i class="bi bi-trash3"></i> 回收桶
+        <span class="cat-count" id="cnt-trash">0</span>
+      </div>
+    </nav>
+
+    <!-- Active tag filter indicator -->
+    <div id="tag-filter-bar">
+      <small class="text-muted">標籤：</small>
+      <span id="active-tag-chip"></span>
+      <button class="btn btn-sm btn-link p-0 ms-1 text-muted"
+              onclick="clearTagFilter()" title="清除標籤篩選">
+        <i class="bi bi-x-circle"></i>
+      </button>
+    </div>
+
+    <!-- Note list (rendered by JS) -->
+    <div id="note-list" role="list"></div>
+  </aside>
+
+  <!-- ====================== MAIN ========================= -->
+  <main id="main" role="main">
+
+    <!-- ---- Toolbar ---- -->
+    <div id="toolbar">
+
+      <!-- Hamburger: only visible on mobile (<768 px) -->
+      <button class="btn btn-sm btn-outline-secondary" id="hamburger-btn"
+              onclick="openSidebar()" aria-label="開啟側邊欄">
+        <i class="bi bi-list fs-5"></i>
+      </button>
+
+      <!-- Note action buttons (disabled until a note is open) -->
+      <button class="btn btn-sm btn-outline-warning"
+              id="btn-pin" title="釘選 / 取消釘選" onclick="togglePin()" disabled>
+        <i class="bi bi-pin"></i>
+      </button>
+
+      <!-- 一鍵複製：使用 navigator.clipboard.writeText()，降級至 execCommand -->
+      <button class="btn btn-sm btn-outline-primary"
+              id="btn-copy" title="一鍵複製全文" onclick="copyNote()" disabled>
+        <i class="bi bi-clipboard"></i> 複製
+      </button>
+
+      <!-- Export dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-sm btn-outline-success dropdown-toggle"
+                id="btn-export" data-bs-toggle="dropdown" disabled>
+          <i class="bi bi-download"></i> 匯出
+        </button>
+        <ul class="dropdown-menu shadow-sm">
+          <li>
+            <a class="dropdown-item" href="#" onclick="exportNote('json')">
+              <i class="bi bi-filetype-json me-2 text-warning"></i>此筆記 → JSON
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="#" onclick="exportNote('txt')">
+              <i class="bi bi-filetype-txt me-2 text-secondary"></i>此筆記 → TXT
+            </a>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <a class="dropdown-item" href="#" onclick="backupAll()">
+              <i class="bi bi-archive me-2 text-primary"></i>備份全部筆記
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="#"
+               onclick="document.getElementById('file-import').click()">
+              <i class="bi bi-upload me-2 text-success"></i>匯入備份
+            </a>
+          </li>
+        </ul>
+      </div>
+      <input type="file" id="file-import" accept=".json" style="display:none"
+             onchange="importBackup(event)">
+
+      <!-- Delete -->
+      <button class="btn btn-sm btn-outline-danger"
+              id="btn-delete" title="刪除（移至回收桶）" onclick="deleteNote()" disabled>
+        <i class="bi bi-trash3"></i>
+      </button>
+
+      <!-- Right side -->
+      <div class="ms-auto d-flex align-items-center gap-2">
+
+        <!-- AI panel trigger -->
+        <button class="btn btn-sm btn-outline-info"
+                id="btn-ai" onclick="openAI()" disabled>
+          <i class="bi bi-robot"></i> AI
+        </button>
+
+        <!-- Dark mode toggle -->
+        <button class="btn btn-sm btn-outline-secondary"
+                onclick="toggleTheme()" title="切換深色 / 淺色">
+          <i id="theme-icon" class="bi bi-moon-stars"></i>
+        </button>
+
+        <!-- Storage quota info (navigator.storage.estimate) -->
+        <small class="text-muted d-none d-md-inline" id="storage-info"></small>
+      </div>
+    </div><!-- /#toolbar -->
+
+    <!-- ---- Editor (hidden until a note is selected) ---- -->
+    <div id="editor-wrap">
+
+      <!-- Title + auto-save indicator -->
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <input type="text" id="note-title"
+               placeholder="筆記標題…" oninput="onFieldChange()">
+        <span id="save-status">
+          <i class="bi bi-check-circle-fill text-success"></i>
+          <span class="d-none d-sm-inline text-muted" style="font-size:.72rem"> 已儲存</span>
+        </span>
+      </div>
+
+      <!-- Tags: press Enter or comma to add; click ✕ to remove -->
+      <div id="tags-row">
+        <i class="bi bi-tags text-muted" style="font-size:.8rem"></i>
+        <div id="tags-container"></div>
+        <input type="text" id="tag-input"
+               placeholder="+ 標籤" maxlength="20"
+               onkeydown="onTagKey(event)" title="按 Enter 或逗號新增標籤">
+      </div>
+
+      <!--
+        Quill.js 富文本編輯器
+        - theme: snow (toolbar visible)
+        - modules.toolbar: 自訂工具列按鈕
+        - quill.on('text-change'): 觸發自動存檔計時器
+      -->
+      <div id="quill-wrap">
+        <div id="quill-editor"></div>
+      </div>
+
+    </div><!-- /#editor-wrap -->
+
+    <!-- ---- Empty / welcome state ---- -->
+    <div id="empty-state">
+      <i class="bi bi-journal-plus"></i>
+      <h5 class="mt-3">選擇一篇筆記，或新增一篇</h5>
+      <p class="text-muted small">所有資料儲存於瀏覽器 IndexedDB，不上傳伺服器。</p>
+      <button class="btn btn-primary" onclick="createNote()">
+        <i class="bi bi-plus-lg me-1"></i>新增筆記
+      </button>
+    </div>
+
+  </main><!-- /#main -->
+</div><!-- /#app -->
+
+
+<!-- ============================================================
+     AI ASSISTANT MODAL
+     支援 OpenAI / OpenRouter / Ollama（本地）
+     API Key 自動儲存至 localStorage（不離開裝置）
+     ============================================================ -->
+<div class="modal fade" id="ai-modal" tabindex="-1" aria-labelledby="ai-modal-title">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content"
+         style="background:var(--bg-sidebar);color:var(--text-main);border-color:var(--border)">
+
+      <div class="modal-header" style="border-color:var(--border)">
+        <h5 class="modal-title" id="ai-modal-title">
+          <i class="bi bi-robot text-info me-2"></i>AI 助手
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                style="filter:var(--bs-btn-close-filter,none)"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- API 設定區塊 -->
+        <div class="p-3 rounded mb-3"
+             style="background:var(--bg-card);border:1px solid var(--border)">
+          <div class="d-flex align-items-center mb-2">
+            <span class="fw-bold small"><i class="bi bi-gear me-1"></i>API 設定</span>
+            <span class="ms-2 badge bg-secondary" id="ai-persist-badge"
+                  title="設定儲存於 localStorage">localStorage ✓</span>
+            <span class="ms-1 badge" style="background:#ff6b35"
+                  title="LongCat-Flash-Lite 每日 5000萬 tokens 免費">
+              🐱 LongCat 免費 50M/day
+            </span>
+          </div>
+          <div class="row g-2">
+            <div class="col-12 col-md-4">
+              <select class="form-select form-select-sm" id="ai-provider"
+                      onchange="onProviderChange()">
+                <option value="longcat" selected>LongCat AI（美團）</option>
+                <option value="openai">OpenAI (GPT-4o)</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="ollama">Ollama（本地）</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-5">
+              <input type="password" class="form-control form-control-sm"
+                     id="ai-api-key" placeholder="API Key (sk-…)"
+                     oninput="saveAIConfig()">
+            </div>
+            <div class="col-12 col-md-3">
+              <input type="text" class="form-control form-control-sm"
+                     id="ai-model" placeholder="模型名稱"
+                     oninput="saveAIConfig()">
+            </div>
+          </div>
+          <!-- Ollama 本地 URL（預設隱藏） -->
+          <div class="mt-2" id="ollama-row" style="display:none">
+            <input type="text" class="form-control form-control-sm"
+                   id="ollama-url" value="http://localhost:11434"
+                   placeholder="Ollama base URL"
+                   oninput="saveAIConfig()">
+            <div class="form-text text-muted" style="font-size:.7rem">
+              確保 CORS 已開放：<code>OLLAMA_ORIGINS=*</code>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI 功能按鈕 -->
+        <div class="d-flex gap-2 flex-wrap mb-3">
+          <button class="btn btn-sm btn-info"    onclick="aiRun('summarize')">
+            <i class="bi bi-card-text me-1"></i>摘要
+          </button>
+          <button class="btn btn-sm btn-primary" onclick="aiRun('continue')">
+            <i class="bi bi-arrow-right-circle me-1"></i>補全
+          </button>
+          <button class="btn btn-sm btn-success" onclick="aiRun('improve')">
+            <i class="bi bi-stars me-1"></i>改善文字
+          </button>
+          <button class="btn btn-sm btn-warning text-dark" onclick="aiRun('translate')">
+            <i class="bi bi-translate me-1"></i>翻譯成英文
+          </button>
+          <button class="btn btn-sm btn-secondary" onclick="showCustomPrompt()">
+            <i class="bi bi-chat-dots me-1"></i>自訂提示
+          </button>
+        </div>
+
+        <!-- 自訂提示輸入 -->
+        <div id="custom-prompt-wrap" style="display:none" class="mb-3">
+          <div class="input-group input-group-sm">
+            <textarea class="form-control" id="custom-prompt" rows="2"
+                      placeholder="輸入提示詞，AI 會結合目前筆記內容回答…"
+                      style="background:var(--bg-card);color:var(--text-main);border-color:var(--border)"></textarea>
+            <button class="btn btn-sm btn-primary" onclick="aiRun('custom')">送出</button>
+          </div>
+        </div>
+
+        <!-- Loading spinner -->
+        <div id="ai-loading" class="text-center py-4" style="display:none">
+          <div class="spinner-border text-info spinner-border-sm me-2"></div>
+          <span class="text-muted">AI 處理中…</span>
+        </div>
+
+        <!-- AI output -->
+        <div id="ai-output"
+             style="display:none;white-space:pre-wrap;font-size:.9rem;
+                    background:var(--bg-card);border:1px solid var(--border);
+                    border-radius:var(--radius);padding:14px;min-height:80px;
+                    max-height:320px;overflow-y:auto"></div>
+
+      </div><!-- /.modal-body -->
+
+      <div class="modal-footer" style="border-color:var(--border)">
+        <button class="btn btn-sm btn-outline-secondary"
+                onclick="copyAIResult()">
+          <i class="bi bi-clipboard me-1"></i>複製結果
+        </button>
+        <button class="btn btn-sm btn-primary"
+                onclick="insertAIResult()">
+          <i class="bi bi-plus-lg me-1"></i>插入筆記
+        </button>
+        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">關閉</button>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /#ai-modal -->
+
+
+<!-- ============================================================
+     ADD TO HOME SCREEN BANNER
+     - 監聽 window.beforeinstallprompt 事件（Chrome / Edge / Android）
+     - iOS/Safari 無此事件，顯示手動操作提示
+     - 3 秒後顯示，可一鍵關閉並記錄至 localStorage
+     ============================================================ -->
+<div id="a2hs-banner" role="banner" aria-live="polite">
+  <div class="d-flex align-items-center gap-3">
+    <i class="bi bi-phone fs-3 text-primary"></i>
+    <div class="flex-grow-1">
+      <div class="fw-bold small">加入主螢幕</div>
+      <div class="text-muted" style="font-size:.72rem">像原生 App 般使用筆記本</div>
+    </div>
+    <button class="btn btn-sm btn-primary" onclick="doInstall()">安裝</button>
+    <button class="btn btn-sm btn-link p-0 text-muted" onclick="dismissA2HS()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+</div>
+
+
+<!-- Toast notification -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index:1200">
+  <div id="toast" class="toast text-white border-0" role="alert" aria-live="assertive">
+    <div class="d-flex">
+      <div class="toast-body" id="toast-msg"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!--
+  Dexie.js — IndexedDB 的 Promise 封裝函式庫
+  優點：語法簡潔、支援索引查詢、比 localStorage 可存更多資料（數百 MB）
+  CDN: https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js
+-->
+<script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+<!--
+  Quill.js 1.3.7 — 富文本編輯器
+  theme: snow — 顯示標準工具列
+-->
+<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+
+<script>
+"use strict";
+
+/* ============================================================
+   1. DATABASE — Dexie.js (IndexedDB)
+   schema: id 為主鍵，並對 updatedAt / isPinned / isDeleted 建立索引
+   ============================================================ */
+const db = new Dexie("NoteApp_v1");
+db.version(1).stores({
+  notes: "id, updatedAt, isPinned, isDeleted"
+});
+
+/* ============================================================
+   2. APPLICATION STATE
+   ============================================================ */
+let state = {
+  notes: [],          // 全部筆記（記憶體快取）
+  currentId: null,    // 目前開啟的筆記 id
+  category: "all",    // "all" | "pinned" | "trash"
+  tagFilter: null,    // 字串 | null
+  editing: false,     // 是否處於編輯中（防止初始化觸發儲存）
+  saveTimer: null,
+};
+
+let quill = null;
+let aiModalInst = null;
+let deferredInstall = null; // A2HS prompt event
+
+/* ============================================================
+   3. INIT
+   ============================================================ */
+document.addEventListener("DOMContentLoaded", async () => {
+  initQuill();
+  initTheme();
+  await loadAllNotes();
+  await initPersistStorage();  // navigator.storage.persist()
+  initA2HS();
+  loadAIConfig();
+  aiModalInst = new bootstrap.Modal(document.getElementById("ai-modal"));
+
+  // Keyboard shortcut: Ctrl+N → 新增筆記
+  document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "n") {
+      e.preventDefault();
+      createNote();
+    }
+  });
+});
+
+/* ============================================================
+   4. QUILL EDITOR SETUP
+   ============================================================ */
+function initQuill() {
+  quill = new Quill("#quill-editor", {
+    theme: "snow",
+    placeholder: "開始書寫…",
+    modules: {
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ color: [] }, { background: [] }],
+        [{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
+        ["blockquote", "code-block", "link"],
+        ["clean"]
+      ]
+    }
+  });
+  quill.on("text-change", () => {
+    if (state.editing) onFieldChange();
+  });
+}
+
+/* ============================================================
+   5. PERSISTENT STORAGE
+   navigator.storage.persist() 申請「持久化」模式：
+   - 正常模式下瀏覽器可能在磁碟空間不足時主動清除 IndexedDB
+   - 持久化後，資料不會被自動清除（類似 App 行為）
+   ============================================================ */
+async function initPersistStorage() {
+  if (!navigator.storage?.persist) return;
+  const already = await navigator.storage.persisted();
+  if (!already) {
+    const ok = await navigator.storage.persist();
+    if (ok) showToast("💾 持久化儲存已啟用", "success");
+  }
+  refreshStorageInfo();
+}
+
+async function refreshStorageInfo() {
+  if (!navigator.storage?.estimate) return;
+  const { usage = 0, quota = 0 } = await navigator.storage.estimate();
+  const used = (usage / 1048576).toFixed(2);
+  const total = (quota / 1048576).toFixed(0);
+  document.getElementById("storage-info").textContent = `💾 ${used} / ${total} MB`;
+}
+
+/* ============================================================
+   6. LOAD / RENDER NOTES
+   ============================================================ */
+async function loadAllNotes() {
+  state.notes = await db.notes.orderBy("updatedAt").reverse().toArray();
+  renderNoteList();
+  updateCounts();
+  renderTagFilterBar();
+}
+
+function renderNoteList() {
+  const q = (document.getElementById("search-input").value || "").toLowerCase();
+  let list = state.notes;
+
+  // Category filter
+  if (state.category === "pinned") list = list.filter(n => n.isPinned && !n.isDeleted);
+  else if (state.category === "trash") list = list.filter(n => n.isDeleted);
+  else list = list.filter(n => !n.isDeleted);
+
+  // Tag filter
+  if (state.tagFilter) list = list.filter(n => (n.tags||[]).includes(state.tagFilter));
+
+  // Search — pure JS Array.filter() + String.includes()
+  if (q) {
+    list = list.filter(n =>
+      (n.title||"").toLowerCase().includes(q) ||
+      (n.plain||"").toLowerCase().includes(q)  ||
+      (n.tags||[]).some(t => t.toLowerCase().includes(q))
+    );
+  }
+
+  const el = document.getElementById("note-list");
+  if (!list.length) {
+    el.innerHTML = `<div class="text-center py-5 text-muted small">
+      <i class="bi bi-journal-x d-block mb-2" style="font-size:2rem;opacity:.3"></i>
+      沒有筆記</div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(n => {
+    const active = n.id === state.currentId ? "active" : "";
+    const date = new Date(n.updatedAt).toLocaleDateString("zh-TW",{month:"short",day:"numeric"});
+    const preview = (n.plain||"尚無內容").slice(0, 55);
+    const pin = n.isPinned ? `<i class="bi bi-pin-fill me-1" style="color:#ffc107;font-size:.7rem"></i>` : "";
+    const tags = (n.tags||[]).map(t => `<span class="ni-tag">${esc(t)}</span>`).join("");
+    return `<div class="note-item ${active}" onclick="openNote('${n.id}')" role="listitem" tabindex="0"
+                 onkeydown="if(event.key==='Enter')openNote('${n.id}')">
+      <div class="ni-title">${pin}${esc(n.title)||"（無標題）"}</div>
+      <div class="ni-meta">${date} · ${esc(preview)}</div>
+      ${tags ? `<div class="ni-tags">${tags}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+function updateCounts() {
+  const active = state.notes.filter(n => !n.isDeleted);
+  document.getElementById("cnt-all").textContent    = active.length;
+  document.getElementById("cnt-pinned").textContent = active.filter(n => n.isPinned).length;
+  document.getElementById("cnt-trash").textContent  = state.notes.filter(n => n.isDeleted).length;
+}
+
+function renderTagFilterBar() {
+  const bar = document.getElementById("tag-filter-bar");
+  if (!state.tagFilter) { bar.style.display = "none"; return; }
+  bar.style.display = "block";
+  document.getElementById("active-tag-chip").innerHTML =
+    `<span class="tag-pill">${esc(state.tagFilter)}</span>`;
+}
+
+/* ============================================================
+   7. CREATE NOTE
+   UUID 由瀏覽器原生 crypto.randomUUID() 生成，無需外部 library
+   ============================================================ */
+async function createNote() {
+  const note = {
+    id:        crypto.randomUUID(),
+    title:     "",
+    content:   "",
+    plain:     "",
+    tags:      [],
+    isPinned:  false,
+    isDeleted: false,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+  await db.notes.add(note);
+  state.notes.unshift(note);
+  renderNoteList();
+  updateCounts();
+  openNote(note.id);
+  closeSidebar();
+}
+
+/* ============================================================
+   8. OPEN NOTE
+   ============================================================ */
+function openNote(id) {
+  state.editing = false;
+  state.currentId = id;
+  const n = state.notes.find(n => n.id === id);
+  if (!n) return;
+
+  document.getElementById("note-title").value = n.title || "";
+  quill.root.innerHTML = n.content || "";
+  renderTags(n.tags || []);
+
+  document.getElementById("editor-wrap").style.display = "flex";
+  document.getElementById("editor-wrap").style.flexDirection = "column";
+  document.getElementById("empty-state").style.display = "none";
+
+  // Enable toolbar buttons
+  ["btn-pin","btn-copy","btn-export","btn-delete","btn-ai"]
+    .forEach(id => document.getElementById(id).disabled = false);
+
+  updatePinBtn(n.isPinned);
+  setSaveStatus("saved");
+  renderNoteList();       // update active highlight
+
+  setTimeout(() => { state.editing = true; }, 120);
+}
+
+/* ============================================================
+   9. AUTO SAVE (debounced 900ms)
+   ============================================================ */
+function onFieldChange() {
+  setSaveStatus("saving");
+  clearTimeout(state.saveTimer);
+  state.saveTimer = setTimeout(saveNote, 900);
+}
+
+async function saveNote() {
+  if (!state.currentId) return;
+  const n = state.notes.find(n => n.id === state.currentId);
+  if (!n) return;
+  n.title     = document.getElementById("note-title").value;
+  n.content   = quill.root.innerHTML;
+  n.plain     = quill.getText().trim();
+  n.updatedAt = Date.now();
+  await db.notes.put(n);
+  renderNoteList();
+  setSaveStatus("saved");
+  refreshStorageInfo();
+}
+
+function setSaveStatus(s) {
+  const el = document.getElementById("save-status");
+  el.innerHTML = s === "saved"
+    ? `<i class="bi bi-check-circle-fill text-success"></i>
+       <span class="d-none d-sm-inline text-muted" style="font-size:.72rem"> 已儲存</span>`
+    : `<i class="bi bi-circle text-warning"></i>
+       <span class="d-none d-sm-inline text-muted" style="font-size:.72rem"> 儲存中…</span>`;
+}
+
+/* ============================================================
+   10. TAGS
+   - 按 Enter 或逗號新增標籤
+   - 點 ✕ 刪除標籤
+   ============================================================ */
+function renderTags(tags) {
+  document.getElementById("tags-container").innerHTML =
+    tags.map(t => `<span class="tag-pill">${esc(t)}
+      <span class="rm" onclick="removeTag('${esc(t)}')">✕</span>
+    </span>`).join("");
+}
+
+async function onTagKey(e) {
+  if (e.key !== "Enter" && e.key !== ",") return;
+  e.preventDefault();
+  const val = e.target.value.replace(",","").trim();
+  if (!val) return;
+  e.target.value = "";
+  const n = state.notes.find(n => n.id === state.currentId);
+  if (!n || n.tags.includes(val)) return;
+  n.tags.push(val);
+  await db.notes.put(n);
+  renderTags(n.tags);
+  updateTagFilterBar_global();
+  renderNoteList();
+}
+
+async function removeTag(tag) {
+  const n = state.notes.find(n => n.id === state.currentId);
+  if (!n) return;
+  n.tags = n.tags.filter(t => t !== tag);
+  await db.notes.put(n);
+  renderTags(n.tags);
+  updateTagFilterBar_global();
+  renderNoteList();
+}
+
+function updateTagFilterBar_global() {
+  renderTagFilterBar();
+}
+
+/* ============================================================
+   11. PIN / DELETE
+   ============================================================ */
+async function togglePin() {
+  const n = state.notes.find(n => n.id === state.currentId);
+  if (!n) return;
+  n.isPinned = !n.isPinned;
+  await db.notes.put(n);
+  updatePinBtn(n.isPinned);
+  updateCounts();
+  renderNoteList();
+  showToast(n.isPinned ? "📌 已釘選" : "📌 取消釘選");
+}
+
+function updatePinBtn(pinned) {
+  const b = document.getElementById("btn-pin");
+  b.innerHTML  = `<i class="bi bi-pin${pinned?"-fill":""}"></i>`;
+  b.className  = `btn btn-sm btn-${pinned?"warning":"outline-warning"}`;
+}
+
+async function deleteNote() {
+  const n = state.notes.find(n => n.id === state.currentId);
+  if (!n) return;
+  if (n.isDeleted) {
+    if (!confirm("永久刪除此筆記？此操作無法復原。")) return;
+    await db.notes.delete(n.id);
+    state.notes = state.notes.filter(x => x.id !== n.id);
+    showToast("🗑️ 已永久刪除");
+  } else {
+    n.isDeleted = true;
+    await db.notes.put(n);
+    showToast("🗑️ 移至回收桶");
+  }
+  closeEditor();
+  renderNoteList();
+  updateCounts();
+}
+
+function closeEditor() {
+  state.currentId = null;
+  state.editing   = false;
+  document.getElementById("editor-wrap").style.display = "none";
+  document.getElementById("empty-state").style.display = "flex";
+  ["btn-pin","btn-copy","btn-export","btn-delete","btn-ai"]
+    .forEach(id => document.getElementById(id).disabled = true);
+}
+
+/* ============================================================
+   12. CATEGORY & TAG FILTER
+   ============================================================ */
+function setCategory(cat) {
+  state.category = cat;
+  state.tagFilter = null;
+  document.querySelectorAll(".cat-item").forEach(el => el.classList.remove("active"));
+  document.getElementById("cat-" + cat).classList.add("active");
+  renderNoteList();
+  renderTagFilterBar();
+}
+
+function filterTag(tag) {
+  state.tagFilter = tag;
+  state.category  = "all";
+  document.querySelectorAll(".cat-item").forEach(el => el.classList.remove("active"));
+  document.getElementById("cat-all").classList.add("active");
+  renderNoteList();
+  renderTagFilterBar();
+}
+
+function clearTagFilter() {
+  state.tagFilter = null;
+  renderNoteList();
+  renderTagFilterBar();
+}
+
+/* ============================================================
+   13. ONE-CLICK COPY
+   使用 navigator.clipboard.writeText()（現代瀏覽器）
+   降級使用 document.execCommand("copy")（舊版瀏覽器）
+   ============================================================ */
+async function copyNote() {
+  const n = state.notes.find(n => n.id === state.currentId);
+  if (!n) return;
+  const text = (n.title ? n.title + "
+
+" : "") + quill.getText();
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("📋 已複製到剪貼簿", "success");
+  } catch {
+    // Fallback for older browsers or non-HTTPS context
+    const ta = Object.assign(document.createElement("textarea"),
+                              { value: text, style: "position:fixed;opacity:0" });
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    showToast("📋 已複製（舊版降級）", "success");
+  }
+}
+
+/* ============================================================
+   14. EXPORT / IMPORT
+   - exportNote: 匯出目前筆記為 JSON 或 TXT
+   - backupAll:  匯出全部筆記為帶版本號的 JSON 備份
+   - importBackup: 讀取 JSON 備份並寫入 IndexedDB（跳過已存在的 id）
+   ============================================================ */
+function exportNote(fmt) {
+  const n = state.notes.find(n => n.id === state.currentId);
+  if (!n) return;
+  let content, name, mime;
+  if (fmt === "json") {
+    content = JSON.stringify(n, null, 2);
+    name = (n.title || "note") + ".json";
+    mime = "application/json";
+  } else {
+    content = [n.title, "=".repeat(40), "", quill.getText(),
+               "", "標籤: " + (n.tags||[]).join(", ")].join("
+");
+    name = (n.title || "note") + ".txt";
+    mime = "text/plain;charset=utf-8";
+  }
+  triggerDownload(content, name, mime);
+  showToast("📥 匯出成功");
+}
+
+async function backupAll() {
+  const all = await db.notes.toArray();
+  const payload = { version: 2, exportedAt: new Date().toISOString(), notes: all };
+  triggerDownload(JSON.stringify(payload, null, 2),
+    `noteapp-backup-${Date.now()}.json`, "application/json");
+  showToast(`📦 已備份 ${all.length} 篇筆記`);
+}
+
+async function importBackup(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  ev.target.value = "";
+  try {
+    const data = JSON.parse(text);
+    const arr  = data.notes || (Array.isArray(data) ? data : [data]);
+    let count  = 0;
+    for (const n of arr) {
+      if (!(await db.notes.get(n.id))) { await db.notes.add(n); count++; }
+    }
+    await loadAllNotes();
+    showToast(`✅ 匯入 ${count} 篇`, "success");
+  } catch {
+    showToast("❌ 格式錯誤，匯入失敗", "danger");
+  }
+}
+
+function triggerDownload(content, name, mime) {
+  const url = URL.createObjectURL(new Blob([content], { type: mime }));
+  Object.assign(document.createElement("a"),
+    { href: url, download: name }).click();
+  URL.revokeObjectURL(url);
+}
+
+/* ============================================================
+   15. DARK / LIGHT THEME
+   切換方式：修改 <html data-theme="..."> + 儲存至 localStorage
+   ============================================================ */
+function initTheme() {
+  applyTheme(localStorage.getItem("theme") || "light");
+}
+
+function toggleTheme() {
+  applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+}
+
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  localStorage.setItem("theme", t);
+  document.getElementById("theme-icon").className =
+    t === "dark" ? "bi bi-sun" : "bi bi-moon-stars";
+  // 同步 Quill 編輯器文字顏色
+  const editor = document.querySelector(".ql-editor");
+  if (editor) {
+    editor.style.color      = t === "dark" ? "#dde1f0" : "#1a1d23";
+    editor.style.background = t === "dark" ? "#1e2130" : "#ffffff";
+  }
+  const container = document.querySelector(".ql-container");
+  if (container) {
+    container.style.background = t === "dark" ? "#1e2130" : "#ffffff";
+  }
+}
+
+/* ============================================================
+   16. SIDEBAR (MOBILE)
+   ============================================================ */
+function openSidebar()  {
+  document.getElementById("sidebar").classList.add("open");
+  document.getElementById("overlay").classList.add("show");
+}
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("overlay").classList.remove("show");
+}
+
+/* ============================================================
+   17. ADD TO HOME SCREEN (A2HS / PWA Install)
+   - Chrome/Edge/Android: 監聽 beforeinstallprompt 事件取得 deferredInstall
+   - iOS Safari: 無此事件，提示用戶手動操作
+   - 顯示條件: 事件已觸發 && localStorage 未記錄「已關閉」
+   ============================================================ */
+function initA2HS() {
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    deferredInstall = e;
+    if (!localStorage.getItem("a2hs_dismissed")) {
+      setTimeout(() => {
+        document.getElementById("a2hs-banner").style.display = "block";
+      }, 3000);
+    }
+  });
+  window.addEventListener("appinstalled", () => {
+    document.getElementById("a2hs-banner").style.display = "none";
+    showToast("🎉 已安裝至主螢幕！", "success");
+  });
+}
+
+async function doInstall() {
+  if (!deferredInstall) {
+    showToast("📱 iOS: 點 Safari 分享圖示 → 加入主畫面", "info");
+    return;
+  }
+  deferredInstall.prompt();
+  const { outcome } = await deferredInstall.userChoice;
+  deferredInstall = null;
+  document.getElementById("a2hs-banner").style.display = "none";
+  if (outcome === "accepted") showToast("🎉 安裝成功！", "success");
+}
+
+function dismissA2HS() {
+  document.getElementById("a2hs-banner").style.display = "none";
+  localStorage.setItem("a2hs_dismissed", "1");
+}
+
+/* ============================================================
+   18. AI FEATURES
+   支援三種 API 供應商：
+   A. OpenAI      — https://api.openai.com/v1/chat/completions
+   B. OpenRouter  — https://openrouter.ai/api/v1/chat/completions
+   C. Ollama(本地)— http://localhost:11434/api/chat  (需開啟 CORS)
+   API Key 及設定儲存於 localStorage，不離開用戶裝置。
+   ============================================================ */
+function loadAIConfig() {
+  const p = localStorage.getItem("ai_provider") || "longcat";
+  document.getElementById("ai-provider").value   = p;
+  document.getElementById("ai-api-key").value    = localStorage.getItem("ai_key")      || "";
+  document.getElementById("ai-model").value      = localStorage.getItem("ai_model")    || defaultModel(p);
+  document.getElementById("ollama-url").value    = localStorage.getItem("ollama_url")  || "http://localhost:11434";
+  updateOllamaRow(p);
+}
+
+function saveAIConfig() {
+  const p = document.getElementById("ai-provider").value;
+  localStorage.setItem("ai_provider",  p);
+  localStorage.setItem("ai_key",       document.getElementById("ai-api-key").value);
+  localStorage.setItem("ai_model",     document.getElementById("ai-model").value);
+  localStorage.setItem("ollama_url",   document.getElementById("ollama-url").value);
+}
+
+function onProviderChange() {
+  const p = document.getElementById("ai-provider").value;
+  document.getElementById("ai-model").value = defaultModel(p);
+  updateOllamaRow(p);
+  saveAIConfig();
+}
+
+function defaultModel(p) {
+  return {
+    longcat:     "LongCat-Flash-Lite",
+    openai:      "gpt-4o-mini",
+    openrouter:  "openai/gpt-4o-mini",
+    ollama:      "llama3"
+  }[p] || "LongCat-Flash-Lite";
+}
+
+function updateOllamaRow(p) {
+  document.getElementById("ollama-row").style.display = p === "ollama" ? "block" : "none";
+  const hints = {
+    longcat:    "LongCat API Key（從 longcat.chat 申請）",
+    openai:     "sk-…",
+    openrouter: "sk-or-…",
+    ollama:     "（Ollama 本地無需 API Key）"
+  };
+  document.getElementById("ai-api-key").placeholder = hints[p] || "API Key";
+}
+
+function openAI() {
+  document.getElementById("ai-output").style.display = "none";
+  document.getElementById("custom-prompt-wrap").style.display = "none";
+  aiModalInst.show();
+}
+
+function showCustomPrompt() {
+  document.getElementById("custom-prompt-wrap").style.display = "block";
+  document.getElementById("custom-prompt").focus();
+}
+
+async function aiRun(action) {
+  saveAIConfig();
+  const n = state.notes.find(n => n.id === state.currentId);
+  if (!n) return;
+  const noteText = (n.title ? "標題：" + n.title + "
+
+" : "") + quill.getText();
+
+  const PROMPTS = {
+    summarize:  `請用繁體中文為以下筆記生成簡潔摘要（100–150 字）：
+
+${noteText}`,
+    continue:   `請用繁體中文繼續以下筆記，自然補全內容（約 200 字）：
+
+${noteText}`,
+    improve:    `請用繁體中文改善以下筆記的表達，使其更清晰流暢：
+
+${noteText}`,
+    translate:  `Please translate the following note to English:
+
+${noteText}`,
+    custom:     `${document.getElementById("custom-prompt").value}
+
+---
+${noteText}`
+  };
+
+  await callAI(PROMPTS[action]);
+}
+
+async function callAI(prompt) {
+  const provider = document.getElementById("ai-provider").value;
+  const key      = document.getElementById("ai-api-key").value;
+  const model    = document.getElementById("ai-model").value;
+  const oUrl     = document.getElementById("ollama-url").value;
+
+  document.getElementById("ai-loading").style.display = "block";
+  document.getElementById("ai-output").style.display  = "none";
+
+  try {
+    let result;
+
+    if (provider === "ollama") {
+      const r = await fetch(`${oUrl}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], stream: false })
+      });
+      const d = await r.json();
+      result = d.message?.content || "（無回應）";
+
+    } else {
+      // LongCat API 與 OpenAI 完全相容，只需切換 base URL
+      // 官方端點：https://api.longcat.chat/openai/v1
+      // 每日免費額度：5,000 萬 tokens（需在 longcat.chat 申請 API Key）
+      const ENDPOINTS = {
+        longcat:    "https://api.longcat.chat/openai/v1/chat/completions",
+        openrouter: "https://openrouter.ai/api/v1/chat/completions",
+        openai:     "https://api.openai.com/v1/chat/completions"
+      };
+      const url = ENDPOINTS[provider] || ENDPOINTS.openai;
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+        body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], max_tokens: 1200 })
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error?.message || `HTTP ${r.status}`);
+      result = d.choices?.[0]?.message?.content || "（無回應）";
+    }
+
+    showAIOutput(result);
+  } catch (e) {
+    showAIOutput(`❌ 錯誤：${e.message}
+
+請確認 API Key 是否正確，或 Ollama 是否正在執行。`);
+  }
+
+  document.getElementById("ai-loading").style.display = "none";
+}
+
+function showAIOutput(text) {
+  const el = document.getElementById("ai-output");
+  el.style.display = "block";
+  el.textContent   = text;
+}
+
+async function copyAIResult() {
+  const text = document.getElementById("ai-output").textContent;
+  if (!text) return;
+  await navigator.clipboard.writeText(text).catch(() => {});
+  showToast("📋 AI 結果已複製", "success");
+}
+
+function insertAIResult() {
+  const text = document.getElementById("ai-output").textContent;
+  if (!text || !state.currentId) return;
+  const len = quill.getLength();
+  quill.insertText(len - 1, "
+
+" + text);
+  aiModalInst.hide();
+  saveNote();
+  showToast("✅ 已插入筆記", "success");
+}
+
+/* ============================================================
+   19. TOAST NOTIFICATION
+   ============================================================ */
+function showToast(msg, type = "dark") {
+  const el = document.getElementById("toast");
+  el.className = `toast text-white border-0 bg-${type}`;
+  document.getElementById("toast-msg").textContent = msg;
+  bootstrap.Toast.getOrCreateInstance(el, { delay: 2800 }).show();
+}
+
+/* ============================================================
+   20. UTILITIES
+   ============================================================ */
+function esc(s) {
+  if (!s) return "";
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>

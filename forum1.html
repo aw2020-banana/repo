@@ -460,6 +460,7 @@ async function switchCat(id){
   currentCatId = id;
   await renderCatTabs();
   goBack(true);
+  await renderPosts();
 }
 
 async function addCat(){
@@ -597,7 +598,7 @@ async function openNewPost(){
   document.getElementById('pTitle').classList.remove('is-invalid');
   pendingPostBlob=null; existingPostBlob=null;
   clearImg('pImgInput','pImgPrev','pImgInfo','pImgClear','post');
-  await populateCatSelect('pCat');
+  await populateCatSelect('pCat', currentCatId);
   mPost.show();
 }
 async function openEditPost(postId){

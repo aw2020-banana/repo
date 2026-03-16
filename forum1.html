@@ -27,7 +27,7 @@ body{background:var(--surface);font-family:'Segoe UI',system-ui,-apple-system,sa
 /* ---- Category Tabs ---- */
 .cat-bar{background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;display:flex;align-items:stretch;padding:0 4px;scrollbar-width:none;}
 .cat-bar::-webkit-scrollbar{display:none;}
-.cat-tab{display:inline-flex;align-items:center;gap:5px;padding:10px 14px;border:none;background:none;cursor:pointer;color:var(--muted);font-size:13.5px;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;flex-shrink:0;}
+.cat-tab{display:inline-flex;align-items:center;gap:5px;padding:10px 14px;border:none;background:none;cursor:pointer;color:var(--muted);font-size:13.5px;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;flex-shrink:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .cat-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600;}
 .cat-tab:hover:not(.active){color:#333;background:#f8f9fa;}
 /* ---- Posts ---- */
@@ -436,17 +436,20 @@ async function renderCatTabs(){
   // 全部 tab
   const all = mkCatTab('<i class="bi bi-grid-fill"></i> 全部', currentCatId===null);
   all.onclick = () => switchCat(null);
+  all.ontouchend = e => { e.preventDefault(); switchCat(null); };
   bar.appendChild(all);
   // 各分類
   cats.forEach(c => {
     const tab = mkCatTab(`<i class="bi bi-folder-fill"></i> ${esc(c.name)}`, currentCatId===c.id);
     tab.onclick = () => switchCat(c.id);
+    tab.ontouchend = e => { e.preventDefault(); switchCat(c.id); };
     bar.appendChild(tab);
   });
   // + 快速新增按鈕
   const addT = mkCatTab('<i class="bi bi-plus-lg" style="color:var(--primary)"></i>', false);
   addT.title = '管理分類';
   addT.onclick = openCatManage;
+  addT.ontouchend = e => { e.preventDefault(); openCatManage(); };
   bar.appendChild(addT);
   return cats;
 }

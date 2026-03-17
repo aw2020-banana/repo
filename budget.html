@@ -8,515 +8,278 @@
 <meta name="apple-mobile-web-app-title" content="財政預算">
 <title>💰 個人財政預算</title>
 <style>
-/* ═══════════════════════════════════════
-   DESIGN TOKENS
-═══════════════════════════════════════ */
 :root {
-  --c-bg:       #f0f2f5;
-  --c-surface:  #ffffff;
-  --c-border:   #e2e8f0;
-  --c-text:     #1a202c;
-  --c-muted:    #718096;
-  --c-green:    #16a34a;
-  --c-red:      #dc2626;
-  --c-blue:     #1a73e8;
-  --c-orange:   #ea580c;
-  --c-purple:   #7c3aed;
-  --c-yellow:   #d97706;
-  --radius:     10px;
-  --radius-sm:  6px;
-  --shadow:     0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
-  --shadow-md:  0 4px 12px rgba(0,0,0,.1);
-  --nav-h:      60px;   /* mobile bottom nav height */
-  --header-h:   56px;
+  --c-bg:#f0f2f5; --c-surface:#ffffff; --c-border:#e2e8f0; --c-text:#1a202c;
+  --c-muted:#718096; --c-green:#16a34a; --c-red:#dc2626; --c-blue:#1a73e8;
+  --c-orange:#ea580c; --c-purple:#7c3aed; --c-yellow:#d97706;
+  --radius:10px; --radius-sm:6px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 12px rgba(0,0,0,.1);
+  --nav-h:60px; --header-h:56px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  background:var(--c-bg);color:var(--c-text);font-size:14px;line-height:1.5;
+  min-height:100vh;padding-bottom:calc(var(--nav-h) + 8px);
+}
+@media(min-width:768px){body{padding-bottom:0}}
+input,select,button,textarea{font-family:inherit;font-size:14px}
+a{color:var(--c-blue)}
+
+/* ── Page Header ── */
+.page-header{
+  position:sticky;top:0;z-index:100;background:var(--c-blue);color:#fff;
+  height:var(--header-h);display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;box-shadow:var(--shadow-md);
+}
+.page-header h1{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:7px}
+.header-right{display:flex;align-items:center;gap:8px}
+
+/* ── Install Banner ── */
+#install-banner{
+  display:none;background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;
+  padding:10px 14px;border-radius:var(--radius);margin-bottom:12px;
+  flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;
+  box-shadow:var(--shadow-md);
+}
+#install-banner .ib-msg{display:flex;align-items:center;gap:8px;font-size:13px;flex:1}
+#install-banner .ib-actions{display:flex;gap:6px}
+.ib-btn{
+  background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);
+  border-radius:20px;padding:4px 14px;font-size:12px;cursor:pointer;
+}
+.ib-btn:hover{background:rgba(255,255,255,.35)}
+
+/* ── Storage Badge ── */
+.storage-badge{
+  font-size:11px;padding:2px 9px;border-radius:20px;
+  background:rgba(255,255,255,.2);color:#fff;cursor:help;white-space:nowrap;
+}
+.storage-badge.ok  {background:rgba(22,163,74,.35)}
+.storage-badge.warn{background:rgba(234,88,12,.35)}
+
+/* ── Layout ── */
+.content{max-width:900px;margin:0 auto;padding:14px 12px}
+
+/* ── Month Bar ── */
+.month-bar{
+  background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);
+  padding:9px 14px;display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:8px;margin-bottom:14px;box-shadow:var(--shadow);
+}
+.month-nav{display:flex;align-items:center;gap:8px}
+.month-nav button{
+  background:var(--c-bg);border:1px solid var(--c-border);border-radius:6px;
+  width:30px;height:30px;cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+}
+.month-nav button:hover{background:var(--c-border)}
+#monthDisplay{font-weight:700;font-size:15px;min-width:82px;text-align:center}
+.mb-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── Desktop Tabs ── */
+.desktop-tabs{display:none;border-bottom:2px solid var(--c-border);margin-bottom:16px;overflow-x:auto}
+@media(min-width:768px){.desktop-tabs{display:flex}}
+.dtab{
+  padding:10px 18px;background:none;border:none;border-bottom:3px solid transparent;
+  color:var(--c-muted);font-weight:500;cursor:pointer;white-space:nowrap;
+  margin-bottom:-2px;font-size:14px;transition:color .15s,border-color .15s;
+}
+.dtab:hover{color:var(--c-blue)}
+.dtab.active{color:var(--c-blue);border-bottom-color:var(--c-blue)}
+
+/* ── Mobile Bottom Nav ── */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
+  background:var(--c-surface);border-top:1px solid var(--c-border);
+  display:flex;z-index:200;box-shadow:0 -2px 10px rgba(0,0,0,.08);
+}
+@media(min-width:768px){.bottom-nav{display:none}}
+.bnav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;background:none;border:none;cursor:pointer;color:var(--c-muted);
+  font-size:10px;font-weight:500;padding:6px 0;transition:color .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.bnav-item .nav-icon{font-size:20px;line-height:1}
+.bnav-item.active{color:var(--c-blue)}
+.bnav-item.active .nav-icon{transform:scale(1.1)}
+
+/* ── Tab Panes ── */
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* ── Cards ── */
+.card{
+  background:var(--c-surface);border:1px solid var(--c-border);
+  border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;
+}
+.card-header{
+  padding:10px 14px;border-bottom:1px solid var(--c-border);font-weight:600;
+  font-size:13px;background:#fafbfc;display:flex;align-items:center;
+  justify-content:space-between;gap:8px;
+}
+.card-body{padding:12px 14px}
+.card-green {border-top:3px solid var(--c-green)}
+.card-red   {border-top:3px solid var(--c-red)}
+.card-blue  {border-top:3px solid var(--c-blue)}
+.card-orange{border-top:3px solid var(--c-orange)}
+
+/* ── Summary Grid ── */
+.summary-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;
+}
+@media(min-width:520px){.summary-grid{grid-template-columns:repeat(4,1fr)}}
+.sum-card{
+  background:var(--c-surface);border:1px solid var(--c-border);
+  border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);
+}
+.sum-label{font-size:11px;color:var(--c-muted);margin-bottom:3px}
+.sum-value{font-size:1.2rem;font-weight:700}
+.v-green {color:var(--c-green)} .v-red   {color:var(--c-red)}
+.v-blue  {color:var(--c-blue)}  .v-orange{color:var(--c-orange)}
+.v-purple{color:var(--c-purple)}
+
+/* ── Forms ── */
+.form-group{margin-bottom:10px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--c-muted);margin-bottom:4px}
+.form-control,.form-select{
+  display:block;width:100%;padding:9px 11px;border:1px solid var(--c-border);
+  border-radius:var(--radius-sm);background:var(--c-surface);color:var(--c-text);
+  transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;
+}
+.form-control:focus,.form-select:focus{
+  outline:none;border-color:var(--c-blue);box-shadow:0 0 0 3px rgba(26,115,232,.12);
+}
+.input-row{display:flex;border:1px solid var(--c-border);border-radius:var(--radius-sm);overflow:hidden}
+.input-row:focus-within{border-color:var(--c-blue);box-shadow:0 0 0 3px rgba(26,115,232,.12)}
+.input-prefix{
+  padding:9px 10px;background:#f1f5f9;color:var(--c-muted);
+  font-weight:600;border-right:1px solid var(--c-border);white-space:nowrap;
+}
+.input-row .form-control{border:none;box-shadow:none}
+.input-row .form-control:focus{box-shadow:none}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:9px 16px;border:1px solid transparent;border-radius:var(--radius-sm);
+  cursor:pointer;font-weight:600;font-size:13px;
+  transition:filter .15s,opacity .15s;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:hover:not(:disabled){filter:brightness(.93)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-xs{padding:3px 8px;font-size:11px}
+.btn-block{width:100%}
+.btn-primary{background:var(--c-blue);  color:#fff;border-color:var(--c-blue)}
+.btn-success{background:var(--c-green); color:#fff;border-color:var(--c-green)}
+.btn-danger {background:var(--c-red);   color:#fff;border-color:var(--c-red)}
+.btn-purple {background:var(--c-purple);color:#fff;border-color:var(--c-purple)}
+.btn-outline{background:var(--c-surface);color:var(--c-text);border-color:var(--c-border)}
+.btn-outline:hover:not(:disabled){background:var(--c-bg);filter:none}
+.btn-ghost-red{background:transparent;color:var(--c-red);border-color:#fecaca}
+.btn-ghost-red:hover{background:#fef2f2;filter:none}
+
+/* ── Records Grid ── */
+.records-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:640px){.records-grid{grid-template-columns:1fr 1fr}}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:300px}
+th,td{padding:7px 9px;text-align:left;vertical-align:middle;border-bottom:1px solid #f3f4f6}
+th{font-size:11px;font-weight:700;color:var(--c-muted);text-transform:uppercase;
+  letter-spacing:.04em;background:#fafbfc}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8faff}
+
+/* ── Progress ── */
+.progress{background:#e5e7eb;border-radius:10px;height:16px;overflow:hidden}
+.progress-bar{
+  height:100%;border-radius:10px;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:5px;font-size:10px;font-weight:700;color:#fff;
+  transition:width .5s ease;min-width:20px;
+}
+.bar-ok  {background:var(--c-green)}
+.bar-warn{background:var(--c-yellow)}
+.bar-over{background:var(--c-red)}
+
+/* ── Badge ── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 9px;
+  border-radius:20px;font-size:11px;font-weight:600;background:var(--c-blue);color:#fff;
+}
+.badge-gray{background:#64748b}
+.badge-close{background:none;border:none;color:inherit;cursor:pointer;font-size:10px;opacity:.7;padding:0}
+.badge-close:hover{opacity:1}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px}
+
+/* ── Tech Note ── */
+.tech-note{
+  background:#fffbeb;border-left:3px solid var(--c-yellow);
+  padding:8px 12px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  font-size:12px;color:#78350f;margin-bottom:12px;
 }
 
-/* ═══════════════════════════════════════
-   RESET & BASE
-═══════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  background: var(--c-bg);
-  color: var(--c-text);
-  font-size: 14px;
-  line-height: 1.5;
-  min-height: 100vh;
-  /* leave room for mobile bottom nav */
-  padding-bottom: calc(var(--nav-h) + 8px);
+/* ── Budget Info Box ── */
+.budget-info{
+  background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius);
+  padding:10px 14px;margin-bottom:12px;font-size:13px;color:#14532d;
+  display:flex;align-items:flex-start;gap:8px;
 }
-@media (min-width: 768px) { body { padding-bottom: 0; } }
-input, select, button, textarea { font-family: inherit; font-size: 14px; }
-a { color: var(--c-blue); }
+.budget-info .bi-icon{font-size:18px;flex-shrink:0;margin-top:1px}
 
-/* ═══════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════ */
-.page-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--c-blue);
-  color: #fff;
-  height: var(--header-h);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  box-shadow: var(--shadow-md);
-}
-.page-header h1 { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 7px; }
-.header-right { display: flex; align-items: center; gap: 8px; }
+/* ── Charts ── */
+.chart-wrap canvas{display:block;width:100%}
 
-.content { max-width: 900px; margin: 0 auto; padding: 14px 12px; }
-
-/* ═══════════════════════════════════════
-   INSTALL BANNER
-═══════════════════════════════════════ */
-#install-banner {
-  display: none;
-  background: linear-gradient(135deg, #1a73e8, #0d47a1);
-  color: #fff;
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: var(--shadow-md);
+/* ── AI ── */
+.ai-config{
+  background:#eef2ff;border:1px solid #c7d2fe;
+  border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;
 }
-#install-banner .ib-msg { display: flex; align-items: center; gap: 8px; font-size: 13px; flex: 1; }
-#install-banner .ib-actions { display: flex; gap: 6px; }
-.ib-btn {
-  background: rgba(255,255,255,.2);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,.4);
-  border-radius: 20px;
-  padding: 4px 14px;
-  font-size: 12px;
-  cursor: pointer;
+.ai-config-grid{display:grid;grid-template-columns:1fr;gap:8px}
+@media(min-width:520px){.ai-config-grid{grid-template-columns:1fr 1fr}}
+.ai-btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.ai-output{
+  background:#0f1117;color:#e2e8f0;border-radius:var(--radius);
+  padding:16px;min-height:220px;max-height:500px;overflow-y:auto;
+  font-size:13.5px;line-height:1.75;border:1px solid #2d3748;
 }
-.ib-btn:hover { background: rgba(255,255,255,.35); }
-
-/* ═══════════════════════════════════════
-   STORAGE BADGE
-═══════════════════════════════════════ */
-.storage-badge {
-  font-size: 11px;
-  padding: 2px 9px;
-  border-radius: 20px;
-  background: rgba(255,255,255,.2);
-  color: #fff;
-  cursor: help;
-  white-space: nowrap;
-}
-.storage-badge.ok  { background: rgba(22,163,74,.3); }
-.storage-badge.warn { background: rgba(234,88,12,.3); }
-
-/* ═══════════════════════════════════════
-   MONTH PICKER HEADER
-═══════════════════════════════════════ */
-.month-bar {
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  padding: 9px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-  box-shadow: var(--shadow);
-}
-.month-bar label { font-size: 12px; color: var(--c-muted); font-weight: 600; }
-.month-bar .month-nav { display: flex; align-items: center; gap: 8px; }
-.month-nav button {
-  background: var(--c-bg);
-  border: 1px solid var(--c-border);
-  border-radius: 6px;
-  width: 30px; height: 30px;
-  cursor: pointer;
-  font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-}
-.month-nav button:hover { background: var(--c-border); }
-#monthDisplay {
-  font-weight: 700;
-  font-size: 15px;
-  min-width: 80px;
-  text-align: center;
-}
-.month-bar .mb-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-
-/* ═══════════════════════════════════════
-   DESKTOP TAB NAV
-═══════════════════════════════════════ */
-.desktop-tabs {
-  display: none;
-  border-bottom: 2px solid var(--c-border);
-  margin-bottom: 16px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-@media (min-width: 768px) {
-  .desktop-tabs { display: flex; }
-}
-.dtab {
-  padding: 10px 18px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  color: var(--c-muted);
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  margin-bottom: -2px;
-  font-size: 14px;
-  transition: color .15s, border-color .15s;
-}
-.dtab:hover { color: var(--c-blue); }
-.dtab.active { color: var(--c-blue); border-bottom-color: var(--c-blue); }
-
-/* ═══════════════════════════════════════
-   MOBILE BOTTOM NAV
-═══════════════════════════════════════ */
-.bottom-nav {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: var(--nav-h);
-  background: var(--c-surface);
-  border-top: 1px solid var(--c-border);
-  display: flex;
-  z-index: 200;
-  box-shadow: 0 -2px 10px rgba(0,0,0,.08);
-}
-@media (min-width: 768px) { .bottom-nav { display: none; } }
-.bnav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--c-muted);
-  font-size: 10px;
-  font-weight: 500;
-  padding: 6px 0;
-  transition: color .15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.bnav-item .nav-icon { font-size: 20px; line-height: 1; }
-.bnav-item.active { color: var(--c-blue); }
-.bnav-item.active .nav-icon { transform: scale(1.1); }
-
-/* ═══════════════════════════════════════
-   TAB PANES
-═══════════════════════════════════════ */
-.tab-pane { display: none; }
-.tab-pane.active { display: block; }
-
-/* ═══════════════════════════════════════
-   CARDS
-═══════════════════════════════════════ */
-.card {
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-.card-header {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--c-border);
-  font-weight: 600;
-  font-size: 13px;
-  background: #fafbfc;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.card-body { padding: 12px 14px; }
-
-/* Accent border */
-.card-green  { border-top: 3px solid var(--c-green);  }
-.card-red    { border-top: 3px solid var(--c-red);    }
-.card-blue   { border-top: 3px solid var(--c-blue);   }
-.card-orange { border-top: 3px solid var(--c-orange); }
-
-/* ═══════════════════════════════════════
-   SUMMARY ROW
-═══════════════════════════════════════ */
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
-}
-@media (min-width: 520px) { .summary-grid { grid-template-columns: repeat(4, 1fr); } }
-.sum-card {
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  box-shadow: var(--shadow);
-}
-.sum-label { font-size: 11px; color: var(--c-muted); margin-bottom: 3px; }
-.sum-value { font-size: 1.2rem; font-weight: 700; }
-.v-green  { color: var(--c-green);  }
-.v-red    { color: var(--c-red);    }
-.v-blue   { color: var(--c-blue);   }
-.v-orange { color: var(--c-orange); }
-.v-purple { color: var(--c-purple); }
-
-/* ═══════════════════════════════════════
-   FORMS
-═══════════════════════════════════════ */
-.form-group { margin-bottom: 10px; }
-.form-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--c-muted);
-  margin-bottom: 4px;
-}
-.form-control, .form-select {
-  display: block;
-  width: 100%;
-  padding: 9px 11px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-sm);
-  background: var(--c-surface);
-  color: var(--c-text);
-  transition: border-color .15s, box-shadow .15s;
-  -webkit-appearance: none;
-}
-.form-control:focus, .form-select:focus {
-  outline: none;
-  border-color: var(--c-blue);
-  box-shadow: 0 0 0 3px rgba(26,115,232,.12);
-}
-.input-row {
-  display: flex;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-.input-row:focus-within { border-color: var(--c-blue); box-shadow: 0 0 0 3px rgba(26,115,232,.12); }
-.input-prefix {
-  padding: 9px 10px;
-  background: #f1f5f9;
-  color: var(--c-muted);
-  font-weight: 600;
-  border-right: 1px solid var(--c-border);
-  white-space: nowrap;
-}
-.input-row .form-control { border: none; box-shadow: none; }
-.input-row .form-control:focus { box-shadow: none; }
-
-/* ═══════════════════════════════════════
-   BUTTONS
-═══════════════════════════════════════ */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 9px 16px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-  transition: filter .15s, opacity .15s;
-  white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-}
-.btn:hover:not(:disabled) { filter: brightness(.93); }
-.btn:disabled { opacity: .5; cursor: not-allowed; }
-.btn-sm { padding: 5px 12px; font-size: 12px; }
-.btn-xs { padding: 3px 8px; font-size: 11px; }
-.btn-block { width: 100%; }
-.btn-primary { background: var(--c-blue);   color: #fff; border-color: var(--c-blue);   }
-.btn-success { background: var(--c-green);  color: #fff; border-color: var(--c-green);  }
-.btn-danger  { background: var(--c-red);    color: #fff; border-color: var(--c-red);    }
-.btn-purple  { background: var(--c-purple); color: #fff; border-color: var(--c-purple); }
-.btn-outline { background: var(--c-surface); color: var(--c-text); border-color: var(--c-border); }
-.btn-outline:hover:not(:disabled) { background: var(--c-bg); filter: none; }
-.btn-ghost-red {
-  background: transparent;
-  color: var(--c-red);
-  border-color: #fecaca;
-}
-.btn-ghost-red:hover { background: #fef2f2; filter: none; }
-
-/* ═══════════════════════════════════════
-   RECORDS — SPLIT LAYOUT
-═══════════════════════════════════════ */
-.records-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-@media (min-width: 640px) {
-  .records-grid { grid-template-columns: 1fr 1fr; }
+.ai-output h3{color:#90cdf4;margin:12px 0 5px;font-size:15px}
+.ai-output h4{color:#bee3f8;margin:10px 0 4px;font-size:14px}
+.ai-output strong{color:#fff}
+.ai-output hr{border:none;border-top:1px solid #2d3748;margin:10px 0}
+.ai-cursor{animation:blink .7s infinite;color:#90cdf4}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.ai-placeholder{color:#4a5568;font-style:italic}
+.ai-error{color:#fc8181}
+details summary{cursor:pointer;font-size:12px;color:var(--c-muted);user-select:none}
+details pre{
+  margin-top:8px;font-size:11px;background:#f8fafc;border:1px solid var(--c-border);
+  border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:pre-wrap;
+  color:#334155;line-height:1.6;
 }
 
-/* ═══════════════════════════════════════
-   TABLE
-═══════════════════════════════════════ */
-.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-table { width: 100%; border-collapse: collapse; min-width: 340px; }
-th, td { padding: 7px 9px; text-align: left; vertical-align: middle; border-bottom: 1px solid #f3f4f6; }
-th { font-size: 11px; font-weight: 700; color: var(--c-muted); text-transform: uppercase; letter-spacing: .04em; background: #fafbfc; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #f8faff; }
-
-/* ═══════════════════════════════════════
-   PROGRESS BAR
-═══════════════════════════════════════ */
-.progress { background: #e5e7eb; border-radius: 10px; height: 16px; overflow: hidden; }
-.progress-bar {
-  height: 100%;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: flex-end;
-  padding-right: 5px;
-  font-size: 10px; font-weight: 700; color: #fff;
-  transition: width .5s ease;
-  min-width: 20px;
-}
-.bar-ok   { background: var(--c-green);  }
-.bar-warn { background: var(--c-yellow); }
-.bar-over { background: var(--c-red);    }
-
-/* ═══════════════════════════════════════
-   BADGE / TAG
-═══════════════════════════════════════ */
-.badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 9px; border-radius: 20px;
-  font-size: 11px; font-weight: 600;
-  background: var(--c-blue); color: #fff;
-}
-.badge-gray { background: #64748b; }
-.badge-close {
-  background: none; border: none; color: inherit;
-  cursor: pointer; font-size: 10px; opacity: .7; padding: 0;
-}
-.badge-close:hover { opacity: 1; }
-.tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
-
-/* ═══════════════════════════════════════
-   TECH NOTE
-═══════════════════════════════════════ */
-.tech-note {
-  background: #fffbeb;
-  border-left: 3px solid var(--c-yellow);
-  padding: 8px 12px;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  font-size: 12px;
-  color: #78350f;
-  margin-bottom: 12px;
-}
-
-/* ═══════════════════════════════════════
-   CANVAS CHARTS
-═══════════════════════════════════════ */
-.chart-wrap canvas { display: block; width: 100%; }
-
-/* ═══════════════════════════════════════
-   AI TAB
-═══════════════════════════════════════ */
-.ai-config {
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  margin-bottom: 12px;
-}
-.ai-config-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-@media (min-width: 520px) {
-  .ai-config-grid { grid-template-columns: 1fr 1fr; }
-}
-.ai-btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.ai-output {
-  background: #0f1117;
-  color: #e2e8f0;
-  border-radius: var(--radius);
-  padding: 16px;
-  min-height: 220px;
-  max-height: 500px;
-  overflow-y: auto;
-  font-size: 13.5px;
-  line-height: 1.75;
-  border: 1px solid #2d3748;
-}
-.ai-output h3 { color: #90cdf4; margin: 12px 0 5px; font-size: 15px; }
-.ai-output h4 { color: #bee3f8; margin: 10px 0 4px; font-size: 14px; }
-.ai-output strong { color: #fff; }
-.ai-output hr { border: none; border-top: 1px solid #2d3748; margin: 10px 0; }
-.ai-cursor { animation: blink .7s infinite; color: #90cdf4; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-.ai-placeholder { color: #4a5568; font-style: italic; }
-.ai-error { color: #fc8181; }
-details summary { cursor: pointer; font-size: 12px; color: var(--c-muted); user-select: none; }
-details pre {
-  margin-top: 8px;
-  font-size: 11px;
-  background: #f8fafc;
-  border: 1px solid var(--c-border);
-  border-radius: 6px;
-  padding: 10px 12px;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  color: #334155;
-  line-height: 1.6;
-}
-
-/* ═══════════════════════════════════════
-   UTILITIES
-═══════════════════════════════════════ */
-.flex { display: flex; }
-.flex-wrap { flex-wrap: wrap; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.gap-2 { gap: 8px; }
-.gap-1 { gap: 5px; }
-.mb-3 { margin-bottom: 12px; }
-.mb-2 { margin-bottom: 8px; }
-.mt-2 { margin-top: 8px; }
-.text-muted { color: var(--c-muted); }
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.fw-bold { font-weight: 700; }
-.small { font-size: 12px; }
-.w-100 { width: 100%; }
-.empty-row td { text-align: center; color: #a0aec0; font-style: italic; padding: 20px; }
-
-/* ═══════════════════════════════════════
-   SCROLLBAR (webkit)
-═══════════════════════════════════════ */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 3px; }
+/* ── Utilities ── */
+.flex{display:flex}.flex-wrap{flex-wrap:wrap}
+.items-center{align-items:center}.justify-between{justify-content:space-between}
+.gap-2{gap:8px}.gap-1{gap:5px}
+.mb-3{margin-bottom:12px}.mb-2{margin-bottom:8px}.mt-2{margin-top:8px}
+.text-muted{color:var(--c-muted)}.text-center{text-align:center}
+.fw-bold{font-weight:700}.small{font-size:12px}.w-100{width:100%}
+.empty-row td{text-align:center;color:#a0aec0;font-style:italic;padding:20px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:3px}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════
-     PAGE HEADER
-═══════════════════════════════════════ -->
+<!-- ── Page Header ── -->
 <header class="page-header">
   <h1>💰 個人財政預算</h1>
   <div class="header-right">
@@ -524,9 +287,7 @@ details pre {
   </div>
 </header>
 
-<!-- ═══════════════════════════════════════
-     INSTALL BANNER
-═══════════════════════════════════════ -->
+<!-- ── Install Banner ── -->
 <div style="max-width:900px;margin:0 auto;padding:10px 12px 0">
   <div id="install-banner">
     <div class="ib-msg">
@@ -540,15 +301,13 @@ details pre {
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     MAIN CONTENT
-═══════════════════════════════════════ -->
+<!-- ── Main Content ── -->
 <div class="content">
 
   <!-- Month Bar -->
   <div class="month-bar">
     <div>
-      <div class="small text-muted mb-1">當前月份</div>
+      <div class="small text-muted mb-2">當前月份</div>
       <div class="month-nav">
         <button onclick="changeMonth(-1)" title="上月">‹</button>
         <span id="monthDisplay">--</span>
@@ -557,7 +316,7 @@ details pre {
     </div>
     <div class="mb-actions">
       <button class="btn btn-outline btn-sm" onclick="exportData()">📤 匯出</button>
-      <label class="btn btn-outline btn-sm" style="cursor:pointer">
+      <label  class="btn btn-outline btn-sm" style="cursor:pointer">
         📥 匯入<input type="file" accept=".json" onchange="importData(event)" style="display:none">
       </label>
     </div>
@@ -572,9 +331,9 @@ details pre {
     <button class="dtab"        data-tab="t-ai"       >🤖 AI 分析</button>
   </nav>
 
-  <!-- ─────────────────────────────────────
+  <!-- ══════════════════════════════
        TAB 1 : DASHBOARD
-  ───────────────────────────────────── -->
+  ══════════════════════════════ -->
   <div class="tab-pane active" id="t-dashboard">
     <div class="summary-grid">
       <div class="sum-card card-green" ><div class="sum-label">總收入</div><div class="sum-value v-green"  id="d-inc">$0</div></div>
@@ -582,21 +341,19 @@ details pre {
       <div class="sum-card card-blue"  ><div class="sum-label">結餘</div>  <div class="sum-value v-blue"   id="d-bal">$0</div></div>
       <div class="sum-card card-orange"><div class="sum-label">儲蓄率</div><div class="sum-value v-orange" id="d-sr" >0%</div></div>
     </div>
-
     <div class="card">
-      <div class="card-header">🎯 預算使用情況</div>
+      <div class="card-header">🎯 預算使用情況（對照固定預算）</div>
       <div class="card-body" id="budget-bars"><p class="text-muted small">尚未設定預算</p></div>
     </div>
-
     <div class="card">
       <div class="card-header">🥧 支出分佈</div>
       <div class="card-body chart-wrap"><canvas id="pieChart"></canvas></div>
     </div>
   </div>
 
-  <!-- ─────────────────────────────────────
+  <!-- ══════════════════════════════
        TAB 2 : RECORDS
-  ───────────────────────────────────── -->
+  ══════════════════════════════ -->
   <div class="tab-pane" id="t-records">
     <div class="records-grid">
 
@@ -611,7 +368,8 @@ details pre {
             </div>
             <div class="form-group">
               <label class="form-label">金額</label>
-              <div class="input-row"><span class="input-prefix">$</span>
+              <div class="input-row">
+                <span class="input-prefix">$</span>
                 <input id="in-amt" type="number" class="form-control" placeholder="0" min="0">
               </div>
             </div>
@@ -648,7 +406,8 @@ details pre {
             </div>
             <div class="form-group">
               <label class="form-label">金額</label>
-              <div class="input-row"><span class="input-prefix">$</span>
+              <div class="input-row">
+                <span class="input-prefix">$</span>
                 <input id="ex-amt" type="number" class="form-control" placeholder="0" min="0">
               </div>
             </div>
@@ -669,13 +428,26 @@ details pre {
     </div>
   </div>
 
-  <!-- ─────────────────────────────────────
+  <!-- ══════════════════════════════
        TAB 3 : BUDGET SETTINGS
-  ───────────────────────────────────── -->
+  ══════════════════════════════ -->
   <div class="tab-pane" id="t-budget">
-    <div class="tech-note">
-      💡 <strong>技術說明：</strong>預算資料儲存於 <code>localStorage</code> key
-      <code>b_YYYY-MM</code> 的 <code>budgets</code> 物件中，每月獨立，互不影響。
+
+    <!--
+      【技術說明】固定預算設計
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      儲存 key：b_budgets（獨立於月份資料）
+      資料格式：{ "飲食": 3000, "交通": 1000, ... }
+      讀取方式：所有月份的儀表板均從此 key 讀取上限
+      優點：設定一次，永久有效；切換月份不會重置預算
+    -->
+    <div class="budget-info">
+      <span class="bi-icon">📌</span>
+      <div>
+        <strong>固定預算參考</strong> — 以下設定為所有月份共用的上限參考。
+        設定一次後，切換任何月份均以此為基準，無需每月重設。
+        修改後即時生效，儲存於 <code>localStorage</code> key <code>b_budgets</code>。
+      </div>
     </div>
 
     <div class="card">
@@ -690,18 +462,23 @@ details pre {
     </div>
 
     <div class="card">
-      <div class="card-header">💰 各類別每月預算上限 <span id="bgt-month" class="small text-muted fw-bold"></span></div>
+      <div class="card-header">
+        💰 固定預算上限
+        <span class="small text-muted" style="font-weight:400">所有月份共用</span>
+      </div>
       <div class="card-body" id="budget-inputs"></div>
     </div>
+
   </div>
 
-  <!-- ─────────────────────────────────────
+  <!-- ══════════════════════════════
        TAB 4 : REPORTS
-  ───────────────────────────────────── -->
+  ══════════════════════════════ -->
   <div class="tab-pane" id="t-reports">
     <div class="tech-note">
       💡 <strong>技術說明：</strong>圖表以純 <strong>Canvas API</strong> 繪製（零第三方依賴）。
-      自動讀取 localStorage 近6個月資料（key: <code>b_YYYY-MM</code>）進行對比。
+      讀取 localStorage 近6個月資料（key: <code>b_YYYY-MM</code>）進行對比。
+      Retina 螢幕以 <code>devicePixelRatio</code> 放大渲染防模糊。
     </div>
     <div class="card">
       <div class="card-header">📊 近6個月收支對比</div>
@@ -713,19 +490,19 @@ details pre {
     </div>
   </div>
 
-  <!-- ─────────────────────────────────────
+  <!-- ══════════════════════════════
        TAB 5 : AI ANALYSIS
-  ───────────────────────────────────── -->
+  ══════════════════════════════ -->
   <div class="tab-pane" id="t-ai">
     <!--
       【技術說明】LongCat-Flash-Lite AI 整合
-      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      • API 格式：OpenAI 相容（POST chat/completions）
-      • 串流：SSE（Server-Sent Events），stream: true
-      • 每個資料塊：data: {"choices":[{"delta":{"content":"…"}}]}
-      • 結束標記：data: [DONE]
-      • API Key 明文儲存於 localStorage key "ai_key"（僅個人使用）
-      • 預設端點：https://api.longcat.chat/v1/chat/completions
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      API 格式  ：OpenAI 相容（POST /v1/chat/completions）
+      串流方式  ：Server-Sent Events（SSE），stream: true
+      資料塊格式：data: {"choices":[{"delta":{"content":"…"}}]}
+      結束標記  ：data: [DONE]
+      API Key   ：明文儲存於 localStorage key "ai_key"（僅個人使用）
+      預設端點  ：https://api.longcat.chat/v1/chat/completions
     -->
     <div class="ai-config">
       <div class="flex justify-between items-center mb-2">
@@ -735,11 +512,13 @@ details pre {
       <div class="ai-config-grid">
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label">API Key</label>
-          <input id="ai-key" type="password" class="form-control" placeholder="lc-xxxxxxxxxxxxx" oninput="saveAICfg()">
+          <input id="ai-key" type="password" class="form-control"
+            placeholder="lc-xxxxxxxxxxxxx" oninput="saveAICfg()">
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label">模型</label>
-          <input id="ai-model" type="text" class="form-control" value="LongCat-Flash-Lite" oninput="saveAICfg()">
+          <input id="ai-model" type="text" class="form-control"
+            value="LongCat-Flash-Lite" oninput="saveAICfg()">
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label">API 端點</label>
@@ -751,7 +530,7 @@ details pre {
         🔑 申請 Key：前往
         <a href="https://longcat.chat/platform" target="_blank">longcat.chat/platform</a>
         → 登入 → API Keys。LongCat-Flash-Lite 每日免費 5000萬 tokens。
-        Key 僅存於本機，不會傳送至任何第三方伺服器。
+        Key 僅存於本機，不會傳送至任何第三方。
       </div>
     </div>
 
@@ -767,7 +546,7 @@ details pre {
       <div class="form-group">
         <label class="form-label">自訂問題</label>
         <textarea id="custom-q" class="form-control" rows="3"
-          placeholder="輸入問題，例如：哪個支出類別最值得優先削減？"></textarea>
+          placeholder="如：哪個支出類別最值得優先削減？"></textarea>
       </div>
       <button class="btn btn-purple btn-sm" onclick="submitCustom()">📨 發送</button>
     </div>
@@ -788,46 +567,32 @@ details pre {
 
 </div><!-- /content -->
 
-<!-- ═══════════════════════════════════════
-     MOBILE BOTTOM NAV
-═══════════════════════════════════════ -->
+<!-- ── Mobile Bottom Nav ── -->
 <nav class="bottom-nav">
-  <button class="bnav-item active" data-tab="t-dashboard">
-    <span class="nav-icon">📊</span>儀表板
-  </button>
-  <button class="bnav-item" data-tab="t-records">
-    <span class="nav-icon">📝</span>記帳
-  </button>
-  <button class="bnav-item" data-tab="t-budget">
-    <span class="nav-icon">🎯</span>預算
-  </button>
-  <button class="bnav-item" data-tab="t-reports">
-    <span class="nav-icon">📈</span>報表
-  </button>
-  <button class="bnav-item" data-tab="t-ai">
-    <span class="nav-icon">🤖</span>AI
-  </button>
+  <button class="bnav-item active" data-tab="t-dashboard"><span class="nav-icon">📊</span>儀表板</button>
+  <button class="bnav-item"        data-tab="t-records"  ><span class="nav-icon">📝</span>記帳</button>
+  <button class="bnav-item"        data-tab="t-budget"   ><span class="nav-icon">🎯</span>預算</button>
+  <button class="bnav-item"        data-tab="t-reports"  ><span class="nav-icon">📈</span>報表</button>
+  <button class="bnav-item"        data-tab="t-ai"       ><span class="nav-icon">🤖</span>AI</button>
 </nav>
 
-<!-- ═══════════════════════════════════════
-     JAVASCRIPT
-═══════════════════════════════════════ -->
 <script>
 'use strict';
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // CONSTANTS
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 /*
-  localStorage Key 命名：
-  ┌──────────────────────────────────────────────────────┐
-  │ b_YYYY-MM  → { income:[], expenses:[], budgets:{} }  │
-  │ b_cats     → string[]  類別列表                      │
-  │ ai_key     → string    LongCat API Key               │
-  │ ai_url     → string    API 端點 URL                  │
-  │ ai_model   → string    模型名稱                      │
-  │ banner_ts  → number    上次關閉 banner 的 timestamp  │
-  └──────────────────────────────────────────────────────┘
+  localStorage Key 說明：
+  ┌─────────────────────────────────────────────────────────────┐
+  │ b_YYYY-MM  → { income:[], expenses:[] }  每月收支記錄       │
+  │ b_budgets  → { 飲食:3000, 交通:1000, … } 全域固定預算       │
+  │ b_cats     → string[]  自訂類別列表                         │
+  │ ai_key     → string    LongCat API Key（明文）              │
+  │ ai_url     → string    API 端點 URL                         │
+  │ ai_model   → string    模型名稱                             │
+  │ banner_ts  → number    上次關閉安裝橫幅的 timestamp         │
+  └─────────────────────────────────────────────────────────────┘
 */
 const DEFAULT_CATS = ['飲食','交通','購物','娛樂','醫療','教育','水電煤氣','保險','其他'];
 const PIE_COLORS   = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f',
@@ -836,145 +601,126 @@ const API_DEFAULT  = 'https://api.longcat.chat/v1/chat/completions';
 let   curMonth     = '';
 let   deferredPWA  = null;
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // STORAGE HELPERS
-// ─────────────────────────────────────────
-const getD    = m => { const v = localStorage.getItem('b_'+m); return v ? JSON.parse(v) : {income:[],expenses:[],budgets:{}}; };
+// ═══════════════════════════════════════════════════
+// 每月收支（注意：不再含 budgets）
+const getD    = m => { const v = localStorage.getItem('b_'+m); return v ? JSON.parse(v) : {income:[],expenses:[]}; };
 const setD    = (m,d) => localStorage.setItem('b_'+m, JSON.stringify(d));
+
+// 全域固定預算（所有月份共用）
+const getBudgets = () => { const v = localStorage.getItem('b_budgets'); return v ? JSON.parse(v) : {}; };
+const setBudgets = b  => localStorage.setItem('b_budgets', JSON.stringify(b));
+
+// 類別
 const getCats = () => { const v = localStorage.getItem('b_cats'); return v ? JSON.parse(v) : [...DEFAULT_CATS]; };
 const setCats = c => localStorage.setItem('b_cats', JSON.stringify(c));
-const uid     = () => Date.now() + Math.floor(Math.random()*9999);
-const fmt     = n => '$' + Number(n).toLocaleString();
-const esc     = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-// ─────────────────────────────────────────
+const uid = () => Date.now() + Math.floor(Math.random()*9999);
+const fmt = n  => '$' + Number(n).toLocaleString();
+const esc = s  => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ═══════════════════════════════════════════════════
 // PERSISTENT STORAGE
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 /*
-  navigator.storage.persist() 原理：
-  • 持久化 = 瀏覽器承諾不會在低磁碟空間時自動清除本站資料
-  • 非持久化 = 資料仍可用，但在極端情況下可能被自動清除
-  • 通常在 PWA 安裝後或網站加入書籤後會自動批准
-  • Chrome 判斷標準包括：使用頻率、通知權限、是否已安裝
+  navigator.storage.persist() 說明：
+  • 批准後瀏覽器承諾不會在低磁碟空間時自動清除本站 localStorage
+  • Chrome 判斷標準：使用頻率、是否已安裝為 PWA、通知權限等
+  • 建議用戶加到主畫面後持久化批准率更高
 */
 async function initStorage() {
-  const badge = document.getElementById('storage-badge');
-  if (!navigator.storage?.persist) {
-    badge.textContent = '💾 儲存中'; return;
-  }
+  const b = document.getElementById('storage-badge');
+  if (!navigator.storage?.persist) { b.textContent = '💾 儲存中'; return; }
   const already = await navigator.storage.persisted();
   if (already) {
-    badge.textContent = '✅ 持久化';
-    badge.className   = 'storage-badge ok';
-    badge.title       = '資料已持久化，不會被瀏覽器自動清除';
-    return;
+    b.textContent = '✅ 持久化'; b.className = 'storage-badge ok';
+    b.title = '資料已持久化，不會被瀏覽器自動清除'; return;
   }
   const granted = await navigator.storage.persist();
-  if (granted) {
-    badge.textContent = '✅ 持久化';
-    badge.className   = 'storage-badge ok';
-    badge.title       = '持久化申請成功';
-  } else {
-    badge.textContent = '⚠️ 非持久';
-    badge.className   = 'storage-badge warn';
-    badge.title       = '持久化未獲批准。建議加到主畫面後重試。';
-  }
+  b.textContent = granted ? '✅ 持久化' : '⚠️ 非持久';
+  b.className   = 'storage-badge ' + (granted ? 'ok' : 'warn');
+  b.title       = granted ? '持久化申請成功' : '持久化未獲批准，建議加到主畫面後重試';
 }
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // PWA — ADD TO HOME SCREEN
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 /*
-  Android Chrome/Edge：
-    1. 瀏覽器觸發 beforeinstallprompt 事件
-    2. 我們 preventDefault() 攔截，存入 deferredPWA
-    3. 用戶點擊按鈕後呼叫 deferredPWA.prompt()
-    4. 用戶選擇後透過 userChoice 得知結果
-
-  iOS Safari：
-    • 不支援 beforeinstallprompt
-    • 偵測：/iPhone|iPad|iPod/.test(UA) && !navigator.standalone
-    • 顯示手動說明：點選分享(□↑) → 「加入主畫面」
+  Android Chrome/Edge：監聽 beforeinstallprompt → 攔截儲存
+    → 用戶點按鈕後呼叫 .prompt() 觸發系統安裝對話框
+  iOS Safari：不支援此事件，偵測 UA 後顯示手動操作說明
+    （分享按鈕 □↑ → 加入主畫面）
 */
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPWA = e;
-  const dismissed = localStorage.getItem('banner_ts');
-  if (!dismissed || Date.now() - +dismissed > 7*864e5) {
+  e.preventDefault(); deferredPWA = e;
+  const ts = localStorage.getItem('banner_ts');
+  if (!ts || Date.now() - +ts > 7*864e5)
     document.getElementById('install-banner').style.display = 'flex';
-  }
 });
-window.addEventListener('appinstalled', () => dismissBanner());
+window.addEventListener('appinstalled', dismissBanner);
 
 function checkiOS() {
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-  if (isIOS && !window.navigator.standalone) {
-    const dismissed = localStorage.getItem('banner_ts');
-    if (dismissed && Date.now() - +dismissed < 7*864e5) return;
-    document.getElementById('install-msg').textContent = '📲 iOS：點底部分享(□↑) → 「加入主畫面」可離線使用';
-    document.getElementById('install-btn').style.display = 'none';
-    document.getElementById('install-banner').style.display = 'flex';
-  }
+  if (!isIOS || window.navigator.standalone) return;
+  const ts = localStorage.getItem('banner_ts');
+  if (ts && Date.now() - +ts < 7*864e5) return;
+  document.getElementById('install-msg').textContent = '📲 iOS：點底部分享(□↑) → 「加入主畫面」可離線使用';
+  document.getElementById('install-btn').style.display = 'none';
+  document.getElementById('install-banner').style.display = 'flex';
 }
-
 function triggerInstall() {
   if (!deferredPWA) return;
   deferredPWA.prompt();
-  deferredPWA.userChoice.then(r => {
-    if (r.outcome === 'accepted') dismissBanner();
-    deferredPWA = null;
-  });
+  deferredPWA.userChoice.then(r => { if (r.outcome==='accepted') dismissBanner(); deferredPWA=null; });
 }
 function dismissBanner() {
   document.getElementById('install-banner').style.display = 'none';
   localStorage.setItem('banner_ts', Date.now());
 }
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // TABS
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 function switchTab(tabId) {
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.dtab, .bnav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.dtab,.bnav-item').forEach(b => b.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
   document.querySelectorAll(`[data-tab="${tabId}"]`).forEach(b => b.classList.add('active'));
   if (tabId === 't-reports') renderReports();
   if (tabId === 't-ai')      refreshAIPreview();
 }
+document.querySelectorAll('.dtab,.bnav-item').forEach(btn =>
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab))
+);
 
-document.querySelectorAll('.dtab, .bnav-item').forEach(btn => {
-  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-});
-
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // MONTH NAVIGATION
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 function changeMonth(delta) {
-  const [y, m] = curMonth.split('-').map(Number);
-  const d = new Date(y, m - 1 + delta, 1);
-  curMonth = d.toISOString().slice(0, 7);
+  const [y,m] = curMonth.split('-').map(Number);
+  const d = new Date(y, m-1+delta, 1);
+  curMonth = d.toISOString().slice(0,7);
   document.getElementById('monthDisplay').textContent = curMonth;
   render();
 }
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // INIT
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 function init() {
   initStorage();
   checkiOS();
 
   const now = new Date();
-  curMonth  = now.toISOString().slice(0, 7);
+  curMonth  = now.toISOString().slice(0,7);
   document.getElementById('monthDisplay').textContent = curMonth;
-  document.getElementById('ex-date').value = now.toISOString().slice(0, 10);
+  document.getElementById('ex-date').value = now.toISOString().slice(0,10);
 
-  // Restore AI config
   document.getElementById('ai-key').value   = localStorage.getItem('ai_key')   || '';
   document.getElementById('ai-url').value   = localStorage.getItem('ai_url')   || API_DEFAULT;
   document.getElementById('ai-model').value = localStorage.getItem('ai_model') || 'LongCat-Flash-Lite';
 
-  // Resize → redraw charts
   window.addEventListener('resize', () => {
     renderDashboard();
     if (document.getElementById('t-reports').classList.contains('active')) renderReports();
@@ -989,18 +735,18 @@ function render() {
   renderCatTags();
   renderBudgetInputs();
   fillCatSelect();
-  document.getElementById('bgt-month').textContent = curMonth;
 }
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // DASHBOARD
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 function renderDashboard() {
   const d   = getD(curMonth);
-  const inc = d.income.reduce((s, i) => s + i.amount, 0);
-  const exp = d.expenses.reduce((s, e) => s + e.amount, 0);
+  const bud = getBudgets(); // ← 從全域固定預算讀取
+  const inc = d.income.reduce((s,i)=>s+i.amount, 0);
+  const exp = d.expenses.reduce((s,e)=>s+e.amount, 0);
   const bal = inc - exp;
-  const sr  = inc > 0 ? ((bal / inc) * 100).toFixed(1) : 0;
+  const sr  = inc > 0 ? ((bal/inc)*100).toFixed(1) : 0;
 
   document.getElementById('d-inc').textContent = fmt(inc);
   document.getElementById('d-exp').textContent = fmt(exp);
@@ -1010,47 +756,47 @@ function renderDashboard() {
   bEl.className   = 'sum-value ' + (bal >= 0 ? 'v-blue' : 'v-red');
 
   // Progress bars
-  const cats  = getCats(), bud = d.budgets;
-  const bycat = Object.fromEntries(cats.map(c => [c, 0]));
+  const cats  = getCats();
+  const bycat = Object.fromEntries(cats.map(c=>[c,0]));
   d.expenses.forEach(e => { if (bycat[e.category] !== undefined) bycat[e.category] += e.amount; });
 
   const barsEl = document.getElementById('budget-bars');
-  const active = cats.filter(c => (bud[c] || 0) > 0);
+  const active = cats.filter(c => (bud[c]||0) > 0);
   if (!active.length) {
-    barsEl.innerHTML = '<p class="text-muted small">尚未設定預算，請到「預算設定」頁面設定</p>';
+    barsEl.innerHTML = '<p class="text-muted small">尚未設定預算，請到「預算設定」頁面設定固定參考上限</p>';
   } else {
     barsEl.innerHTML = active.map(cat => {
-      const lim = bud[cat], used = bycat[cat] || 0;
-      const pct = Math.min((used / lim) * 100, 100).toFixed(0);
-      const cls = pct >= 100 ? 'bar-over' : pct >= 80 ? 'bar-warn' : 'bar-ok';
+      const lim = bud[cat], used = bycat[cat]||0;
+      const pct = Math.min((used/lim)*100, 100).toFixed(0);
+      const cls = pct>=100 ? 'bar-over' : pct>=80 ? 'bar-warn' : 'bar-ok';
       return `<div class="mb-2">
         <div class="flex justify-between small mb-1">
           <span>${esc(cat)}</span>
-          <span class="${pct >= 100 ? 'fw-bold v-red' : ''}">${fmt(used)} / ${fmt(lim)}</span>
+          <span class="${pct>=100?'fw-bold v-red':''}">${fmt(used)} / ${fmt(lim)}</span>
         </div>
         <div class="progress"><div class="progress-bar ${cls}" style="width:${pct}%">${pct}%</div></div>
       </div>`;
     }).join('');
   }
 
-  // Pie
-  const labels = [], vals = [];
+  // Pie chart
+  const labels=[], vals=[];
   cats.forEach(c => {
-    const a = d.expenses.filter(e => e.category === c).reduce((s, e) => s + e.amount, 0);
-    if (a > 0) { labels.push(c); vals.push(a); }
+    const a = d.expenses.filter(e=>e.category===c).reduce((s,e)=>s+e.amount, 0);
+    if (a>0) { labels.push(c); vals.push(a); }
   });
   drawPie('pieChart', labels, vals);
 }
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // INCOME
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 function addIncome() {
   const lbl = document.getElementById('in-lbl').value.trim();
   const amt = parseFloat(document.getElementById('in-amt').value);
-  if (!lbl || isNaN(amt) || amt <= 0) { alert('請填寫收入名稱及有效金額'); return; }
+  if (!lbl||isNaN(amt)||amt<=0) { alert('請填寫收入名稱及有效金額'); return; }
   const d = getD(curMonth);
-  d.income.push({ id: uid(), label: lbl, amount: amt });
+  d.income.push({ id:uid(), label:lbl, amount:amt });
   setD(curMonth, d);
   document.getElementById('in-lbl').value = '';
   document.getElementById('in-amt').value = '';
@@ -1058,26 +804,26 @@ function addIncome() {
 }
 function delIncome(id) {
   const d = getD(curMonth);
-  d.income = d.income.filter(i => i.id !== id);
+  d.income = d.income.filter(i=>i.id!==id);
   setD(curMonth, d); render();
 }
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // EXPENSES
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 function fillCatSelect() {
   const s = document.getElementById('ex-cat'), cur = s.value;
-  s.innerHTML = getCats().map(c => `<option${c === cur ? ' selected' : ''}>${esc(c)}</option>`).join('');
+  s.innerHTML = getCats().map(c=>`<option${c===cur?' selected':''}>${esc(c)}</option>`).join('');
 }
 function addExpense() {
   const date = document.getElementById('ex-date').value;
   const cat  = document.getElementById('ex-cat').value;
   const lbl  = document.getElementById('ex-lbl').value.trim();
   const amt  = parseFloat(document.getElementById('ex-amt').value);
-  if (!date || !cat || isNaN(amt) || amt <= 0) { alert('請填寫日期、類別及有效金額'); return; }
+  if (!date||!cat||isNaN(amt)||amt<=0) { alert('請填寫日期、類別及有效金額'); return; }
   const d = getD(curMonth);
-  d.expenses.push({ id: uid(), date, category: cat, label: lbl, amount: amt });
-  d.expenses.sort((a, b) => b.date.localeCompare(a.date));
+  d.expenses.push({ id:uid(), date, category:cat, label:lbl, amount:amt });
+  d.expenses.sort((a,b)=>b.date.localeCompare(a.date));
   setD(curMonth, d);
   document.getElementById('ex-lbl').value = '';
   document.getElementById('ex-amt').value = '';
@@ -1085,14 +831,13 @@ function addExpense() {
 }
 function delExpense(id) {
   const d = getD(curMonth);
-  d.expenses = d.expenses.filter(e => e.id !== id);
+  d.expenses = d.expenses.filter(e=>e.id!==id);
   setD(curMonth, d); render();
 }
-
 function renderLists() {
   const d = getD(curMonth);
   document.getElementById('income-list').innerHTML = d.income.length
-    ? d.income.map(i => `<tr>
+    ? d.income.map(i=>`<tr>
         <td>${esc(i.label)}</td>
         <td class="fw-bold v-green">${fmt(i.amount)}</td>
         <td><button class="btn btn-ghost-red btn-xs" onclick="delIncome(${i.id})">✕</button></td>
@@ -1100,228 +845,199 @@ function renderLists() {
     : '<tr class="empty-row"><td colspan="3">尚無收入記錄</td></tr>';
 
   document.getElementById('expense-list').innerHTML = d.expenses.length
-    ? d.expenses.map(e => `<tr>
+    ? d.expenses.map(e=>`<tr>
         <td class="small">${e.date.slice(5)}</td>
         <td><span class="badge badge-gray">${esc(e.category)}</span></td>
-        <td class="small">${esc(e.label) || '—'}</td>
+        <td class="small">${esc(e.label)||'—'}</td>
         <td class="fw-bold v-red">${fmt(e.amount)}</td>
         <td><button class="btn btn-ghost-red btn-xs" onclick="delExpense(${e.id})">✕</button></td>
       </tr>`).join('')
     : '<tr class="empty-row"><td colspan="5">尚無支出記錄</td></tr>';
 }
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // CATEGORIES
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 function addCategory() {
   const inp = document.getElementById('new-cat');
   const name = inp.value.trim();
   if (!name) return;
   const cats = getCats();
   if (cats.includes(name)) { alert('類別已存在'); return; }
-  cats.push(name); setCats(cats); inp.value = ''; render();
+  cats.push(name); setCats(cats); inp.value=''; render();
 }
 function delCategory(name) {
   if (!confirm(`確定刪除「${name}」？`)) return;
-  setCats(getCats().filter(c => c !== name)); render();
+  setCats(getCats().filter(c=>c!==name)); render();
 }
 function renderCatTags() {
-  document.getElementById('cat-tags').innerHTML = getCats().map(c =>
+  document.getElementById('cat-tags').innerHTML = getCats().map(c=>
     `<span class="badge">${esc(c)}<button class="badge-close" onclick="delCategory('${esc(c)}')">✕</button></span>`
   ).join('');
 }
 
-// ─────────────────────────────────────────
-// BUDGET INPUTS
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
+// BUDGET SETTINGS（全域固定）
+// ═══════════════════════════════════════════════════
 function saveBudget(cat, val) {
-  const d = getD(curMonth);
-  d.budgets[cat] = parseFloat(val) || 0;
-  setD(curMonth, d);
-  renderDashboard();
+  const b = getBudgets();
+  b[cat] = parseFloat(val) || 0;
+  setBudgets(b);
+  renderDashboard(); // 即時更新儀表板進度條
 }
 function renderBudgetInputs() {
-  const d = getD(curMonth);
-  document.getElementById('budget-inputs').innerHTML = getCats().map(cat => `
+  const b = getBudgets(); // ← 從全域讀取，不依賴月份
+  document.getElementById('budget-inputs').innerHTML = getCats().map(cat=>`
     <div class="flex items-center gap-2 mb-2">
       <label style="min-width:80px;text-align:right;font-size:13px;color:var(--c-muted)">${esc(cat)}</label>
       <div class="input-row" style="max-width:180px">
         <span class="input-prefix">$</span>
         <input type="number" class="form-control" min="0" placeholder="上限"
-          value="${d.budgets[cat] || ''}"
+          value="${b[cat]||''}"
           oninput="saveBudget('${esc(cat)}', this.value)">
       </div>
     </div>`).join('');
 }
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // REPORTS
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 function renderReports() {
-  const now = new Date();
-  const months = [], labels = [];
-  for (let i = 5; i >= 0; i--) {
-    const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push(m.toISOString().slice(0, 7));
-    labels.push((m.getMonth() + 1) + '月');
+  const now=new Date(), months=[], labels=[];
+  for (let i=5;i>=0;i--) {
+    const m = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    months.push(m.toISOString().slice(0,7));
+    labels.push((m.getMonth()+1)+'月');
   }
-  const incs = months.map(m => getD(m).income.reduce((s, i) => s + i.amount, 0));
-  const exps = months.map(m => getD(m).expenses.reduce((s, e) => s + e.amount, 0));
-  const srs  = months.map((_, i) => incs[i] > 0 ? +((1 - exps[i] / incs[i]) * 100).toFixed(1) : 0);
+  const incs = months.map(m=>getD(m).income.reduce((s,i)=>s+i.amount,0));
+  const exps = months.map(m=>getD(m).expenses.reduce((s,e)=>s+e.amount,0));
+  const srs  = months.map((_,i)=>incs[i]>0?+((1-exps[i]/incs[i])*100).toFixed(1):0);
   drawBar('barChart', labels,
-    [{ label:'收入', data:incs, color:'rgba(22,163,74,.75)'  },
-     { label:'支出', data:exps, color:'rgba(220,38,38,.75)' }]);
-  drawLine('lineChart', labels, [{ label:'儲蓄率%', data:srs, color:'#ea580c' }]);
+    [{label:'收入',data:incs,color:'rgba(22,163,74,.75)'},
+     {label:'支出',data:exps,color:'rgba(220,38,38,.75)'}]);
+  drawLine('lineChart', labels, [{label:'儲蓄率%',data:srs,color:'#ea580c'}]);
 }
 
-// ─────────────────────────────────────────
-// CANVAS CHART ENGINE
-// ─────────────────────────────────────────
-/*
-  【技術說明】純 Canvas 圖表
-  • setupCanvas()：依父元素寬度設定 canvas 實際像素，保持響應式
-  • devicePixelRatio：高解析度螢幕（Retina）放大渲染後再縮小顯示，防止模糊
-  • 每次呼叫前 clearRect() 清除上次繪製
-*/
+// ═══════════════════════════════════════════════════
+// CANVAS CHART ENGINE（純 Canvas，零依賴）
+// ═══════════════════════════════════════════════════
 function setupCanvas(id, ratio) {
   const c   = document.getElementById(id);
   const dpr = window.devicePixelRatio || 1;
   const w   = c.parentElement.clientWidth || 600;
   const h   = Math.round(w * ratio);
-  c.width   = w * dpr;
-  c.height  = h * dpr;
-  c.style.width  = w + 'px';
-  c.style.height = h + 'px';
+  c.width   = w * dpr; c.height = h * dpr;
+  c.style.width = w+'px'; c.style.height = h+'px';
   const ctx = c.getContext('2d');
   ctx.scale(dpr, dpr);
-  return { c, ctx, w, h };
+  return { ctx, w, h };
 }
 
 function drawPie(id, labels, vals) {
-  const { ctx, w, h } = setupCanvas(id, 0.46);
-  ctx.clearRect(0, 0, w, h);
-  const total = vals.reduce((a, b) => a + b, 0);
+  const {ctx,w,h} = setupCanvas(id, 0.46);
+  ctx.clearRect(0,0,w,h);
+  const total = vals.reduce((a,b)=>a+b, 0);
   if (!total) {
-    ctx.fillStyle = '#a0aec0'; ctx.font = '13px system-ui'; ctx.textAlign = 'center';
-    ctx.fillText('尚無支出資料', w / 2, h / 2); return;
+    ctx.fillStyle='#a0aec0'; ctx.font='13px system-ui'; ctx.textAlign='center';
+    ctx.fillText('尚無支出資料', w/2, h/2); return;
   }
-  const r = Math.min(h * 0.4, w * 0.25);
-  const cx = w * 0.32, cy = h / 2;
-  let ang = -Math.PI / 2;
-  vals.forEach((v, i) => {
-    const s = (v / total) * Math.PI * 2;
-    ctx.beginPath(); ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, ang, ang + s); ctx.closePath();
-    ctx.fillStyle = PIE_COLORS[i % PIE_COLORS.length]; ctx.fill();
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-    ang += s;
+  const r=Math.min(h*.4,w*.25), cx=w*.32, cy=h/2;
+  let ang=-Math.PI/2;
+  vals.forEach((v,i)=>{
+    const s=(v/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,ang,ang+s); ctx.closePath();
+    ctx.fillStyle=PIE_COLORS[i%PIE_COLORS.length]; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    ang+=s;
   });
-  // Legend
-  const lx = w * 0.62, ly0 = cy - (labels.length * 18) / 2 + 8;
-  ctx.font = '12px system-ui'; ctx.textAlign = 'left';
-  labels.forEach((lbl, i) => {
-    const y = ly0 + i * 18;
-    ctx.fillStyle = PIE_COLORS[i % PIE_COLORS.length]; ctx.fillRect(lx - 15, y - 9, 11, 11);
-    ctx.fillStyle = '#334155';
-    ctx.fillText(`${lbl}  ${((vals[i] / total) * 100).toFixed(1)}%`, lx, y);
+  const lx=w*.62, ly0=cy-(labels.length*18)/2+8;
+  ctx.font='12px system-ui'; ctx.textAlign='left';
+  labels.forEach((lbl,i)=>{
+    const y=ly0+i*18;
+    ctx.fillStyle=PIE_COLORS[i%PIE_COLORS.length]; ctx.fillRect(lx-15,y-9,11,11);
+    ctx.fillStyle='#334155';
+    ctx.fillText(`${lbl}  ${((vals[i]/total)*100).toFixed(1)}%`, lx, y);
   });
 }
 
 function drawBar(id, labels, datasets) {
-  const { ctx, w, h } = setupCanvas(id, 0.44);
-  ctx.clearRect(0, 0, w, h);
-  const P = { t: 20, r: 14, b: 46, l: 64 };
-  const cw = w - P.l - P.r, ch = h - P.t - P.b;
-  const n  = labels.length, dsN = datasets.length;
-  const maxV = Math.max(...datasets.flatMap(d => d.data), 1);
-  const slotW = cw / n, bW = Math.floor(slotW * 0.6 / dsN);
-
-  // Grid + Y labels
-  ctx.font = '11px system-ui';
-  for (let i = 0; i <= 4; i++) {
-    const y = P.t + ch * (1 - i / 4);
-    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(P.l + cw, y); ctx.stroke();
-    ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'right';
-    ctx.fillText('$' + (maxV * i / 4).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ','), P.l - 4, y + 4);
+  const {ctx,w,h} = setupCanvas(id, 0.44);
+  ctx.clearRect(0,0,w,h);
+  const P={t:20,r:14,b:46,l:64};
+  const cw=w-P.l-P.r, ch=h-P.t-P.b;
+  const n=labels.length, dsN=datasets.length;
+  const maxV=Math.max(...datasets.flatMap(d=>d.data),1);
+  const slotW=cw/n, bW=Math.floor(slotW*.6/dsN);
+  ctx.font='11px system-ui';
+  for (let i=0;i<=4;i++) {
+    const y=P.t+ch*(1-i/4);
+    ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(P.l,y); ctx.lineTo(P.l+cw,y); ctx.stroke();
+    ctx.fillStyle='#94a3b8'; ctx.textAlign='right';
+    ctx.fillText('$'+(maxV*i/4).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,','), P.l-4, y+4);
   }
-  // Bars
-  labels.forEach((lbl, gi) => {
-    const gx = P.l + gi * slotW + slotW * 0.2;
-    datasets.forEach((ds, di) => {
-      const bh = Math.max((ds.data[gi] / maxV) * ch, 0);
-      ctx.fillStyle = ds.color;
-      ctx.fillRect(gx + di * bW, P.t + ch - bh, bW - 2, bh);
+  labels.forEach((lbl,gi)=>{
+    const gx=P.l+gi*slotW+slotW*.2;
+    datasets.forEach((ds,di)=>{
+      const bh=Math.max((ds.data[gi]/maxV)*ch,0);
+      ctx.fillStyle=ds.color;
+      ctx.fillRect(gx+di*bW, P.t+ch-bh, bW-2, bh);
     });
-    ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.font = '11px system-ui';
-    ctx.fillText(lbl, P.l + (gi + 0.5) * slotW, P.t + ch + 16);
+    ctx.fillStyle='#64748b'; ctx.textAlign='center'; ctx.font='11px system-ui';
+    ctx.fillText(lbl, P.l+(gi+.5)*slotW, P.t+ch+16);
   });
-  // Legend
-  ctx.textAlign = 'left';
-  datasets.forEach((ds, i) => {
-    const lx = P.l + i * 90, ly = h - 10;
-    ctx.fillStyle = ds.color; ctx.fillRect(lx, ly - 10, 11, 11);
-    ctx.fillStyle = '#475569'; ctx.font = '11px system-ui';
-    ctx.fillText(ds.label, lx + 14, ly);
+  ctx.textAlign='left';
+  datasets.forEach((ds,i)=>{
+    const lx=P.l+i*90, ly=h-10;
+    ctx.fillStyle=ds.color; ctx.fillRect(lx,ly-10,11,11);
+    ctx.fillStyle='#475569'; ctx.font='11px system-ui';
+    ctx.fillText(ds.label, lx+14, ly);
   });
 }
 
 function drawLine(id, labels, datasets) {
-  const { ctx, w, h } = setupCanvas(id, 0.42);
-  ctx.clearRect(0, 0, w, h);
-  const P = { t: 20, r: 18, b: 34, l: 44 };
-  const cw = w - P.l - P.r, ch = h - P.t - P.b;
-  const n  = labels.length;
-
-  for (let i = 0; i <= 4; i++) {
-    const y = P.t + ch * (1 - i / 4);
-    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(P.l + cw, y); ctx.stroke();
-    ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'right'; ctx.font = '11px system-ui';
-    ctx.fillText((25 * i) + '%', P.l - 3, y + 4);
+  const {ctx,w,h} = setupCanvas(id, 0.42);
+  ctx.clearRect(0,0,w,h);
+  const P={t:20,r:18,b:34,l:44};
+  const cw=w-P.l-P.r, ch=h-P.t-P.b;
+  const n=labels.length;
+  for (let i=0;i<=4;i++) {
+    const y=P.t+ch*(1-i/4);
+    ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(P.l,y); ctx.lineTo(P.l+cw,y); ctx.stroke();
+    ctx.fillStyle='#94a3b8'; ctx.textAlign='right'; ctx.font='11px system-ui';
+    ctx.fillText((25*i)+'%', P.l-3, y+4);
   }
-  datasets.forEach(ds => {
-    const pts = ds.data.map((v, i) => ({
-      x: P.l + (i / Math.max(n - 1, 1)) * cw,
-      y: P.t + ch - (Math.min(v, 100) / 100) * ch
+  datasets.forEach(ds=>{
+    const pts=ds.data.map((v,i)=>({
+      x:P.l+(i/Math.max(n-1,1))*cw,
+      y:P.t+ch-(Math.min(v,100)/100)*ch
     }));
-    // Fill area
-    ctx.beginPath(); ctx.moveTo(pts[0].x, P.t + ch);
-    pts.forEach(p => ctx.lineTo(p.x, p.y));
-    ctx.lineTo(pts[pts.length - 1].x, P.t + ch); ctx.closePath();
-    ctx.fillStyle = ds.color + '28'; ctx.fill();
-    // Line
+    ctx.beginPath(); ctx.moveTo(pts[0].x,P.t+ch);
+    pts.forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.lineTo(pts[pts.length-1].x,P.t+ch); ctx.closePath();
+    ctx.fillStyle=ds.color+'28'; ctx.fill();
     ctx.beginPath();
-    pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-    ctx.strokeStyle = ds.color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
-    // Dots + labels
-    pts.forEach((p, i) => {
-      ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, Math.PI * 2);
-      ctx.fillStyle = ds.color; ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-      ctx.fillStyle = '#475569'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
-      ctx.fillText(ds.data[i] + '%', p.x, p.y - 9);
+    pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.strokeStyle=ds.color; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+    pts.forEach((p,i)=>{
+      ctx.beginPath(); ctx.arc(p.x,p.y,4.5,0,Math.PI*2);
+      ctx.fillStyle=ds.color; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='#475569'; ctx.font='11px system-ui'; ctx.textAlign='center';
+      ctx.fillText(ds.data[i]+'%', p.x, p.y-9);
     });
   });
-  labels.forEach((lbl, i) => {
-    ctx.fillStyle = '#64748b'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
-    ctx.fillText(lbl, P.l + (i / Math.max(n - 1, 1)) * cw, P.t + ch + 18);
+  labels.forEach((lbl,i)=>{
+    ctx.fillStyle='#64748b'; ctx.font='11px system-ui'; ctx.textAlign='center';
+    ctx.fillText(lbl, P.l+(i/Math.max(n-1,1))*cw, P.t+ch+18);
   });
 }
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // AI ANALYSIS
-// ─────────────────────────────────────────
-/*
-  【技術說明】SSE 串流實作
-  1. fetch(url, { body: JSON.stringify({stream:true, ...}) })
-  2. res.body.getReader() 取得 ReadableStream reader
-  3. 迴圈 reader.read() 讀取 Uint8Array chunks
-  4. TextDecoder 解碼，按 \n 切割成 SSE 行
-  5. 每行格式：data: <JSON>  或  data: [DONE]
-  6. 解析 JSON 取 choices[0].delta.content 拼接輸出
-  7. 即時更新 DOM，游標閃爍提示仍在輸出中
-*/
+// ═══════════════════════════════════════════════════
 function saveAICfg() {
   localStorage.setItem('ai_key',   document.getElementById('ai-key').value.trim());
   localStorage.setItem('ai_url',   document.getElementById('ai-url').value.trim() || API_DEFAULT);
@@ -1331,71 +1047,70 @@ function saveAICfg() {
 
 function buildSummary() {
   const d    = getD(curMonth);
+  const bud  = getBudgets(); // ← 全域固定預算
   const cats = getCats();
-  const inc  = d.income.reduce((s, i) => s + i.amount, 0);
-  const exp  = d.expenses.reduce((s, e) => s + e.amount, 0);
-  const bal  = inc - exp;
-  const sr   = inc > 0 ? ((bal / inc) * 100).toFixed(1) : 0;
-  const bycat = Object.fromEntries(cats.map(c => [c, 0]));
-  d.expenses.forEach(e => { if (bycat[e.category] !== undefined) bycat[e.category] += e.amount; });
+  const inc  = d.income.reduce((s,i)=>s+i.amount,0);
+  const exp  = d.expenses.reduce((s,e)=>s+e.amount,0);
+  const bal  = inc-exp;
+  const sr   = inc>0?((bal/inc)*100).toFixed(1):0;
 
-  const expLines = cats.filter(c => bycat[c] > 0).map(c => `  ${c}: ${fmt(bycat[c])}`).join('\n') || '  （無支出）';
-  const budLines = cats.filter(c => (d.budgets[c] || 0) > 0).map(c => {
-    const pct = ((bycat[c] || 0) / d.budgets[c] * 100).toFixed(0);
-    const flag = pct >= 100 ? '⚠️超支' : pct >= 80 ? '🟡接近' : '✅正常';
-    return `  ${c}: 上限${fmt(d.budgets[c])} 已用${pct}% ${flag}`;
-  }).join('\n') || '  （未設定）';
+  const bycat = Object.fromEntries(cats.map(c=>[c,0]));
+  d.expenses.forEach(e=>{ if(bycat[e.category]!==undefined) bycat[e.category]+=e.amount; });
 
-  const now = new Date(); const hist = [];
-  for (let i = 5; i >= 1; i--) {
-    const mk = new Date(now.getFullYear(), now.getMonth() - i, 1).toISOString().slice(0, 7);
-    const md = getD(mk);
-    const mi = md.income.reduce((s, x) => s + x.amount, 0);
-    const me = md.expenses.reduce((s, x) => s + x.amount, 0);
-    if (mi > 0 || me > 0) hist.push(`  ${mk}: 收入${fmt(mi)} 支出${fmt(me)}`);
+  const expLines = cats.filter(c=>bycat[c]>0).map(c=>`  ${c}: ${fmt(bycat[c])}`).join('\n')||'  （無支出）';
+  const budLines = cats.filter(c=>(bud[c]||0)>0).map(c=>{
+    const pct=((bycat[c]||0)/bud[c]*100).toFixed(0);
+    const flag=pct>=100?'⚠️超支':pct>=80?'🟡接近':'✅正常';
+    return `  ${c}: 固定上限${fmt(bud[c])} 本月已用${pct}% ${flag}`;
+  }).join('\n')||'  （未設定）';
+
+  const now=new Date(), hist=[];
+  for (let i=5;i>=1;i--) {
+    const mk=new Date(now.getFullYear(),now.getMonth()-i,1).toISOString().slice(0,7);
+    const md=getD(mk);
+    const mi=md.income.reduce((s,x)=>s+x.amount,0);
+    const me=md.expenses.reduce((s,x)=>s+x.amount,0);
+    if (mi>0||me>0) hist.push(`  ${mk}: 收入${fmt(mi)} 支出${fmt(me)}`);
   }
 
   return `【月份】${curMonth}
-【收入】\n${d.income.map(i => `  ${i.label}: ${fmt(i.amount)}`).join('\n') || '  （無）'}
+【收入】\n${d.income.map(i=>`  ${i.label}: ${fmt(i.amount)}`).join('\n')||'  （無）'}
 【支出分類】\n${expLines}
 【總計】收入${fmt(inc)} 支出${fmt(exp)} 結餘${fmt(bal)} 儲蓄率${sr}%
-【預算狀況】\n${budLines}
-【歷史（近5個月）】\n${hist.join('\n') || '  （無）'}`;
+【固定預算執行狀況】\n${budLines}
+【歷史（近5個月）】\n${hist.join('\n')||'  （無）'}`.trim();
 }
 
 function refreshAIPreview() {
   const el = document.getElementById('ai-preview');
   const ml = document.getElementById('ai-model-lbl');
   if (el) el.textContent = buildSummary();
-  if (ml) ml.textContent = '模型：' + (localStorage.getItem('ai_model') || 'LongCat-Flash-Lite');
+  if (ml) ml.textContent = '模型：'+(localStorage.getItem('ai_model')||'LongCat-Flash-Lite');
 }
 
 function toggleCustomQ() {
-  const box = document.getElementById('custom-q-box');
-  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  const box=document.getElementById('custom-q-box');
+  box.style.display = box.style.display==='none' ? 'block' : 'none';
 }
-
 function clearAI() {
-  document.getElementById('ai-output').innerHTML = '<span class="ai-placeholder">按上方按鈕開始 AI 分析…</span>';
+  document.getElementById('ai-output').innerHTML='<span class="ai-placeholder">按上方按鈕開始 AI 分析…</span>';
 }
 
 const AI_PROMPTS = {
-  overall: s => `你是專業香港個人財務顧問。根據以下財務數據，用繁體中文提供：
+  overall: s=>`你是專業香港個人財務顧問。根據以下財務數據，用繁體中文提供：
 **1. 整體財務健康評分（1-10分）及理由**
 **2. 正面表現**
 **3. 需注意的問題**
 **4. 5個具體改善建議（針對香港生活成本）**
 \n財務數據：\n${s}`,
-
-  saving: s => `你是專業香港個人財務顧問。根據以下財務數據，用繁體中文分析：
+  saving: s=>`你是專業香港個人財務顧問。根據以下財務數據，用繁體中文分析：
 **1. 儲蓄率評估（對比香港建議的20-30%）**
 **2. 主要影響因素**
 **3. 提升儲蓄率的5個具體方法**
 **4. 可削減支出類別建議（附金額）**
 \n財務數據：\n${s}`,
-
-  budget: s => `你是專業香港個人財務顧問。根據以下財務數據，用繁體中文提供：
-**1. 現有預算設定的合理性評估**
+  budget: s=>`你是專業香港個人財務顧問。根據以下財務數據，用繁體中文提供：
+**1. 固定預算設定的合理性評估**
 **2. 各類別是否符合香港生活水平**
 **3. 建議的預算分配方案（附比例）**
 **4. 最需要調整的3個類別及原因**
@@ -1403,97 +1118,86 @@ const AI_PROMPTS = {
 };
 
 async function aiRun(type) {
-  const key   = localStorage.getItem('ai_key');
-  const url   = localStorage.getItem('ai_url')   || API_DEFAULT;
-  const model = localStorage.getItem('ai_model') || 'LongCat-Flash-Lite';
+  const key=localStorage.getItem('ai_key');
+  const url=localStorage.getItem('ai_url')||API_DEFAULT;
+  const mod=localStorage.getItem('ai_model')||'LongCat-Flash-Lite';
   if (!key) { alert('請先填寫 API Key'); return; }
-  await callAI(key, url, model, AI_PROMPTS[type](buildSummary()));
+  await callAI(key, url, mod, AI_PROMPTS[type](buildSummary()));
 }
 
 async function submitCustom() {
-  const q   = document.getElementById('custom-q').value.trim();
-  const key = localStorage.getItem('ai_key');
-  const url = localStorage.getItem('ai_url')   || API_DEFAULT;
-  const mod = localStorage.getItem('ai_model') || 'LongCat-Flash-Lite';
+  const q  =document.getElementById('custom-q').value.trim();
+  const key=localStorage.getItem('ai_key');
+  const url=localStorage.getItem('ai_url')||API_DEFAULT;
+  const mod=localStorage.getItem('ai_model')||'LongCat-Flash-Lite';
   if (!q)   { alert('請輸入問題'); return; }
   if (!key) { alert('請先填寫 API Key'); return; }
-  const prompt = `你是專業香港個人財務顧問，請用繁體中文回答：\n${q}\n\n參考財務數據：\n${buildSummary()}`;
-  document.getElementById('custom-q-box').style.display = 'none';
+  const prompt=`你是專業香港個人財務顧問，請用繁體中文回答：\n${q}\n\n參考財務數據：\n${buildSummary()}`;
+  document.getElementById('custom-q-box').style.display='none';
   await callAI(key, url, mod, prompt);
 }
 
 async function callAI(apiKey, apiUrl, model, userPrompt) {
-  const btns = ['ab-overall','ab-saving','ab-budget','ab-custom'];
-  btns.forEach(id => { const b = document.getElementById(id); if (b) b.disabled = true; });
+  const btns=['ab-overall','ab-saving','ab-budget','ab-custom'];
+  btns.forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=true; });
 
-  const out = document.getElementById('ai-output');
-  out.innerHTML = '<span class="ai-placeholder">🤖 AI 分析中，請稍候…</span>';
+  const out=document.getElementById('ai-output');
+  out.innerHTML='<span class="ai-placeholder">🤖 AI 分析中，請稍候…</span>';
 
   try {
     const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey
-      },
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },
       body: JSON.stringify({
-        model,
-        stream: true,
-        max_tokens: 2048,
-        messages: [
-          {
-            role: 'system',
-            content: '你是一位熟悉香港生活成本、MPF、保險和投資的個人財務顧問，請用繁體中文、清晰結構回答，並提供具體可行的建議。'
-          },
-          { role: 'user', content: userPrompt }
+        model, stream:true, max_tokens:2048,
+        messages:[
+          { role:'system', content:'你是一位熟悉香港生活成本、MPF、保險和投資的個人財務顧問，請用繁體中文、清晰結構回答，提供具體可行的建議。' },
+          { role:'user',   content:userPrompt }
         ]
       })
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`HTTP ${res.status}：${errText.slice(0, 300)}`);
+      const t=await res.text();
+      throw new Error(`HTTP ${res.status}：${t.slice(0,300)}`);
     }
 
-    // SSE streaming
-    const reader  = res.body.getReader();
-    const decoder = new TextDecoder();
-    let full = '', buf = '';
-    out.innerHTML = '';
+    // SSE 串流解析
+    const reader=res.body.getReader(), decoder=new TextDecoder();
+    let full='', buf='';
+    out.innerHTML='';
 
     while (true) {
-      const { done, value } = await reader.read();
+      const {done,value}=await reader.read();
       if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const lines = buf.split('\n');
-      buf = lines.pop();
+      buf+=decoder.decode(value,{stream:true});
+      const lines=buf.split('\n'); buf=lines.pop();
       for (const line of lines) {
-        const t = line.trim();
+        const t=line.trim();
         if (!t.startsWith('data:')) continue;
-        const raw = t.slice(5).trim();
-        if (raw === '[DONE]') continue;
+        const raw=t.slice(5).trim();
+        if (raw==='[DONE]') continue;
         try {
-          const token = JSON.parse(raw)?.choices?.[0]?.delta?.content || '';
-          full += token;
-          out.innerHTML = mdHtml(full) + '<span class="ai-cursor">▊</span>';
-          out.scrollTop = out.scrollHeight;
-        } catch (_) {}
+          const token=JSON.parse(raw)?.choices?.[0]?.delta?.content||'';
+          full+=token;
+          out.innerHTML=mdHtml(full)+'<span class="ai-cursor">▊</span>';
+          out.scrollTop=out.scrollHeight;
+        } catch(_) {}
       }
     }
-    out.innerHTML = mdHtml(full) || '<span class="ai-placeholder">（無回應）</span>';
+    out.innerHTML=mdHtml(full)||'<span class="ai-placeholder">（無回應）</span>';
 
-  } catch (err) {
-    out.innerHTML = `<span class="ai-error">❌ 錯誤：${esc(err.message)}<br><br>
+  } catch(err) {
+    out.innerHTML=`<span class="ai-error">❌ 錯誤：${esc(err.message)}<br><br>
       請確認：<br>
       ① API Key 是否正確<br>
       ② API 端點 URL 是否正確<br>
       ③ 網路連線是否正常（AI 功能需要連接網路）</span>`;
   } finally {
-    btns.forEach(id => { const b = document.getElementById(id); if (b) b.disabled = false; });
+    btns.forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=false; });
   }
 }
 
-// Markdown → HTML (minimal)
 function mdHtml(text) {
   return esc(text)
     .replace(/\*\*(.+?)\*\*/g,  '<strong>$1</strong>')
@@ -1503,49 +1207,45 @@ function mdHtml(text) {
     .replace(/^---+$/gm,        '<hr>')
     .replace(/^(\d+)\. (.+)$/gm,'<div style="margin:3px 0 3px 12px"><b style="color:#90cdf4">$1.</b> $2</div>')
     .replace(/^[•\-] (.+)$/gm,  '<div style="margin:3px 0 3px 16px">• $1</div>')
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g,   '<br>');
+    .replace(/\n\n/g,'<br><br>')
+    .replace(/\n/g,'<br>');
 }
 
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 // EXPORT / IMPORT
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
 /*
-  匯出：讀取所有 b_* 及 b_cats key，序列化成 JSON 檔案下載
-  匯入：讀取 JSON，逐一寫入 localStorage，避免破壞 AI 設定
-  注意：清除瀏覽器資料前務必先匯出備份
+  匯出：包含所有 b_* 月份資料 + b_budgets + b_cats
+  匯入：寫入 b_* 資料，不覆蓋 AI 設定（ai_key/ai_url/ai_model）
 */
 function exportData() {
-  const all = { b_cats: getCats() };
+  const all = {};
   for (const k in localStorage) {
     if (k.startsWith('b_')) all[k] = JSON.parse(localStorage.getItem(k));
   }
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' }));
-  a.download = 'budget_' + new Date().toISOString().slice(0, 10) + '.json';
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(all,null,2)],{type:'application/json'}));
+  a.download = 'budget_'+new Date().toISOString().slice(0,10)+'.json';
   a.click();
 }
 function importData(ev) {
-  const f = ev.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = e => {
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{
     try {
-      const data = JSON.parse(e.target.result);
+      const data=JSON.parse(e.target.result);
       if (!confirm('確定匯入？現有財務資料將被覆蓋。')) return;
       for (const k in data) {
         if (k.startsWith('b_'))
-          localStorage.setItem(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k]));
+          localStorage.setItem(k, typeof data[k]==='string' ? data[k] : JSON.stringify(data[k]));
       }
       render(); alert('✅ 匯入成功！');
-    } catch { alert('❌ 檔案格式錯誤，請選擇正確的備份 JSON'); }
+    } catch { alert('❌ 檔案格式錯誤'); }
   };
-  r.readAsText(f);
-  ev.target.value = '';
+  r.readAsText(f); ev.target.value='';
 }
 
-// ─────────────────────────────────────────
-// START
-// ─────────────────────────────────────────
+// ─────────────────────────────
 window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>

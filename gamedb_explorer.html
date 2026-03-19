@@ -1,684 +1,443 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="zh-HK">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GameDB Explorer</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <meta charset="utf-8">
+  <title>GameDB 遊戲查詢</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    :root {
-      --clr-bg:       #0d0d1a;
-      --clr-card:     #14142a;
-      --clr-card2:    #1a1a35;
-      --clr-border:   rgba(100,80,220,.25);
-      --clr-primary:  #7c5ff5;
-      --clr-accent:   #00e5b4;
-      --clr-muted:    #7a80a0;
-      --clr-text:     #ccd6f6;
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-
     body {
-      background: var(--clr-bg);
-      color: var(--clr-text);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh;
+      background-color: #f5f5f5;
     }
-
-    /* ── Navbar ─────────────────────────────── */
-    .top-nav {
-      background: linear-gradient(135deg, var(--clr-card), var(--clr-card2));
-      border-bottom: 1px solid var(--clr-border);
-      padding: .85rem 1.5rem;
-      position: sticky; top: 0; z-index: 100;
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem;
+    .game-card img {
+      object-fit: cover;
+      height: 220px;
     }
-    .brand {
-      font-size: 1.35rem; font-weight: 700;
-      background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    .game-card {
+      cursor: pointer;
+      transition: transform .1s ease, box-shadow .1s ease;
     }
-    .brand i { -webkit-text-fill-color: var(--clr-primary); margin-right: .35rem; }
-
-    /* ── Stats bar ──────────────────────────── */
-    .stats-strip {
-      background: var(--clr-card);
-      border-bottom: 1px solid var(--clr-border);
-      padding: .6rem 1rem;
+    .game-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    }
+    .badge-pill {
+      border-radius: 999px;
+    }
+    .scroll-x {
       overflow-x: auto;
+      white-space: nowrap;
     }
-    .stats-strip .inner { display: flex; gap: 1.5rem; white-space: nowrap; justify-content: center; flex-wrap: wrap; }
-    .stat-pill {
-      display: flex; align-items: center; gap: .45rem;
-      background: var(--clr-card2); border: 1px solid var(--clr-border);
-      border-radius: 999px; padding: .25rem .85rem; font-size: .82rem;
-    }
-    .stat-pill .val { color: var(--clr-accent); font-weight: 700; }
-    .stat-pill .lbl { color: var(--clr-muted); text-transform: capitalize; }
-
-    /* ── Tabs ───────────────────────────────── */
-    .main-wrap { max-width: 1280px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
-    .nav-tabs { border-color: var(--clr-border); }
-    .nav-tabs .nav-link { color: var(--clr-muted); border: 1px solid transparent; border-radius: .375rem .375rem 0 0; padding: .45rem .9rem; font-size: .88rem; }
-    .nav-tabs .nav-link:hover { color: var(--clr-text); border-color: var(--clr-border); }
-    .nav-tabs .nav-link.active { background: var(--clr-card); color: var(--clr-accent); border-color: var(--clr-border) var(--clr-border) var(--clr-card); }
-    .tab-content { padding-top: 1.25rem; }
-
-    /* ── Cards ──────────────────────────────── */
-    .gcard {
-      background: var(--clr-card); border: 1px solid var(--clr-border); border-radius: .6rem; overflow: hidden;
-    }
-    .gcard-header {
-      background: var(--clr-card2); border-bottom: 1px solid var(--clr-border);
-      padding: .65rem 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .4rem;
-    }
-    .gcard-header h6 { margin: 0; font-size: .9rem; font-weight: 600; color: var(--clr-text); }
-    .gcard-body { padding: 1rem; }
-
-    /* ── Form controls ──────────────────────── */
-    .form-control, .form-select {
-      background: var(--clr-card2); border: 1px solid var(--clr-border); color: var(--clr-text);
-      border-radius: .4rem;
-    }
-    .form-control:focus, .form-select:focus {
-      background: var(--clr-card2); color: var(--clr-text);
-      border-color: var(--clr-primary); box-shadow: 0 0 0 .2rem rgba(124,95,245,.2);
-    }
-    .form-control::placeholder { color: var(--clr-muted); }
-    .input-group .btn { border-radius: 0 .4rem .4rem 0; }
-
-    /* ── Buttons ────────────────────────────── */
-    .btn-primary { background: var(--clr-primary); border-color: var(--clr-primary); }
-    .btn-primary:hover { background: #6347d6; border-color: #6347d6; }
-    .btn-sm-outline {
-      background: transparent; border: 1px solid var(--clr-border); color: var(--clr-muted);
-      border-radius: .35rem; padding: .2rem .55rem; font-size: .8rem; cursor: pointer; transition: all .15s;
-    }
-    .btn-sm-outline:hover { border-color: var(--clr-primary); color: var(--clr-text); }
-    .btn-accent { background: var(--clr-accent); border-color: var(--clr-accent); color: #0d0d1a; font-weight: 600; }
-    .btn-accent:hover { background: #00c79c; border-color: #00c79c; color: #0d0d1a; }
-
-    /* ── Result list ────────────────────────── */
-    .result-list { max-height: 380px; overflow-y: auto; }
-    .result-list::-webkit-scrollbar { width: 4px; }
-    .result-list::-webkit-scrollbar-track { background: transparent; }
-    .result-list::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 2px; }
-    .r-item {
-      background: var(--clr-card2); border: 1px solid var(--clr-border);
-      border-radius: .4rem; padding: .6rem .9rem; margin-bottom: .4rem;
-      cursor: pointer; transition: all .15s; display: flex; justify-content: space-between; align-items: center;
-    }
-    .r-item:hover { border-color: var(--clr-primary); transform: translateX(2px); }
-    .r-item .r-name { font-size: .88rem; }
-    .r-item .r-id { font-size: .72rem; color: var(--clr-muted); margin-left: .5rem; flex-shrink: 0; }
-
-    /* ── Game Detail ────────────────────────── */
-    .cover-img { width: 110px; height: 147px; object-fit: cover; border-radius: .45rem; flex-shrink: 0; }
-    .cover-placeholder {
-      width: 110px; height: 147px; background: var(--clr-card2); border-radius: .45rem;
-      display: flex; align-items: center; justify-content: center; font-size: 2.2rem;
-      color: var(--clr-muted); flex-shrink: 0;
-    }
-    .rating-ring {
-      width: 54px; height: 54px; border-radius: 50%; border: 3px solid var(--clr-accent);
-      display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700;
-      color: var(--clr-accent); flex-shrink: 0;
-    }
-    .tag {
-      display: inline-block; padding: .18em .55em; border-radius: .3rem; font-size: .75em;
-      background: rgba(124,95,245,.18); color: var(--clr-accent); border: 1px solid rgba(0,229,180,.2);
-      margin: .1rem;
-    }
-    .sect-label { font-size: .72rem; color: var(--clr-muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; margin-bottom: .35rem; }
-    .divider { border-top: 1px solid var(--clr-border); margin: .9rem 0; }
-    .thumb-img { height: 58px; border-radius: .3rem; cursor: pointer; transition: opacity .15s; }
-    .thumb-img:hover { opacity: .75; }
-    .detail-scroll { max-height: 75vh; overflow-y: auto; padding-right: .25rem; }
-    .detail-scroll::-webkit-scrollbar { width: 4px; }
-    .detail-scroll::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 2px; }
-
-    /* ── Misc ───────────────────────────────── */
-    .info-row { font-size: .82rem; margin-bottom: .3rem; }
-    .info-row .lbl { color: var(--clr-muted); margin-right: .35rem; }
-    .empty-msg { text-align: center; color: var(--clr-muted); padding: 2rem 1rem; font-size: .88rem; }
-    .loading-box { text-align: center; padding: 2.5rem 1rem; }
-    .spinner-border { border-color: var(--clr-primary); border-right-color: transparent; }
-    .alert-err { background: rgba(220,50,50,.15); border: 1px solid rgba(220,50,50,.4); border-radius: .4rem; padding: .6rem .9rem; font-size: .84rem; color: #f87171; }
-    .yt-btn {
-      display: inline-flex; align-items: center; gap: .3rem; background: rgba(220,50,50,.15);
-      border: 1px solid rgba(220,50,50,.35); color: #f87171; border-radius: .35rem;
-      padding: .25rem .65rem; font-size: .78rem; text-decoration: none; margin: .1rem; transition: background .15s;
-    }
-    .yt-btn:hover { background: rgba(220,50,50,.3); color: #fca5a5; }
-    .igdb-btn {
-      display: inline-flex; align-items: center; gap: .3rem; background: transparent;
-      border: 1px solid var(--clr-border); color: var(--clr-muted); border-radius: .35rem;
-      padding: .3rem .75rem; font-size: .8rem; text-decoration: none; transition: all .15s;
-    }
-    .igdb-btn:hover { border-color: var(--clr-primary); color: var(--clr-text); }
-    .game-id-link { cursor: pointer; }
-    .game-id-link:hover { text-decoration: underline; color: var(--clr-accent); }
-
-    @media (max-width: 576px) {
-      .brand { font-size: 1.1rem; }
-      .nav-tabs .nav-link { padding: .4rem .55rem; font-size: .8rem; }
+    .scroll-x > * {
+      display: inline-block;
+      margin-right: .25rem;
     }
   </style>
 </head>
 <body>
-
-<!-- ── TOP NAV ── -->
-<nav class="top-nav">
-  <div class="brand"><i class="bi bi-controller"></i>GameDB Explorer</div>
-  <span style="font-size:.78rem;color:var(--clr-muted);">
-    <i class="bi bi-database me-1"></i>Powered by
-    <a href="https://github.com/LizardByte/GameDB" target="_blank" style="color:var(--clr-accent);text-decoration:none;">LizardByte / GameDB</a>
-  </span>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">GameDB 查詢</a>
+    <span class="navbar-text small text-muted">
+      資料來源：LizardByte/GameDB（IGDB 靜態 JSON API）
+    </span>
+  </div>
 </nav>
 
-<!-- ── STATS STRIP ── -->
-<div class="stats-strip">
-  <div class="inner" id="statsStrip">
-    <div class="stat-pill"><span class="val">…</span><span class="lbl">Loading stats</span></div>
+<div class="container mb-4">
+  <!-- 搜尋列 -->
+  <div class="row mb-3">
+    <div class="col-12 col-lg-8 mx-auto">
+      <div class="input-group">
+        <input id="searchInput" type="text" class="form-control" placeholder="輸入遊戲名稱關鍵字，例如：Age of Empires">
+        <button id="searchBtn" class="btn btn-primary">搜尋</button>
+      </div>
+      <div class="d-flex justify-content-between mt-1">
+        <small class="text-muted">
+          依 GameDB buckets 規則搜尋，點擊卡片可展開詳細資料。
+        </small>
+        <small id="stats" class="text-muted"></small>
+      </div>
+    </div>
+  </div>
+
+  <!-- 結果列表 -->
+  <div id="results" class="row g-3">
+    <!-- 動態插入 -->
   </div>
 </div>
 
-<!-- ── MAIN ── -->
-<div class="main-wrap">
-
-  <ul class="nav nav-tabs" id="mainTabs" role="tablist">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabGames">
-      <i class="bi bi-joystick me-1"></i><span class="d-none d-sm-inline">Games</span><span class="d-sm-none">🎮</span></a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabPlatforms">
-      <i class="bi bi-display me-1"></i><span class="d-none d-sm-inline">Platforms</span><span class="d-sm-none">🖥</span></a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabCharacters">
-      <i class="bi bi-person me-1"></i><span class="d-none d-sm-inline">Characters</span><span class="d-sm-none">👤</span></a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabCollections">
-      <i class="bi bi-collection me-1"></i><span class="d-none d-sm-inline">Collections</span><span class="d-sm-none">📚</span></a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabFranchises">
-      <i class="bi bi-diagram-3 me-1"></i><span class="d-none d-sm-inline">Franchises</span><span class="d-sm-none">🏛</span></a></li>
-  </ul>
-
-  <div class="tab-content">
-
-    <!-- ═══ GAMES TAB ═══ -->
-    <div class="tab-pane fade show active" id="tabGames">
-      <div class="row g-3">
-        <!-- Left column -->
-        <div class="col-lg-5">
-          <!-- Search -->
-          <div class="gcard mb-3">
-            <div class="gcard-header">
-              <h6><i class="bi bi-search me-2"></i>Search Games by Name</h6>
-            </div>
-            <div class="gcard-body">
-              <div class="input-group mb-1">
-                <input type="text" class="form-control" id="gameSearchInput" placeholder="e.g. Halo, Minecraft, Zelda…" autocomplete="off" />
-                <button class="btn btn-primary" id="gameSearchBtn"><i class="bi bi-search"></i></button>
-              </div>
-              <div style="font-size:.72rem;color:var(--clr-muted);margin-bottom:.75rem;">
-                <i class="bi bi-info-circle me-1"></i>Type at least 2 characters · results come from IGDB bucket index
-              </div>
-              <div id="gameSearchResults"></div>
-            </div>
-          </div>
-          <!-- ID lookup -->
-          <div class="gcard">
-            <div class="gcard-header"><h6><i class="bi bi-hash me-2"></i>Lookup Game by IGDB ID</h6></div>
-            <div class="gcard-body">
-              <div class="input-group">
-                <input type="number" class="form-control" id="gameIdInput" placeholder="e.g. 1020, 9630…" min="1" />
-                <button class="btn btn-primary" id="gameIdBtn"><i class="bi bi-arrow-right-circle"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Right column: detail -->
-        <div class="col-lg-7" id="gameDetailCol" style="display:none">
-          <div class="gcard h-100">
-            <div class="gcard-header">
-              <h6><i class="bi bi-info-circle me-2"></i>Game Details</h6>
-              <button class="btn-sm-outline" id="closeGameDetail"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <div class="gcard-body detail-scroll" id="gameDetailBody"></div>
-          </div>
+<!-- 詳細內容 Modal -->
+<div class="modal fade" id="gameModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 id="gameModalLabel" class="modal-title">遊戲詳細資料</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+      </div>
+      <div class="modal-body">
+        <div id="gameDetailBody">
+          <!-- 動態填入 -->
         </div>
       </div>
-    </div>
-
-    <!-- ═══ PLATFORMS TAB ═══ -->
-    <div class="tab-pane fade" id="tabPlatforms">
-      <div class="row g-3">
-        <div class="col-lg-5">
-          <div class="gcard mb-3">
-            <div class="gcard-header">
-              <h6><i class="bi bi-display me-2"></i>Platforms</h6>
-              <button class="btn btn-accent btn-sm" id="loadPlatformsBtn"><i class="bi bi-arrow-clockwise me-1"></i>Load All</button>
-            </div>
-            <div class="gcard-body">
-              <input class="form-control mb-2" type="text" id="platformFilter" placeholder="Filter…" />
-              <div class="result-list" id="platformsList"></div>
-            </div>
-          </div>
-          <div class="gcard">
-            <div class="gcard-header"><h6><i class="bi bi-hash me-2"></i>Lookup by ID</h6></div>
-            <div class="gcard-body">
-              <div class="input-group">
-                <input type="number" class="form-control" id="platformIdInput" placeholder="Platform ID…" min="1" />
-                <button class="btn btn-primary" id="platformIdBtn"><i class="bi bi-arrow-right-circle"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-7" id="platformDetailCol" style="display:none">
-          <div class="gcard">
-            <div class="gcard-header">
-              <h6><i class="bi bi-display me-2"></i>Platform Details</h6>
-              <button class="btn-sm-outline" onclick="hideDetail('platformDetailCol')"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <div class="gcard-body detail-scroll" id="platformDetailBody"></div>
-          </div>
-        </div>
+      <div class="modal-footer">
+        <small class="text-muted me-auto">
+          Images © IGDB / respective owners. Data via LizardByte GameDB.
+        </small>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- ═══ CHARACTERS TAB ═══ -->
-    <div class="tab-pane fade" id="tabCharacters">
-      <div class="row g-3">
-        <div class="col-lg-5">
-          <div class="gcard mb-3">
-            <div class="gcard-header">
-              <h6><i class="bi bi-person me-2"></i>Characters</h6>
-              <button class="btn btn-accent btn-sm" id="loadCharactersBtn"><i class="bi bi-arrow-clockwise me-1"></i>Load All</button>
-            </div>
-            <div class="gcard-body">
-              <input class="form-control mb-2" type="text" id="characterFilter" placeholder="Filter…" />
-              <div class="result-list" id="charactersList"></div>
-            </div>
-          </div>
-          <div class="gcard">
-            <div class="gcard-header"><h6><i class="bi bi-hash me-2"></i>Lookup by ID</h6></div>
-            <div class="gcard-body">
-              <div class="input-group">
-                <input type="number" class="form-control" id="characterIdInput" placeholder="Character ID…" min="1" />
-                <button class="btn btn-primary" id="characterIdBtn"><i class="bi bi-arrow-right-circle"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-7" id="characterDetailCol" style="display:none">
-          <div class="gcard">
-            <div class="gcard-header">
-              <h6><i class="bi bi-person me-2"></i>Character Details</h6>
-              <button class="btn-sm-outline" onclick="hideDetail('characterDetailCol')"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <div class="gcard-body detail-scroll" id="characterDetailBody"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ COLLECTIONS TAB ═══ -->
-    <div class="tab-pane fade" id="tabCollections">
-      <div class="row g-3">
-        <div class="col-lg-5">
-          <div class="gcard mb-3">
-            <div class="gcard-header">
-              <h6><i class="bi bi-collection me-2"></i>Collections</h6>
-              <button class="btn btn-accent btn-sm" id="loadCollectionsBtn"><i class="bi bi-arrow-clockwise me-1"></i>Load All</button>
-            </div>
-            <div class="gcard-body">
-              <input class="form-control mb-2" type="text" id="collectionFilter" placeholder="Filter…" />
-              <div class="result-list" id="collectionsList"></div>
-            </div>
-          </div>
-          <div class="gcard">
-            <div class="gcard-header"><h6><i class="bi bi-hash me-2"></i>Lookup by ID</h6></div>
-            <div class="gcard-body">
-              <div class="input-group">
-                <input type="number" class="form-control" id="collectionIdInput" placeholder="Collection ID…" min="1" />
-                <button class="btn btn-primary" id="collectionIdBtn"><i class="bi bi-arrow-right-circle"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-7" id="collectionDetailCol" style="display:none">
-          <div class="gcard">
-            <div class="gcard-header">
-              <h6><i class="bi bi-collection me-2"></i>Collection Details</h6>
-              <button class="btn-sm-outline" onclick="hideDetail('collectionDetailCol')"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <div class="gcard-body detail-scroll" id="collectionDetailBody"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ FRANCHISES TAB ═══ -->
-    <div class="tab-pane fade" id="tabFranchises">
-      <div class="row g-3">
-        <div class="col-lg-5">
-          <div class="gcard mb-3">
-            <div class="gcard-header">
-              <h6><i class="bi bi-diagram-3 me-2"></i>Franchises</h6>
-              <button class="btn btn-accent btn-sm" id="loadFranchisesBtn"><i class="bi bi-arrow-clockwise me-1"></i>Load All</button>
-            </div>
-            <div class="gcard-body">
-              <input class="form-control mb-2" type="text" id="franchiseFilter" placeholder="Filter…" />
-              <div class="result-list" id="franchisesList"></div>
-            </div>
-          </div>
-          <div class="gcard">
-            <div class="gcard-header"><h6><i class="bi bi-hash me-2"></i>Lookup by ID</h6></div>
-            <div class="gcard-body">
-              <div class="input-group">
-                <input type="number" class="form-control" id="franchiseIdInput" placeholder="Franchise ID…" min="1" />
-                <button class="btn btn-primary" id="franchiseIdBtn"><i class="bi bi-arrow-right-circle"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-7" id="franchiseDetailCol" style="display:none">
-          <div class="gcard">
-            <div class="gcard-header">
-              <h6><i class="bi bi-diagram-3 me-2"></i>Franchise Details</h6>
-              <button class="btn-sm-outline" onclick="hideDetail('franchiseDetailCol')"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <div class="gcard-body detail-scroll" id="franchiseDetailBody"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /tab-content -->
-</div><!-- /main-wrap -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap JS bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  const BASE = 'https://app.lizardbyte.dev/GameDB';
-  const IGDB_IMG = 'https://images.igdb.com/igdb/image/upload';
+const BASE_URL = 'https://app.lizardbyte.dev/GameDB';
 
-  // ── Utils ─────────────────────────────────────────────────────────
-  const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const cacheBuckets = new Map();    // bucketName -> { id: { name } }
+const cacheGames   = new Map();    // id -> game detail json
+let statsData = null;
 
-  async function api(url) {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error('HTTP ' + r.status + ' — ' + url);
-    return r.json();
+async function loadStats() {
+  try {
+    const res = await fetch(\`\${BASE_URL}/stats.json\`);
+    if (!res.ok) return;
+    statsData = await res.json();
+    const el = document.getElementById('stats');
+    if (statsData && statsData.games) {
+      el.textContent = \`共 \${statsData.games.toLocaleString()} 款遊戲\`;
+    }
+  } catch (e) {
+    console.warn('stats load failed', e);
   }
+}
 
-  function loading(el) {
-    el.innerHTML = '<div class="loading-box"><div class="spinner-border" style="width:2rem;height:2rem" role="status"></div></div>';
+// 根據名稱算 bucket 名（依官方說明）[web:54]
+function getBucketFromName(name) {
+  if (!name) return '@';
+  const trimmed = name.trim();
+  if (!trimmed) return '@';
+  const alnum = trimmed.toLowerCase().replace(/[^a-z0-9]/g, ' ');
+  const chars = alnum.trim().split('');
+  if (!chars.length) return '@';
+  const first = chars[0];
+  const secondOriginal = trimmed.length > 1 ? trimmed[1].toLowerCase() : '';
+  if (secondOriginal && /[a-z0-9]/.test(secondOriginal)) {
+    return (first + secondOriginal);
   }
+  return first;
+}
 
-  function errMsg(el, msg) {
-    el.innerHTML = `<div class="alert-err"><i class="bi bi-exclamation-triangle me-2"></i>${esc(msg)}</div>`;
+// 讀 bucket 檔
+async function loadBucket(bucket) {
+  if (cacheBuckets.has(bucket)) return cacheBuckets.get(bucket);
+  const url = \`\${BASE_URL}/buckets/\${encodeURIComponent(bucket)}.json\`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    cacheBuckets.set(bucket, {});
+    return {};
   }
+  const data = await res.json();
+  cacheBuckets.set(bucket, data);
+  return data;
+}
 
-  function hideDetail(colId) { document.getElementById(colId).style.display = 'none'; }
+// 搜尋：依關鍵字算可能 bucket，再從 bucket 內 filter
+async function searchGames(keyword) {
+  keyword = keyword.trim();
+  if (!keyword) return [];
+  const kwLower = keyword.toLowerCase();
 
-  // ── Bucket helper ────────────────────────────────────────────────
-  function getBucket(name) {
-    if (!name) return '@';
-    const s = name.trim().toLowerCase();
-    const isAN = c => /[a-z0-9]/.test(c);
-    const first = s[0] ?? '';
-    const second = s[1] ?? '';
-    if (!isAN(first)) return '@';
-    if (!second || second === ' ' || !isAN(second)) return first;
-    return first + second;
-  }
+  // 直接從所有已載入 bucket 搜尋 + 目標 bucket
+  const targetBucket = getBucketFromName(keyword);
+  const bucketsToCheck = new Set([targetBucket]);
 
-  // ── Stats ─────────────────────────────────────────────────────────
-  const STAT_ICONS = { games:'bi-joystick', platforms:'bi-display', characters:'bi-person', collections:'bi-collection', franchises:'bi-diagram-3', videos:'bi-play-circle' };
+  const results = [];
 
-  async function loadStats() {
-    const el = document.getElementById('statsStrip');
-    try {
-      const s = await api(`${BASE}/stats.json`);
-      el.innerHTML = Object.entries(s).map(([k,v]) =>
-        `<div class="stat-pill"><i class="bi ${STAT_ICONS[k]||'bi-database'}" style="color:var(--clr-primary)"></i><span class="val">${Number(v).toLocaleString()}</span><span class="lbl">${k}</span></div>`
-      ).join('');
-    } catch(e) {
-      el.innerHTML = '<div class="stat-pill"><span class="lbl">Stats unavailable</span></div>';
+  // 先載入 target bucket
+  const bucketData = await loadBucket(targetBucket);
+  for (const [id, obj] of Object.entries(bucketData)) {
+    if (obj.name && obj.name.toLowerCase().includes(kwLower)) {
+      results.push({ id, name: obj.name });
     }
   }
 
-  // ── Game Search ───────────────────────────────────────────────────
-  let debounceTimer;
-
-  async function searchGames(q) {
-    const el = document.getElementById('gameSearchResults');
-    q = q.trim();
-    if (q.length < 2) { el.innerHTML = '<div class="empty-msg"><i class="bi bi-keyboard me-2"></i>Type at least 2 characters</div>'; return; }
-    loading(el);
-    try {
-      const bucket = getBucket(q);
-      const data = await api(`${BASE}/buckets/${encodeURIComponent(bucket)}.json`);
-      const lower = q.toLowerCase();
-      const hits = Object.entries(data).filter(([,v]) => v.name.toLowerCase().includes(lower))
-                        .sort((a,b) => a[1].name.localeCompare(b[1].name));
-      if (!hits.length) { el.innerHTML = '<div class="empty-msg"><i class="bi bi-search me-2"></i>No games found</div>'; return; }
-      const shown = hits.slice(0, 60);
-      el.innerHTML = shown.map(([id,v]) =>
-        `<div class="r-item" onclick="loadGame(${id})"><span class="r-name">${esc(v.name)}</span><span class="r-id">#${id}</span></div>`
-      ).join('') + (hits.length > 60 ? `<div class="empty-msg" style="padding:.75rem">Showing 60 of ${hits.length} — refine your search</div>` : '');
-    } catch(e) {
-      errMsg(el, 'Search failed: ' + e.message);
+  // 若結果太少，可以補查現有 cache 中其他 bucket
+  if (results.length < 5) {
+    for (const [bName, bData] of cacheBuckets.entries()) {
+      if (bName === targetBucket) continue;
+      for (const [id, obj] of Object.entries(bData)) {
+        if (obj.name && obj.name.toLowerCase().includes(kwLower)) {
+          if (!results.find(r => r.id === id)) {
+            results.push({ id, name: obj.name });
+          }
+        }
+      }
+      if (results.length >= 50) break;
     }
   }
 
-  document.getElementById('gameSearchBtn').addEventListener('click', () => searchGames(document.getElementById('gameSearchInput').value));
-  document.getElementById('gameSearchInput').addEventListener('keypress', e => { if(e.key==='Enter') searchGames(e.target.value); });
-  document.getElementById('gameSearchInput').addEventListener('input', e => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => searchGames(e.target.value), 420);
+  return results.slice(0, 50);
+}
+
+// 讀 game 詳細 JSON
+async function loadGameDetail(id) {
+  if (cacheGames.has(id)) return cacheGames.get(id);
+  const res = await fetch(\`\${BASE_URL}/games/\${id}.json\`);
+  if (!res.ok) throw new Error('game not found');
+  const data = await res.json();
+  cacheGames.set(id, data);
+  return data;
+}
+
+// 由 IGDB style url 組成完整圖片 URL
+function buildImageUrl(obj, size) {
+  if (!obj || !obj.url) return null;
+  let url = obj.url;
+  if (url.startsWith('//')) url = 'https:' + url;
+  if (size) {
+    url = url.replace(/t_[^/]+/, size);
+  }
+  return url;
+}
+
+// 平台名稱：GameDB 的 platforms/<id>.json 也有 name，但這裡先簡化：只列 ID
+function formatPlatforms(platforms) {
+  if (!Array.isArray(platforms) || !platforms.length) return '未知平台';
+  return platforms.join(', ');
+}
+
+function formatArrayNames(arr) {
+  if (!Array.isArray(arr) || !arr.length) return '無';
+  return arr.map(a => a.name).join('、');
+}
+
+function formatAgeRatings(ratings) {
+  if (!Array.isArray(ratings) || !ratings.length) return '無';
+  return ratings.map(r => \`\${r.organization?.name || ''} \${r.rating_category?.rating || ''}\`).join('；');
+}
+
+function formatReleaseDates(dates) {
+  if (!Array.isArray(dates) || !dates.length) return '無';
+  return dates.map(d => {
+    const year = d.y || '';
+    const region = d.release_region?.region || '';
+    const plat = d.platform || '';
+    return \`\${year}（平台ID \${plat}，\${region}）\`;
+  }).join('；');
+}
+
+function formatCompanies(companies) {
+  if (!Array.isArray(companies) || !companies.length) return '無';
+  return companies.map(c => {
+    const role = c.developer ? '開發' : '參與';
+    return \`\${c.company?.name || ''}（\${role}）\`;
+  }).join('；');
+}
+
+// 渲染結果卡片
+function renderResults(list) {
+  const container = document.getElementById('results');
+  container.innerHTML = '';
+  if (!list.length) {
+    container.innerHTML = '<p class="text-center text-muted">沒有找到相符的遊戲。</p>';
+    return;
+  }
+  list.forEach(item => {
+    const col = document.createElement('div');
+    col.className = 'col-12 col-sm-6 col-md-4 col-lg-3';
+
+    col.innerHTML = \`
+      <div class="card game-card h-100" data-id="\${item.id}">
+        <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height:220px;">
+          <span class="text-center px-2">\${item.name}</span>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title text-truncate" title="\${item.name}">\${item.name}</h6>
+          <p class="card-text mb-1"><small class="text-muted">ID: \${item.id}</small></p>
+          <p class="card-text"><small class="text-muted">點擊查看詳細資料</small></p>
+        </div>
+      </div>\`;
+
+    col.querySelector('.game-card').addEventListener('click', () => {
+      openGameDetail(item.id, item.name);
+    });
+
+    container.appendChild(col);
   });
+}
 
-  document.getElementById('gameIdBtn').addEventListener('click', () => { const v=document.getElementById('gameIdInput').value; if(v) loadGame(+v); });
-  document.getElementById('gameIdInput').addEventListener('keypress', e => { if(e.key==='Enter'&&e.target.value) loadGame(+e.target.value); });
-  document.getElementById('closeGameDetail').addEventListener('click', () => hideDetail('gameDetailCol'));
+// 打開詳細 modal
+async function openGameDetail(id, fallbackName) {
+  const modalEl = document.getElementById('gameModal');
+  const titleEl = document.getElementById('gameModalLabel');
+  const bodyEl = document.getElementById('gameDetailBody');
 
-  // ── Load & render game ────────────────────────────────────────────
-  async function loadGame(id) {
-    const col  = document.getElementById('gameDetailCol');
-    const body = document.getElementById('gameDetailBody');
-    col.style.display = 'block';
-    loading(body);
-    // Scroll to detail on mobile
-    if (window.innerWidth < 992) col.scrollIntoView({behavior:'smooth'});
-    try {
-      const g = await api(`${BASE}/games/${id}.json`);
-      renderGame(g, body);
-    } catch(e) {
-      errMsg(body, 'Failed to load game #' + id + ': ' + e.message);
-    }
-  }
+  titleEl.textContent = fallbackName || ('遊戲 #' + id);
+  bodyEl.innerHTML = '<p class="text-muted">載入中...</p>';
 
-  function renderGame(g, el) {
-    // 封面邏輯：cover > 第一張 screenshot > placeholder
-    let coverHtml = '';
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  modal.show();
 
-    if (g.cover?.image_id) {
-      coverHtml = `<img src="${IGDB_IMG}/t_cover_big/${esc(g.cover.image_id)}.jpg"
-                       class="cover-img"
-                       alt="${esc(g.name)}"
-                       onerror="this.style.display='none'">`;
-    } else if (g.screenshots?.length) {
-      const firstShot = g.screenshots[0];
-      coverHtml = `<img src="${IGDB_IMG}/t_screenshot_big/${esc(firstShot.image_id)}.jpg"
-                       class="cover-img"
-                       alt="${esc(g.name)}"
-                       onerror="this.style.display='none'">`;
+  try {
+    const game = await loadGameDetail(id);
+    titleEl.textContent = game.name || fallbackName || ('遊戲 #' + id);
+
+    const coverUrl = buildImageUrl(game.cover, 't_cover_big');
+    const screenshots = Array.isArray(game.screenshots) ? game.screenshots : [];
+    const genres = formatArrayNames(game.genres);
+    const themes = formatArrayNames(game.themes);
+    const modes = formatArrayNames(game.game_modes);
+    const perspectives = formatArrayNames(game.player_perspectives);
+    const ageRatings = formatAgeRatings(game.age_ratings);
+    const companies = formatCompanies(game.involved_companies);
+    const releases = formatReleaseDates(game.release_dates);
+    const rating = game.rating ? game.rating.toFixed(1) : 'N/A';
+    const url = game.url || '';
+    const videos = Array.isArray(game.videos) ? game.videos : [];
+    const externalGames = Array.isArray(game.external_games) ? game.external_games : [];
+
+    // screenshots carousel
+    let screenshotHtml = '';
+    if (screenshots.length) {
+      const carouselId = 'carousel-' + id;
+      const items = screenshots.slice(0, 6).map((s, idx) => {
+        const src = buildImageUrl(s, 't_screenshot_big') || buildImageUrl(s);
+        if (!src) return '';
+        return \`
+          <div class="carousel-item \${idx === 0 ? 'active' : ''}">
+            <img src="\${src}" class="d-block w-100" alt="Screenshot \${idx+1}">
+          </div>\`;
+      }).join('');
+      screenshotHtml = \`
+        <div id="\${carouselId}" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            \${items}
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#\${carouselId}" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">上一張</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#\${carouselId}" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">下一張</span>
+          </button>
+        </div>\`;
     } else {
-      coverHtml = `<div class="cover-placeholder"><i class="bi bi-controller"></i></div>`;
+      screenshotHtml = '<p class="text-muted mb-0">沒有截圖資料。</p>';
     }
 
-    const release = g.first_release_date ? new Date(g.first_release_date*1000).toLocaleDateString('en-GB',{year:'numeric',month:'short',day:'numeric'}) : null;
-    const rating  = g.total_rating ? Math.round(g.total_rating) : null;
-    const ratingColor = rating>=75?'#4ade80':rating>=50?'#facc15':'#f87171';
+    // videos
+    const videosHtml = videos.length
+      ? videos.slice(0, 4).map(v => {
+          const thumb = v.thumb || (\`https://i.ytimg.com/vi/\${v.video_id}/hqdefault.jpg\`);
+          return \`
+            <a href="\${v.url}" target="_blank" class="text-decoration-none me-2 mb-2">
+              <img src="\${thumb}" alt="\${v.name}" style="height:80px;object-fit:cover;border-radius:4px;">
+            </a>\`;
+        }).join('')
+      : '<span class="text-muted">無影片資料</span>';
 
-    const tags = arr => arr?.map(a=>a.name).filter(Boolean).map(n=>`<span class="tag">${esc(n)}</span>`).join('') || '';
+    // external games links
+    const externalHtml = externalGames.length
+      ? externalGames.map(e => \`<a href="\${e.url}" target="_blank" class="badge bg-secondary me-1 mb-1">\${e.external_game_source?.name || ''}</a>\`).join('')
+      : '<span class="text-muted">無</span>';
 
-    const shots = g.screenshots?.slice(0,8).map(s =>
-      `<a href="${IGDB_IMG}/t_screenshot_big/${esc(s.image_id)}.jpg" target="_blank" title="Screenshot">
-         <img src="${IGDB_IMG}/t_thumb/${esc(s.image_id)}.jpg" class="thumb-img" alt="" onerror="this.parentElement.style.display='none'" />
-       </a>`
-    ).join('') || '';
-
-    const vids = g.videos?.slice(0,5).map(v =>
-      `<a class="yt-btn" href="https://www.youtube.com/watch?v=${esc(v.video_id)}" target="_blank"><i class="bi bi-youtube"></i>${esc(v.name||'Watch')}</a>`
-    ).join('') || '';
-
-    const devs = g.involved_companies?.filter(c=>c.developer).map(c=>`<span class="tag">${esc(c.company?.name||'')}</span>`).join('') || '';
-    const pubs = g.involved_companies?.filter(c=>c.publisher).map(c=>`<span class="tag">${esc(c.company?.name||'')}</span>`).join('') || '';
-
-    el.innerHTML = `
-      <div class="d-flex gap-3 mb-3 flex-wrap">
-        ${coverHtml}
-        <div style="flex:1;min-width:160px">
-          <h5 class="mb-1" style="line-height:1.25">${esc(g.name)}</h5>
-          <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
-            ${rating ? `<div class="rating-ring" style="border-color:${ratingColor};color:${ratingColor}">${rating}</div>` : ''}
-            <div>
-              ${release ? `<div class="info-row"><i class="bi bi-calendar3 me-1" style="color:var(--clr-muted)"></i>${release}</div>` : ''}
-              ${g.total_rating_count ? `<div class="info-row"><i class="bi bi-star me-1" style="color:var(--clr-muted)"></i>${g.total_rating_count.toLocaleString()} ratings</div>` : ''}
-              <div class="info-row"><span class="lbl">ID:</span>${g.id}</div>
+    bodyEl.innerHTML = \`
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <div class="card mb-3">
+            \${coverUrl
+              ? \`<img src="\${coverUrl}" class="card-img-top" alt="Cover">\`
+              : \`<div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white" style="height:260px;">無封面圖</div>\`
+            }
+            <div class="card-body">
+              <h5 class="card-title mb-1">\${game.name || ''}</h5>
+              <p class="mb-1"><small class="text-muted">ID: \${game.id}</small></p>
+              \${url ? \`<a href="\${url}" target="_blank" class="btn btn-sm btn-outline-primary">IGDB 頁面</a>\` : ''}
             </div>
           </div>
-          ${tags(g.genres)}
+
+          <div class="card">
+            <div class="card-header py-2"><strong>基本資料</strong></div>
+            <div class="card-body small">
+              <p class="mb-1"><strong>評分：</strong>\${rating}</p>
+              <p class="mb-1"><strong>平台ID：</strong>\${formatPlatforms(game.platforms)}</p>
+              <p class="mb-1"><strong>遊戲模式：</strong>\${modes}</p>
+              <p class="mb-1"><strong>視角：</strong>\${perspectives}</p>
+              <p class="mb-1"><strong>類型：</strong>\${genres}</p>
+              <p class="mb-1"><strong>主題：</strong>\${themes}</p>
+              <p class="mb-1"><strong>分級：</strong>\${ageRatings}</p>
+              <p class="mb-1"><strong>公司：</strong>\${companies}</p>
+              <p class="mb-1"><strong>發售：</strong>\${releases}</p>
+            </div>
+          </div>
         </div>
-      </div>
 
-      ${g.summary ? `<div class="mb-3"><div class="sect-label">Summary</div><p style="font-size:.84rem;line-height:1.55">${esc(g.summary)}</p></div>` : ''}
-      ${g.storyline ? `<div class="mb-3"><div class="sect-label">Storyline</div><p style="font-size:.84rem;line-height:1.55">${esc(g.storyline)}</p></div>` : ''}
+        <div class="col-12 col-md-8">
+          <div class="card mb-3">
+            <div class="card-header py-2"><strong>簡介</strong></div>
+            <div class="card-body">
+              <p>\${game.summary || '<span class="text-muted">無摘要</span>'}</p>
+              \${game.storyline
+                ? '<hr><h6>故事背景</h6><p>' + game.storyline + '</p>'
+                : ''
+              }
+            </div>
+          </div>
 
-      ${tags(g.platforms) ? `<div class="mb-2"><div class="sect-label">Platforms</div>${tags(g.platforms)}</div>` : ''}
-      ${tags(g.themes) ? `<div class="mb-2"><div class="sect-label">Themes</div>${tags(g.themes)}</div>` : ''}
-      ${tags(g.game_modes) ? `<div class="mb-2"><div class="sect-label">Game Modes</div>${tags(g.game_modes)}</div>` : ''}
-      ${tags(g.player_perspectives) ? `<div class="mb-2"><div class="sect-label">Perspective</div>${tags(g.player_perspectives)}</div>` : ''}
-      ${devs ? `<div class="mb-2"><div class="sect-label">Developer</div>${devs}</div>` : ''}
-      ${pubs ? `<div class="mb-2"><div class="sect-label">Publisher</div>${pubs}</div>` : ''}
+          <div class="card mb-3">
+            <div class="card-header py-2 d-flex justify-content-between align-items-center">
+              <strong>截圖</strong>
+            </div>
+            <div class="card-body">
+              \${screenshotHtml}
+            </div>
+          </div>
 
-      ${shots ? `<div class="mb-3"><div class="sect-label">Screenshots</div><div class="d-flex flex-wrap gap-1">${shots}</div></div>` : ''}
-      ${vids  ? `<div class="mb-3"><div class="sect-label">Videos</div>${vids}</div>` : ''}
+          <div class="card mb-3">
+            <div class="card-header py-2"><strong>影片</strong></div>
+            <div class="card-body">
+              <div class="scroll-x">
+                \${videosHtml}
+              </div>
+            </div>
+          </div>
 
-      <div class="divider"></div>
-      <div class="d-flex gap-2 flex-wrap">
-        ${g.slug ? `<a class="igdb-btn" href="https://www.igdb.com/games/${esc(g.slug)}" target="_blank"><i class="bi bi-box-arrow-up-right"></i>IGDB</a>` : ''}
-        ${g.url  ? `<a class="igdb-btn" href="${esc(g.url)}" target="_blank"><i class="bi bi-link-45deg"></i>Official</a>` : ''}
-      </div>
-    `;
+          <div class="card">
+            <div class="card-header py-2"><strong>外部連結</strong></div>
+            <div class="card-body">
+              \${externalHtml}
+            </div>
+          </div>
+        </div>
+      </div>\`;
+  } catch (e) {
+    console.error(e);
+    bodyEl.innerHTML = '<p class="text-danger">載入遊戲詳細資料失敗。</p>';
   }
+}
 
-  // ── Generic category browser ──────────────────────────────────────
-  function setupCategory(category, listId, filterId, loadBtnId, idInputId, idBtnId, detailColId, detailBodyId) {
-    let allItems = [];
-
-    function renderList(filter='') {
-      const el = document.getElementById(listId);
-      const lower = filter.toLowerCase();
-      const shown = filter
-        ? allItems.filter(([,v]) => (v.name||v.slug||'').toLowerCase().includes(lower))
-        : allItems;
-      if (!shown.length) { el.innerHTML = '<div class="empty-msg">No results found</div>'; return; }
-      el.innerHTML = shown.slice(0,120).map(([id,v]) =>
-        `<div class="r-item" onclick="loadCatItem('${category}',${id},'${detailColId}','${detailBodyId}')"><span class="r-name">${esc(v.name||v.slug||'#'+id)}</span><span class="r-id">#${id}</span></div>`
-      ).join('') + (shown.length>120 ? `<div class="empty-msg" style="padding:.75rem">Showing 120 of ${shown.length}</div>` : '');
-    }
-
-    document.getElementById(loadBtnId).addEventListener('click', async () => {
-      const el = document.getElementById(listId);
-      loading(el);
-      try {
-        const data = await api(`${BASE}/${category}/all.json`);
-        allItems = Object.entries(data).sort((a,b)=> (a[1].name||a[1].slug||'').localeCompare(b[1].name||b[1].slug||''));
-        renderList(document.getElementById(filterId).value);
-      } catch(e) {
-        errMsg(el, 'Failed to load: ' + e.message);
-      }
-    });
-
-    document.getElementById(filterId).addEventListener('input', e => renderList(e.target.value));
-
-    document.getElementById(idBtnId).addEventListener('click', () => {
-      const v = document.getElementById(idInputId).value;
-      if(v) loadCatItem(category, +v, detailColId, detailBodyId);
-    });
-    document.getElementById(idInputId).addEventListener('keypress', e => {
-      if(e.key==='Enter'&&e.target.value) loadCatItem(category, +e.target.value, detailColId, detailBodyId);
-    });
-  }
-
-  async function loadCatItem(category, id, colId, bodyId) {
-    const col  = document.getElementById(colId);
-    const body = document.getElementById(bodyId);
-    col.style.display = 'block';
-    loading(body);
-    if (window.innerWidth < 992) col.scrollIntoView({behavior:'smooth'});
-    try {
-      const item = await api(`${BASE}/${category}/${id}.json`);
-      renderCatItem(item, body, category);
-    } catch(e) {
-      errMsg(body, 'Load failed: ' + e.message);
-    }
-  }
-
-  function renderCatItem(item, el, category) {
-    // Image
-    let imgHtml = '';
-    if (item.logo?.image_id)
-      imgHtml = `<img src="${IGDB_IMG}/t_logo_med/${esc(item.logo.image_id)}.jpg" style="max-height:80px;border-radius:.35rem;margin-bottom:.75rem" alt="" onerror="this.style.display='none'">`;
-    else if (item.mug_shot?.image_id)
-      imgHtml = `<img src="${IGDB_IMG}/t_thumb/${esc(item.mug_shot.image_id)}.jpg" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:.75rem" alt="" onerror="this.style.display='none'">`;
-
-    // Games list
-    const gamesHtml = item.games?.length
-      ? `<div class="mb-3"><div class="sect-label">Games (${item.games.length})</div>
-           <div>${item.games.slice(0,30).map(gid=>
-             `<span class="tag game-id-link" onclick="switchToGame(${gid})" title="Load game #${gid}">🎮 #${gid}</span>`
-           ).join('') + (item.games.length>30?`<span class="tag">+${item.games.length-30} more</span>`:'')}</div></div>`
-      : '';
-
-    // Plain key/value fields
-    const skip = new Set(['id','checksum','name','slug','description','summary','logo','mug_shot','games','url','created_at','updated_at']);
-    const kvHtml = Object.entries(item)
-      .filter(([k,v]) => !skip.has(k) && typeof v !== 'object')
-      .map(([k,v]) => {
-        const display = (k.endsWith('_date')||k.endsWith('_at')) && typeof v==='number'
-          ? new Date(v*1000).toLocaleDateString('en-GB',{year:'numeric',month:'short',day:'numeric'})
-          : esc(String(v));
-        return `<div class="info-row"><span class="lbl">${esc(k.replace(/_/g,' '))}:</span>${display}</div>`;
-      }).join('');
-
-    el.innerHTML = `
-      ${imgHtml}
-      <h5 class="mb-1">${esc(item.name||item.slug||'#'+item.id)}</h5>
-      <div class="info-row mb-2"><span class="lbl">ID:</span>${item.id}</div>
-      ${item.description ? `<p style="font-size:.84rem;line-height:1.55">${esc(item.description)}</p>` : ''}
-      ${item.summary    ? `<p style="font-size:.84rem;line-height:1.55">${esc(item.summary)}</p>` : ''}
-      ${kvHtml}
-      ${gamesHtml}
-      ${item.url ? `<div class="divider"></div><a class="igdb-btn" href="${esc(item.url)}" target="_blank"><i class="bi bi-box-arrow-up-right"></i>IGDB</a>` : ''}
-    `;
-  }
-
-  // Switch from any category detail to Games tab and load game
-  function switchToGame(id) {
-    const gamesTab = document.querySelector('a[href="#tabGames"]');
-    bootstrap.Tab.getOrCreateInstance(gamesTab).show();
-    loadGame(id);
-  }
-
-  // ── Wire up all categories ────────────────────────────────────────
-  setupCategory('platforms',  'platformsList',   'platformFilter',   'loadPlatformsBtn',   'platformIdInput',   'platformIdBtn',   'platformDetailCol',   'platformDetailBody');
-  setupCategory('characters', 'charactersList',  'characterFilter',  'loadCharactersBtn',  'characterIdInput',  'characterIdBtn',  'characterDetailCol',  'characterDetailBody');
-  setupCategory('collections','collectionsList', 'collectionFilter', 'loadCollectionsBtn', 'collectionIdInput', 'collectionIdBtn', 'collectionDetailCol', 'collectionDetailBody');
-  setupCategory('franchises', 'franchisesList',  'franchiseFilter',  'loadFranchisesBtn',  'franchiseIdInput',  'franchiseIdBtn',  'franchiseDetailCol',  'franchiseDetailBody');
-
-  // ── Boot ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
   loadStats();
+
+  const input = document.getElementById('searchInput');
+  const btn = document.getElementById('searchBtn');
+
+  async function doSearch() {
+    const kw = input.value;
+    if (!kw.trim()) return;
+    const results = await searchGames(kw);
+    renderResults(results);
+  }
+
+  btn.addEventListener('click', doSearch);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+});
 </script>
 </body>
 </html>

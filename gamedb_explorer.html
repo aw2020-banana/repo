@@ -627,6 +627,20 @@
       </div>
     </div>
     <div class="ai-status" id="aiStatus"></div>
+    
+    <div style="padding:.3rem .6rem;border-top:1px solid var(--clr-border);border-bottom:1px solid var(--clr-border);">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div style="font-size:.7rem;color:var(--clr-muted);">
+      API Key 僅儲存在本機瀏覽器，不會上傳伺服器。
+    </div>
+    <div class="input-group input-group-sm" style="max-width:260px;">
+      <input type="password" class="form-control" id="aiKeyInput" placeholder="輸入 LongCat API Key" />
+      <button class="btn btn-sm-outline" id="aiKeySaveBtn" type="button">儲存</button>
+    </div>
+  </div>
+</div>
+
+    
     <div class="ai-input-row">
       <input type="text" class="form-control form-control-sm" id="aiInput" placeholder="請用中文輸入問題…" />
       <button class="btn btn-primary btn-sm" id="aiSendBtn"><i class="bi bi-send"></i></button>
@@ -639,7 +653,8 @@
 // ══════════════════════════════════════════════════════
 // ①  CONFIG — 填入你的 LongCat API 設定
 // ══════════════════════════════════════════════════════
-const AI_CONFIG = {
+const LS_AI_KEY = 'gamedb_ai_key';
+  const AI_CONFIG = {
   url:   'https://api.302.ai/v1/chat/completions', // 或 https://openrouter.ai/api/v1/chat/completions
   key:   'YOUR_API_KEY_HERE',                       // 替換成你的 API Key
   model: 'LongCat-Flash-Lite'                       // 或 meituan/longcat-flash-chat (OpenRouter)

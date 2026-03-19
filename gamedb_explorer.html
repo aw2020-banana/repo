@@ -1300,4 +1300,50 @@ async function callLongCat(question) {
     sys += `\n若用戶未指定其他遊戲，請優先針對此遊戲回答。`;
   }
   const body = {
-    model: AI_CONFIG
+    model: AI_CONFIG.model,
+    messages: [
+      { role: 'system', content: sys },
+      { role: 'user',   content: question + '\n請用繁體中文回答，偏向遊戲資料庫與收藏家視角，盡量有條列重點。' }
+    ],
+    temperature: 0.7,
+    top_p: 0.95,
+    max_tokens: 800
+  };
+
+  const res = await fetch(AI_CONFIG.url, {
+    method: 'POST',
+    headers: {
+      'Content-Type':'application/json',
+      'Authorization': `Bearer ${AI_CONFIG.key}`
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const tx = await res.text();
+    throw new Error('HTTP ' + res.status + ' ' + tx);
+  }
+  const json = await res.json();
+  const txt = json.choices?.[0]?.message?.content || '(未取得內容)';
+  return txt;
+}
+// ══════════════════════════════════════════════════════
+// ⑫  BOTTOM NAV / INIT
+// ══════════════════════════════════════════════════════
+document.querySelectorAll('.bn-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.getAttribute('data-tab');
+    document.querySelectorAll('.bn-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tabLink = document.querySelector(`a[href="${tabId}"]`);
+    if (tabLink) bootstrap.Tab.getOrCreateInstance(tabLink).show();
+  });
+});
+
+// 初始載入
+loadStats();
+renderCollUI();
+</script>
+</body>
+</html>
+

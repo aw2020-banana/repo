@@ -497,7 +497,24 @@
   }
 
   function renderGame(g, el) {
-    const cover = g.cover?.image_id ? `<img src="${IGDB_IMG}/t_cover_big/${esc(g.cover.image_id)}.jpg" class="cover-img" alt="${esc(g.name)}" onerror="this.style.display='none'">` : `<div class="cover-placeholder"><i class="bi bi-controller"></i></div>`;
+    // 封面邏輯：cover > 第一張 screenshot > placeholder
+    let coverHtml = '';
+
+    if (g.cover?.image_id) {
+      coverHtml = `<img src="${IGDB_IMG}/t_cover_big/${esc(g.cover.image_id)}.jpg"
+                       class="cover-img"
+                       alt="${esc(g.name)}"
+                       onerror="this.style.display='none'">`;
+    } else if (g.screenshots?.length) {
+      const firstShot = g.screenshots[0];
+      coverHtml = `<img src="${IGDB_IMG}/t_screenshot_big/${esc(firstShot.image_id)}.jpg"
+                       class="cover-img"
+                       alt="${esc(g.name)}"
+                       onerror="this.style.display='none'">`;
+    } else {
+      coverHtml = `<div class="cover-placeholder"><i class="bi bi-controller"></i></div>`;
+    }
+
     const release = g.first_release_date ? new Date(g.first_release_date*1000).toLocaleDateString('en-GB',{year:'numeric',month:'short',day:'numeric'}) : null;
     const rating  = g.total_rating ? Math.round(g.total_rating) : null;
     const ratingColor = rating>=75?'#4ade80':rating>=50?'#facc15':'#f87171';
@@ -519,7 +536,7 @@
 
     el.innerHTML = `
       <div class="d-flex gap-3 mb-3 flex-wrap">
-        ${cover}
+        ${coverHtml}
         <div style="flex:1;min-width:160px">
           <h5 class="mb-1" style="line-height:1.25">${esc(g.name)}</h5>
           <div class="d-flex align-items-center gap-2 flex-wrap mb-2">

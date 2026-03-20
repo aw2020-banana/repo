@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>即時匯率轉換器</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh;
+      padding:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .container{
+      background:rgba(255,255,255,.95);
+      backdrop-filter:blur(10px);
+      border-radius:20px;
+      padding:30px;
+      box-shadow:0 20px 40px rgba(0,0,0,.1);
+      max-width:500px;
+      width:100%;
+    }
+    h1{
+      text-align:center;
+      color:#333;
+      margin-bottom:20px;
+      font-size:1.8em;
+      font-weight:700;
+    }
+    .subtitle{
+      text-align:center;
+      font-size:.9em;
+      color:#666;
+      margin-bottom:10px;
+    }
+    .status{
+      text-align:center;
+      padding:8px;
+      border-radius:10px;
+      margin-bottom:15px;
+      font-weight:500;
+      font-size:.9em;
+    }
+    .status.online{
+      background:#d4edda;
+      color:#155724;
+      border:1px solid #c3e6cb;
+    }
+    .status.offline{
+      background:#f8d7da;
+      color:#721c24;
+      border:1px solid #f5c6cb;
+    }
+    .input-group{
+      position:relative;
+      margin-bottom:15px;
+    }
+    .input-label{
+      font-size:.9em;
+      color:#555;
+      margin-bottom:5px;
+    }
+    .input-group input{
+      width:100%;
+      padding:12px 16px;
+      border:2px solid #e1e5e9;
+      border-radius:12px;
+      font-size:1.1em;
+      transition:all .3s ease;
+      background:#f8f9fa;
+    }
+    .input-group input:focus{
+      outline:none;
+      border-color:#667eea;
+      background:#fff;
+      box-shadow:0 0 0 3px rgba(102,126,234,.1);
+    }
+    .base-hint{
+      font-size:.85em;
+      color:#777;
+      margin-bottom:10px;
+      text-align:right;
+    }
+    .currency-row{
+      display:flex;
+      align-items:center;
+      padding:10px 12px;
+      margin-bottom:10px;
+      background:#fff;
+      border-radius:12px;
+      box-shadow:0 2px 10px rgba(0,0,0,.05);
+      transition:all .2s ease;
+      cursor:pointer;
+    }
+    .currency-row:hover{
+      transform:translateY(-1px);
+      box-shadow:0 5px 15px rgba(0,0,0,.08);
+    }
+    .currency-row.active{
+      border:2px solid #667eea;
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      color:#fff;
+    }
+    .currency-code{
+      font-size:1.1em;
+      font-weight:700;
+      min-width:52px;
+      text-align:center;
+    }
+    .currency-name{
+      flex:1;
+      font-size:.85em;
+      opacity:.9;
+      margin-left:8px;
+    }
+    .currency-value{
+      font-size:1.1em;
+      font-weight:700;
+      text-align:right;
+      min-width:120px;
+    }
+    .error{
+      background:#f8d7da;
+      color:#721c24;
+      padding:10px;
+      border-radius:10px;
+      margin-top:10px;
+      border:1px solid #f5c6cb;
+      font-size:.9em;
+      display:none;
+    }
+    .footer{
+      margin-top:10px;
+      font-size:.75em;
+      color:#888;
+      text-align:center;
+    }
+    @media (max-width:480px){
+      .container{padding:20px;margin:10px;}
+      h1{font-size:1.5em;}
+      .currency-value{min-width:90px;font-size:1em;}
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🌍 即時匯率轉換</h1>
+  <div class="subtitle">HKD / CNY / TWD / JPY / KRW / THB / EUR / GBP / USD</div>
+
+  <div id="status" class="status">檢查網路連線...</div>
+
+  <div class="input-group">
+    <div class="input-label">輸入金額</div>
+    <input type="number" id="amountInput" value="1" step="0.0001" min="0">
+  </div>
+  <div class="base-hint">目前基準貨幣：<span id="baseLabel">HKD</span></div>
+
+  <div id="currencies"></div>
+  <div id="error" class="error"></div>
+
+  <div class="footer">
+    匯率來源：ExchangeRate-API（每日更新，可快取離線使用）
+  </div>
+</div>
+
+<script>
+  const currencies = {
+    HKD: { name: '香港幣 (HKD)', symbol: 'HK$' },
+    CNY: { name: '人民幣 (CNY)', symbol: '¥' },
+    TWD: { name: '新台幣 (TWD)', symbol: 'NT$' },
+    JPY: { name: '日圓 (JPY)', symbol: '¥' },
+    KRW: { name: '韓圓 (KRW)', symbol: '₩' },
+    THB: { name: '泰銖 (THB)', symbol: '฿' },
+    EUR: { name: '歐元 (EUR)', symbol: '€' },
+    GBP: { name: '英鎊 (GBP)', symbol: '£' },
+    USD: { name: '美元 (USD)', symbol: '$' }
+  };
+
+  let rates = {};
+  let isOnline = false;
+  let lastUpdate = null;
+  let baseCurrency = 'HKD'; // 共用輸入框所代表的貨幣
+
+  function updateStatus() {
+    const statusEl = document.getElementById('status');
+    isOnline = navigator.onLine; // 瀏覽器線上狀態 [web:14][web:17]
+    if (isOnline) {
+      statusEl.textContent = lastUpdate
+        ? `線上模式（最後更新：${lastUpdate}）`
+        : '線上模式，正在載入匯率...';
+      statusEl.className = 'status online';
+    } else {
+      statusEl.textContent = '離線模式，使用快取匯率';
+      statusEl.className = 'status offline';
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function hideError() {
+    document.getElementById('error').style.display = 'none';
+  }
+
+  function formatNumber(num) {
+    return parseFloat(num).toFixed(4);
+  }
+
+  async function fetchRates() {
+    try {
+      hideError();
+      // 開放免 Key 端點，每日更新一次，可合法快取 [web:19]
+      const resp = await fetch('https://api.exchangerate-api.com/v4/latest/HKD');
+      if (!resp.ok) throw new Error('API 請求失敗');
+      const data = await resp.json();
+      rates = data.rates || data.conversion_rates || {};
+      rates['HKD'] = 1;
+      lastUpdate = new Date().toLocaleString('zh-TW');
+
+      localStorage.setItem(
+        'exchange_rates',
+        JSON.stringify({ rates, timestamp: Date.now() })
+      ); // localStorage 快取數據 [web:20][web:22]
+
+      updateStatus();
+      updateAllDisplays();
+    } catch (e) {
+      console.error(e);
+      loadCachedRates();
+    }
+  }
+
+  function loadCachedRates() {
+    try {
+      const cached = localStorage.getItem('exchange_rates');
+      if (cached) {
+        const data = JSON.parse(cached);
+        if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+          rates = data.rates;
+          lastUpdate = new Date(data.timestamp).toLocaleString('zh-TW');
+          updateStatus();
+          updateAllDisplays();
+          return true;
+        }
+      }
+    } catch (e) {
+      console.error('讀取快取失敗', e);
+    }
+    showError('無可用匯率，請連線一次以更新資料。');
+    return false;
+  }
+
+  // 核心換算：共用輸入框金額 + 基準貨幣 → 先換成 HKD，再換成其他貨幣
+  function updateAllDisplays() {
+    const inputEl = document.getElementById('amountInput');
+    const amountBase = parseFloat(inputEl.value) || 0;
+    if (!rates || !rates['HKD']) return;
+
+    let amountInHKD;
+    if (baseCurrency === 'HKD') {
+      amountInHKD = amountBase;
+    } else {
+      const rateBase = rates[baseCurrency]; // 1 HKD -> baseCurrency
+      if (!rateBase || rateBase === 0) return;
+      amountInHKD = amountBase / rateBase;
+    }
+
+    Object.keys(currencies).forEach(code => {
+      const row = document.querySelector(`[data-code="${code}"]`);
+      if (!row) return;
+      let value = 0;
+
+      if (code === 'HKD') {
+        value = amountInHKD;
+      } else {
+        const r = rates[code];
+        if (!r) return;
+        value = amountInHKD * r;
+      }
+      row.querySelector('.currency-value').textContent = formatNumber(value);
+    });
+  }
+
+  function initCurrencies() {
+    const container = document.getElementById('currencies');
+    container.innerHTML = '';
+
+    Object.entries(currencies).forEach(([code, info]) => {
+      const row = document.createElement('div');
+      row.className = 'currency-row';
+      row.dataset.code = code;
+      row.innerHTML = `
+        <div class="currency-code">${code}</div>
+        <div class="currency-name">${info.name}</div>
+        <div class="currency-value">${code === 'HKD' ? '1.0000' : '0.0000'}</div>
+      `;
+
+      row.addEventListener('click', () => {
+        document
+          .querySelectorAll('.currency-row')
+          .forEach(r => r.classList.remove('active'));
+        row.classList.add('active');
+
+        baseCurrency = code;
+        document.getElementById('baseLabel').textContent = code;
+
+        // 不改輸入框數值，只改「這個數字代表的貨幣」，再依新基準重算
+        updateAllDisplays();
+      });
+
+      container.appendChild(row);
+    });
+
+    document.querySelector('[data-code="HKD"]').classList.add('active');
+  }
+
+  document.getElementById('amountInput').addEventListener('input', () => {
+    updateAllDisplays();
+  });
+
+  window.addEventListener('online', () => {
+    updateStatus();
+    fetchRates();
+  });
+
+  window.addEventListener('offline', updateStatus);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateStatus();
+    initCurrencies();
+
+    // 初始：若在線先拉 API，否則用快取
+    if (navigator.onLine) {
+      fetchRates();
+    } else {
+      loadCachedRates();
+    }
+  });
+
+  // 每 30 分鐘自動更新一次（API 每日更新，這個頻率很安全）[web:19]
+  setInterval(() => {
+    if (navigator.onLine) {
+      fetchRates();
+    }
+  }, 30 * 60 * 1000);
+</script>
+</body>
+</html>

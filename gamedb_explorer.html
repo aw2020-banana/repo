@@ -964,12 +964,14 @@ async function loadCatItem(cat,id,colId,bodyId){
   const col=document.getElementById(colId),body=document.getElementById(bodyId);
   col.style.display='block';loading(body);
   if(window.innerWidth<992)col.scrollIntoView({behavior:'smooth'});
-  try{const item=await api(`${BASE}/${cat}/${id}.json`);renderCatItem(item,body);}catch(e){errMsg(body,'載入失敗：'+e.message);}
+  try{const item=await api(`${BASE}/${cat}/${id}.json`);await renderCatItem(item,body);}catch(e){errMsg(body,'載入失敗：'+e.message);}
 }
-function renderCatItem(item,el){
+async function renderCatItem(item,el){
   let imgHtml='';if(item.logo?.image_id)imgHtml=`<img src="${IGDB_IMG}/t_logo_med/${esc(item.logo.image_id)}.jpg" style="max-height:80px;border-radius:.35rem;margin-bottom:.75rem" alt="" onerror="this.style.display='none'">`;
   else if(item.mug_shot?.image_id)imgHtml=`<img src="${IGDB_IMG}/t_thumb/${esc(item.mug_shot.image_id)}.jpg" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:.75rem" alt="" onerror="this.style.display='none'">`;
-  const gamesHtml=item.games?.length?`<div class="mb-3"><div class="sect-label">遊戲 (${item.games.length})</div><div>${item.games.slice(0,30).map(id=>`<span class="tag game-id-link" onclick="switchToGame(${id})">🎮 #${id}</span>`).join('')}${item.games.length>30?`<span class="tag">+${item.games.length-30} more</span>`:''}</div></div>`:'';
+  const gameIds=(item.games||[]).slice(0,30);
+  const hasGames=item.games?.length>0;
+  const gamesHtml=hasGames?`<div class="mb-3"><div class="sect-label">遊戲 (${item.games.length})</div><div id="catGamesTagList"><span style="font-size:.78rem;color:var(--clr-muted)">載入中…</span></div>${item.games.length>30?`<span class="tag">+${item.games.length-30} more</span>`:''}</div>`:'';
   const skip=new Set(['id','checksum','name','slug','description','summary','logo','mug_shot','games','url','created_at','updated_at']);
   const kvHtml=Object.entries(item).filter(([k,v])=>!skip.has(k)&&typeof v!=='object').map(([k,v])=>{const d=(k.endsWith('_date')||k.endsWith('_at'))&&typeof v==='number'?fmtDate(v):esc(String(v));return`<div class="info-row"><span class="lbl">${esc(k.replace(/_/g,' '))}:</span>${d}</div>`;}).join('');
   el.innerHTML=`
@@ -980,6 +982,15 @@ function renderCatItem(item,el){
     ${item.summary?`<p style="font-size:.82rem;line-height:1.55">${esc(item.summary)}</p>`:''}
     ${kvHtml}${gamesHtml}
     ${item.url?`<div class="divider"></div><a class="igdb-btn" href="${esc(item.url)}" target="_blank"><i class="bi bi-box-arrow-up-right"></i>IGDB</a>`:''}`;
+  if(hasGames&&gameIds.length){
+    const results=await Promise.all(gameIds.map(async id=>{
+      if(gameCache.has(id))return{id,name:gameCache.get(id).name};
+      try{const g=await api(`${BASE}/games/${id}.json`);gameCache.set(g.id,g);return{id,name:g.name};}
+      catch{return{id,name:null};}
+    }));
+    const tagList=el.querySelector('#catGamesTagList');
+    if(tagList)tagList.innerHTML=results.map(({id,name})=>`<span class="tag game-id-link" onclick="switchToGame(${id})">🎮 ${name?esc(name):'#'+id}</span>`).join('');
+  }
 }
 function switchToGame(id){
   bootstrap.Tab.getOrCreateInstance(document.querySelector('a[href="#tabGames"]')).show();

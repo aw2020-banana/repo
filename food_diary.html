@@ -487,9 +487,9 @@ a, button, [role="button"], input, select, textarea {
         <label class="filter-label" for="filterDistrict">地段</label>
         <select id="filterDistrict" class="filter-select" aria-label="篩選地段">
           <option value="">全部地段</option>
-          <option>栢麗</option><option>屯市</option><option>時代</option>
-          <option>錦薈</option><option>華都</option><option>三寶</option>
-          <option>安定</option><option>其他</option>
+          <option>栢麗</option><option>屯市</option><option>時代</option><option>錦薈</option>
+		  <option>安定</option><option>華都</option><option>置樂</option><option>彩華</option>
+		  <option>瓏門</option><option>其他</option>
         </select>
       </div>
       <div class="filter-group">
@@ -497,7 +497,7 @@ a, button, [role="button"], input, select, textarea {
         <select id="filterType" class="filter-select" aria-label="篩選類型">
           <option value="">全部類型</option>
           <option>快餐</option><option>港式</option><option>中式</option><option>西式</option>
-          <option>日韓台</option><option>東南亞</option><option>小食</option>
+          <option>日韓台</option><option>東南亞</option><option>米線</option><option>小食</option>
           <option>茶飲</option><option>其他</option>
         </select>
       </div>
@@ -550,9 +550,9 @@ a, button, [role="button"], input, select, textarea {
           <label class="form-label" for="inputDistrict">地段 *</label>
           <select id="inputDistrict" class="form-select" required>
             <option value="">請選擇</option>
-            <option>栢麗</option><option>屯市</option><option>時代</option>
-            <option>錦薈</option><option>華都</option><option>三寶</option>
-            <option>安定</option><option>其他</option>
+          <option>栢麗</option><option>屯市</option><option>時代</option><option>錦薈</option>
+		  <option>安定</option><option>華都</option><option>置樂</option><option>彩華</option>
+		  <option>瓏門</option><option>其他</option>
           </select>
         </div>
         <div class="form-group">
@@ -560,7 +560,7 @@ a, button, [role="button"], input, select, textarea {
           <select id="inputType" class="form-select" required>
             <option value="">請選擇</option>
             <option>快餐</option><option>港式</option><option>中式</option><option>西式</option>
-            <option>日韓台</option><option>東南亞</option><option>小食</option>
+            <option>日韓台</option><option>東南亞</option><option>米線</option><option>小食</option>
             <option>茶飲</option><option>其他</option>
           </select>
         </div>
@@ -799,7 +799,7 @@ function showToast(msg, type = 'info') {
   }, 2800);
 }
 
-const TYPE_EMOJI = { '快餐':'🍔','港式':'🍵','中式':'🥢','西式':'🍝','日韓台':'🍣','東南亞':'🍜','小食':'🧆','茶飲':'🧋','其他':'🍽️' };
+const TYPE_EMOJI = { '快餐':'🍔','港式':'🍵','中式':'🥢','西式':'🍝','日韓台':'🍣','東南亞':'🍲','米線':'🍜','小食':'🧆','茶飲':'🧋','其他':'🍽️' };
 
 function getTypeEmoji(type) { return TYPE_EMOJI[type] || '🍽️'; }
 

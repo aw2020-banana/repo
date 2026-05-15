@@ -3,146 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="記錄餐廳與美食的個人日記 PWA">
-<meta name="theme-color" content="#c0392b">
+<meta name="description" content="記錄您的美食探索之旅 - 餐廳與美食日記">
+<meta name="theme-color" content="#01696f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="食記本">
-<link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIumjn+iomOacrCDigJQg6aSQ5buz576O6aOf5pel6KiYIiwKICAic2hvcnRfbmFtZSI6ICLpo5/oqJjmnKwiLAogICJkZXNjcmlwdGlvbiI6ICLoqJjpjITppJDlu7PoiIfnvo7po5/nmoTlgIvkurrml6XoqJgiLAogICJzdGFydF91cmwiOiAiLi9mb29kLWRpYXJ5Lmh0bWwiLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmN2Y2ZjIiLAogICJ0aGVtZV9jb2xvciI6ICIjYzAzOTJiIiwKICAib3JpZW50YXRpb24iOiAicG9ydHJhaXQtcHJpbWFyeSIsCiAgImljb25zIjogWwogICAgeyAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDE5MiAxOTInPjxyZWN0IHdpZHRoPScxOTInIGhlaWdodD0nMTkyJyByeD0nMzInIGZpbGw9JyUyM2MwMzkyYicvPjx0ZXh0IHk9JzEzMCcgeD0nOTYnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtc2l6ZT0nMTEwJyBmb250LWZhbWlseT0nc2Fucy1zZXJpZic+8J+NnDwvdGV4dD48L3N2Zz4iLCAic2l6ZXMiOiAiMTkyeDE5MiIsICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiIH0sCiAgICB7ICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sLDxzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgNTEyIDUxMic+PHJlY3Qgd2lkdGg9JzUxMicgaGVpZ2h0PSc1MTInIHJ4PSc4MCcgZmlsbD0nJTIzYzAzOTJiJy8+PHRleHQgeT0nMzYwJyB4PScyNTYnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtc2l6ZT0nMzAwJyBmb250LWZhbWlseT0nc2Fucy1zZXJpZic+8J+NnDwvdGV4dD48L3N2Zz4iLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiIH0KICBdLAogICJjYXRlZ29yaWVzIjogWyJmb29kIiwgImxpZmVzdHlsZSIsICJ1dGlsaXRpZXMiXQp9">
-<title>食記本 — 餐廳美食日記</title>
+<meta name="apple-mobile-web-app-title" content="美食日記">
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22%E7%BE%8E%E9%A3%9F%E6%97%A5%E8%A8%98%22%2C%22short_name%22%3A%22%E7%BE%8E%E9%A3%9F%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f7f6f2%22%2C%22theme_color%22%3A%22%2301696f%22%7D">
+<title>美食日記</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+
 <style>
-/* =============================================
-   DESIGN TOKENS
-   Art direction: 美食日記 → warm, inviting, clean
-   Palette: warm cream surfaces, crimson red accent
+/* =====================================================
+   ART DIRECTION: 溫暖美食 → 食慾感、記憶感、溫馨感
+   Palette: 暖米白底面，翡翠綠主調，橙黃強調
    Typography: Noto Serif TC (display) + Noto Sans TC (body)
    Density: balanced
-   ============================================= */
-:root, [data-theme="light"] {
-  --font-display: 'Noto Serif TC', 'Georgia', serif;
-  --font-body: 'Noto Sans TC', 'Helvetica Neue', sans-serif;
+   ===================================================== */
 
+:root, [data-theme="light"] {
   --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
   --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
   --text-base: clamp(1rem,     0.95rem + 0.25vw, 1.125rem);
   --text-lg:   clamp(1.125rem, 1rem    + 0.75vw, 1.5rem);
   --text-xl:   clamp(1.5rem,   1.2rem  + 1.25vw, 2.25rem);
 
-  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
-  --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem;
-  --space-12: 3rem; --space-16: 4rem;
+  --space-1:  0.25rem;  --space-2:  0.5rem;   --space-3:  0.75rem;
+  --space-4:  1rem;     --space-5:  1.25rem;  --space-6:  1.5rem;
+  --space-8:  2rem;     --space-10: 2.5rem;   --space-12: 3rem;
+  --space-16: 4rem;
 
-  --color-bg:             #faf8f4;
-  --color-surface:        #fdfcf9;
-  --color-surface-2:      #ffffff;
-  --color-surface-offset: #f3efe8;
-  --color-surface-dynamic:#e8e3da;
-  --color-divider:        #ddd8ce;
-  --color-border:         #d0cbc0;
-
-  --color-text:           #2a2218;
-  --color-text-muted:     #6b6257;
-  --color-text-faint:     #b0a89e;
-  --color-text-inverse:   #fdfcf9;
-
-  /* Crimson Red accent */
-  --color-primary:        #c0392b;
-  --color-primary-hover:  #a02f23;
-  --color-primary-active: #7d251b;
-  --color-primary-highlight: #f5dbd9;
-
-  --color-success:        #27ae60;
-  --color-success-hover:  #1e8449;
-  --color-success-highlight: #d5f0e3;
-
-  --color-error:          #e74c3c;
-  --color-warning:        #e67e22;
-  --color-warning-highlight: #fdebd0;
-
-  --color-closed:         #95a5a6;
-  --color-closed-highlight: #eaecec;
+  --color-bg:             #f7f6f2;
+  --color-surface:        #f9f8f5;
+  --color-surface-2:      #fbfbf9;
+  --color-surface-offset: #f3f0ec;
+  --color-surface-offset-2: #edeae5;
+  --color-surface-dynamic: #e6e4df;
+  --color-divider:        #dcd9d5;
+  --color-border:         #d4d1ca;
+  --color-text:           #28251d;
+  --color-text-muted:     #7a7974;
+  --color-text-faint:     #bab9b4;
+  --color-text-inverse:   #f9f8f4;
+  --color-primary:        #01696f;
+  --color-primary-hover:  #0c4e54;
+  --color-primary-active: #0f3638;
+  --color-primary-highlight: #cedcd8;
+  --color-warning:        #964219;
+  --color-orange:         #da7101;
+  --color-orange-hover:   #c55700;
+  --color-orange-highlight: #e7d7c4;
+  --color-error:          #a12c7b;
+  --color-error-highlight: #e0ced7;
+  --color-success:        #437a22;
+  --color-success-highlight: #d4dfcc;
+  --color-gold:           #d19900;
+  --color-gold-highlight: #e9e0c6;
 
   --radius-sm: 0.375rem; --radius-md: 0.5rem;
-  --radius-lg: 0.75rem; --radius-xl: 1rem; --radius-full: 9999px;
+  --radius-lg: 0.75rem;  --radius-xl: 1rem;  --radius-full: 9999px;
   --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  --shadow-sm: 0 1px 3px oklch(0.2 0.02 40 / 0.08);
-  --shadow-md: 0 4px 12px oklch(0.2 0.02 40 / 0.10);
-  --shadow-lg: 0 12px 32px oklch(0.2 0.02 40 / 0.14);
-
-  --content-default: 960px;
-  --content-wide: 1200px;
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
+  --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
+  --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12);
+  --content-default: 960px; --content-wide: 1200px;
+  --font-display: 'Noto Serif TC', 'Georgia', serif;
+  --font-body: 'Noto Sans TC', 'Helvetica Neue', sans-serif;
 }
 
 [data-theme="dark"] {
-  --color-bg:             #1a1612;
-  --color-surface:        #201c17;
-  --color-surface-2:      #252119;
-  --color-surface-offset: #1d1a14;
-  --color-surface-dynamic:#2e2a22;
-  --color-divider:        #2c2820;
-  --color-border:         #3a342a;
-  --color-text:           #e8e0d4;
-  --color-text-muted:     #8a8070;
-  --color-text-faint:     #5a5248;
-  --color-text-inverse:   #201c17;
-  --color-primary:        #e05543;
-  --color-primary-hover:  #c84332;
-  --color-primary-active: #a83325;
-  --color-primary-highlight: #3d2420;
-  --color-success:        #52c47a;
-  --color-success-hover:  #3aad62;
-  --color-success-highlight: #1e3d2a;
-  --color-error:          #f1756a;
-  --color-warning:        #f09d4a;
-  --color-warning-highlight: #3d2c18;
-  --color-closed:         #7f8c8d;
-  --color-closed-highlight: #2a2e2e;
-  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.25);
-  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.35);
-  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.45);
+  --color-bg:             #171614; --color-surface:        #1c1b19;
+  --color-surface-2:      #201f1d; --color-surface-offset: #1d1c1a;
+  --color-surface-offset-2: #22211f; --color-surface-dynamic: #2d2c2a;
+  --color-divider:        #262523; --color-border:         #393836;
+  --color-text:           #cdccca; --color-text-muted:     #797876;
+  --color-text-faint:     #5a5957; --color-text-inverse:   #2b2a28;
+  --color-primary:        #4f98a3; --color-primary-hover:  #227f8b;
+  --color-primary-active: #1a626b; --color-primary-highlight: #313b3b;
+  --color-warning:        #bb653b; --color-orange:         #fdab43;
+  --color-orange-hover:   #fec47e; --color-orange-highlight: #564b3e;
+  --color-error:          #d163a7; --color-error-highlight: #4c3d46;
+  --color-success:        #6daa45; --color-success-highlight: #3a4435;
+  --color-gold:           #e8af34; --color-gold-highlight: #4d4332;
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
+  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
 }
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --color-bg:#1a1612;--color-surface:#201c17;--color-surface-2:#252119;
-    --color-surface-offset:#1d1a14;--color-surface-dynamic:#2e2a22;
-    --color-divider:#2c2820;--color-border:#3a342a;
-    --color-text:#e8e0d4;--color-text-muted:#8a8070;--color-text-faint:#5a5248;
-    --color-text-inverse:#201c17;--color-primary:#e05543;
-    --color-primary-hover:#c84332;--color-primary-active:#a83325;
-    --color-primary-highlight:#3d2420;
-    --color-success:#52c47a;--color-success-hover:#3aad62;--color-success-highlight:#1e3d2a;
-    --color-error:#f1756a;--color-warning:#f09d4a;--color-warning-highlight:#3d2c18;
-    --color-closed:#7f8c8d;--color-closed-highlight:#2a2e2e;
-    --shadow-sm:0 1px 3px oklch(0 0 0 / 0.25);
-    --shadow-md:0 4px 12px oklch(0 0 0 / 0.35);
-    --shadow-lg:0 12px 32px oklch(0 0 0 / 0.45);
+    --color-bg: #171614; --color-surface: #1c1b19;
+    --color-surface-2: #201f1d; --color-surface-offset: #1d1c1a;
+    --color-surface-offset-2: #22211f; --color-surface-dynamic: #2d2c2a;
+    --color-divider: #262523; --color-border: #393836;
+    --color-text: #cdccca; --color-text-muted: #797876;
+    --color-text-faint: #5a5957; --color-text-inverse: #2b2a28;
+    --color-primary: #4f98a3; --color-primary-hover: #227f8b;
+    --color-primary-active: #1a626b; --color-primary-highlight: #313b3b;
+    --color-orange: #fdab43; --color-orange-hover: #fec47e;
+    --color-orange-highlight: #564b3e; --color-error: #d163a7;
+    --color-error-highlight: #4c3d46; --color-success: #6daa45;
+    --color-success-highlight: #3a4435; --color-gold: #e8af34;
+    --color-gold-highlight: #4d4332;
+    --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+    --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
+    --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
   }
 }
 
-/* =============================================
-   BASE
-   ============================================= */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: none; text-size-adjust: none; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
-body { min-height: 100dvh; font-family: var(--font-body); font-size: var(--text-base); color: var(--color-text); background: var(--color-bg); line-height: 1.6; }
-img { display: block; max-width: 100%; height: auto; }
-input, button, textarea, select { font: inherit; color: inherit; }
-button { cursor: pointer; background: none; border: none; }
-:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-sm); }
-a, button, [role="button"], input, select, textarea {
-  transition: color var(--transition-interactive), background var(--transition-interactive),
-              border-color var(--transition-interactive), box-shadow var(--transition-interactive);
+html {
+  -webkit-text-size-adjust: none; text-size-adjust: none;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth; scroll-padding-top: var(--space-16);
 }
-.sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0; }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
-::selection { background: oklch(from var(--color-primary) l c h / 0.2); }
+body {
+  min-height: 100dvh; line-height: 1.6;
+  font-family: var(--font-body); font-size: var(--text-base);
+  color: var(--color-text); background-color: var(--color-bg);
+  transition: background-color var(--transition-interactive), color var(--transition-interactive);
+}
+img, picture, video, canvas, svg { display: block; max-width: 100%; height: auto; }
+ul[role="list"], ol[role="list"] { list-style: none; }
+input, button, textarea, select { font: inherit; color: inherit; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; }
+p, li { text-wrap: pretty; }
+::selection { background: oklch(from var(--color-primary) l c h / 0.25); color: var(--color-text); }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-sm); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+button { cursor: pointer; background: none; border: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
 
-/* =============================================
-   LAYOUT
-   ============================================= */
+/* ===== LAYOUT ===== */
 .app-shell { display: flex; flex-direction: column; min-height: 100dvh; }
 .topbar {
   position: sticky; top: 0; z-index: 100;
@@ -152,495 +149,680 @@ a, button, [role="button"], input, select, textarea {
   padding: var(--space-3) var(--space-4);
   display: flex; align-items: center; gap: var(--space-3);
 }
-.topbar-logo { display: flex; align-items: center; gap: var(--space-2); text-decoration: none; color: var(--color-text); flex-shrink: 0; }
-.topbar-logo svg { color: var(--color-primary); }
-.topbar-logo-text { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 700; color: var(--color-primary); }
+.topbar-logo { display: flex; align-items: center; gap: var(--space-2); text-decoration: none; color: var(--color-text); }
+.topbar-logo svg { flex-shrink: 0; }
+.topbar-logo-text { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 700; }
 .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: var(--space-2); }
-.main-content { flex: 1; max-width: var(--content-wide); margin-inline: auto; padding: var(--space-6) var(--space-4); width: 100%; }
 
-/* =============================================
-   BUTTONS
-   ============================================= */
-.btn { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 600; text-decoration: none; border: 1px solid transparent; white-space: nowrap; }
-.btn-primary { background: var(--color-primary); color: var(--color-text-inverse); }
-.btn-primary:hover { background: var(--color-primary-hover); }
-.btn-primary:active { background: var(--color-primary-active); }
-.btn-ghost { background: transparent; color: var(--color-text-muted); border-color: var(--color-border); }
+.main-content { flex: 1; padding: var(--space-6) var(--space-4); max-width: var(--content-wide); margin: 0 auto; width: 100%; }
+
+/* ===== TABS ===== */
+.tab-bar {
+  display: flex; gap: var(--space-1); border-bottom: 2px solid var(--color-divider);
+  margin-bottom: var(--space-6); overflow-x: auto; scrollbar-width: none;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab-btn {
+  padding: var(--space-2) var(--space-4); font-size: var(--text-sm); font-weight: 500;
+  color: var(--color-text-muted); border-bottom: 2px solid transparent;
+  margin-bottom: -2px; white-space: nowrap; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: color var(--transition-interactive), border-color var(--transition-interactive), background var(--transition-interactive);
+}
+.tab-btn:hover { color: var(--color-text); background: var(--color-surface-offset); }
+.tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-4); font-size: var(--text-sm); font-weight: 500;
+  border-radius: var(--radius-md); border: 1px solid transparent;
+  cursor: pointer; transition: all var(--transition-interactive);
+  text-decoration: none; white-space: nowrap;
+}
+.btn-primary { background: var(--color-primary); color: var(--color-text-inverse); border-color: var(--color-primary); }
+.btn-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+.btn-secondary { background: var(--color-surface-offset); color: var(--color-text); border-color: var(--color-border); }
+.btn-secondary:hover { background: var(--color-surface-dynamic); }
+.btn-danger { background: var(--color-error-highlight); color: var(--color-error); border-color: transparent; }
+.btn-danger:hover { background: var(--color-error); color: var(--color-text-inverse); }
+.btn-ghost { background: transparent; color: var(--color-text-muted); border-color: transparent; }
 .btn-ghost:hover { background: var(--color-surface-offset); color: var(--color-text); }
 .btn-sm { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); }
-.btn-icon { padding: var(--space-2); border-radius: var(--radius-md); color: var(--color-text-muted); }
-.btn-icon:hover { background: var(--color-surface-offset); color: var(--color-text); }
-.btn-danger { background: var(--color-error); color: white; }
-.btn-danger:hover { filter: brightness(0.9); }
+.btn-icon { padding: var(--space-2); border-radius: var(--radius-md); }
 
-/* =============================================
-   FILTER BAR
-   ============================================= */
+/* ===== FILTERS ===== */
 .filter-bar {
-  display: flex; flex-wrap: wrap; gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-divider);
-  margin-bottom: var(--space-6);
-  box-shadow: var(--shadow-sm);
+  display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
 }
-.filter-group { display: flex; flex-direction: column; gap: var(--space-1); flex: 1; min-width: 140px; }
-.filter-label { font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-.filter-select {
-  padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
-  border: 1px solid var(--color-border); background: var(--color-surface-2);
-  color: var(--color-text); font-size: var(--text-sm); cursor: pointer;
-  appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right var(--space-3) center; padding-right: var(--space-8);
+.filter-bar label { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 500; }
+.filter-select, .filter-input {
+  padding: var(--space-1) var(--space-3); font-size: var(--text-sm);
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  background: var(--color-bg); color: var(--color-text);
+  transition: border-color var(--transition-interactive), box-shadow var(--transition-interactive);
 }
-.filter-select:focus { border-color: var(--color-primary); outline: none; box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15); }
-.filter-search { flex: 2; min-width: 200px; }
-.filter-search input {
-  width: 100%; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
-  border: 1px solid var(--color-border); background: var(--color-surface-2);
-  color: var(--color-text); font-size: var(--text-sm);
+.filter-select:focus, .filter-input:focus {
+  outline: none; border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15);
 }
-.filter-search input:focus { border-color: var(--color-primary); outline: none; box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15); }
-.filter-stats { display: flex; align-items: flex-end; flex-shrink: 0; }
-.stat-badge { font-size: var(--text-xs); color: var(--color-text-muted); background: var(--color-surface-offset); padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); border: 1px solid var(--color-border); }
+.filter-group { display: flex; align-items: center; gap: var(--space-2); }
+.filter-toggle {
+  display: flex; align-items: center; gap: var(--space-1);
+  padding: var(--space-1) var(--space-3); font-size: var(--text-sm);
+  border: 1px solid var(--color-border); border-radius: var(--radius-full);
+  background: var(--color-bg); color: var(--color-text-muted); cursor: pointer;
+  transition: all var(--transition-interactive);
+}
+.filter-toggle.active { background: var(--color-gold-highlight); color: var(--color-gold); border-color: var(--color-gold); }
+.filter-toggle svg { width: 14px; height: 14px; }
 
-/* =============================================
-   RESTAURANT GRID
-   ============================================= */
+/* ===== CARDS ===== */
 .restaurant-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-  gap: var(--space-5);
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  gap: var(--space-4);
 }
 .restaurant-card {
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-divider);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  background: var(--color-surface); border: 1px solid oklch(from var(--color-text) l c h / 0.08);
+  border-radius: var(--radius-xl); overflow: hidden;
+  box-shadow: var(--shadow-sm); transition: box-shadow var(--transition-interactive), transform var(--transition-interactive);
   cursor: pointer;
-  transition: box-shadow var(--transition-interactive), transform var(--transition-interactive);
 }
 .restaurant-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-.restaurant-card.is-closed { opacity: 0.65; }
-.card-header { padding: var(--space-4); display: flex; align-items: flex-start; gap: var(--space-3); }
-.card-icon { width: 44px; height: 44px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
-.card-meta { flex: 1; min-width: 0; }
-.card-name { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 700; line-height: 1.2; margin-bottom: var(--space-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card-badges { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-.badge { display: inline-flex; align-items: center; padding: 2px var(--space-2); border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 600; }
-.badge-district { background: var(--color-surface-offset); color: var(--color-text-muted); border: 1px solid var(--color-border); }
-.badge-type { background: var(--color-primary-highlight); color: var(--color-primary); }
+.card-header { padding: var(--space-4); border-bottom: 1px solid var(--color-divider); }
+.card-title-row { display: flex; align-items: flex-start; gap: var(--space-2); justify-content: space-between; }
+.card-title { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 700; color: var(--color-text); }
+.card-meta { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.badge {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  padding: 2px var(--space-2); font-size: var(--text-xs); font-weight: 500;
+  border-radius: var(--radius-full); border: 1px solid transparent;
+}
+.badge-district { background: var(--color-primary-highlight); color: var(--color-primary); }
+.badge-type { background: var(--color-surface-offset-2); color: var(--color-text-muted); }
 .badge-open { background: var(--color-success-highlight); color: var(--color-success); }
-.badge-closed { background: var(--color-closed-highlight); color: var(--color-closed); }
-.card-note { padding: 0 var(--space-4) var(--space-3); font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.card-foods { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-divider); background: var(--color-surface-offset); display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
-.food-thumb { width: 36px; height: 36px; border-radius: var(--radius-md); object-fit: cover; border: 2px solid var(--color-surface-2); box-shadow: var(--shadow-sm); }
-.food-thumb-placeholder { width: 36px; height: 36px; border-radius: var(--radius-md); background: var(--color-surface-dynamic); border: 2px solid var(--color-surface-2); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
-.food-count-more { font-size: var(--text-xs); color: var(--color-text-muted); }
-.card-no-food { font-size: var(--text-xs); color: var(--color-text-faint); font-style: italic; }
+.badge-closed { background: var(--color-error-highlight); color: var(--color-error); }
+.badge-fav { background: var(--color-gold-highlight); color: var(--color-gold); }
+.card-body { padding: var(--space-3) var(--space-4); }
+.card-notes { font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.5; }
+.card-actions { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-divider); }
+.food-items-preview { display: flex; gap: var(--space-2); flex-wrap: wrap; padding: var(--space-2) var(--space-4); }
+.food-chip {
+  display: flex; align-items: center; gap: var(--space-1);
+  font-size: var(--text-xs); color: var(--color-text-muted);
+  background: var(--color-surface-offset); padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+}
+.food-chip img { width: 20px; height: 20px; border-radius: var(--radius-full); object-fit: cover; }
+.fav-star { color: var(--color-text-faint); transition: color var(--transition-interactive); cursor: pointer; }
+.fav-star.active { color: var(--color-gold); }
+.fav-star:hover { color: var(--color-gold); }
 
-/* =============================================
-   EMPTY STATE
-   ============================================= */
-.empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-16) var(--space-8); color: var(--color-text-muted); }
-.empty-icon { font-size: 3rem; margin-bottom: var(--space-4); }
-.empty-state h3 { font-family: var(--font-display); color: var(--color-text); font-size: var(--text-lg); margin-bottom: var(--space-2); }
-.empty-state p { max-width: 36ch; margin-bottom: var(--space-6); font-size: var(--text-sm); }
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: var(--space-16) var(--space-8); color: var(--color-text-muted);
+}
+.empty-icon { width: 64px; height: 64px; margin-bottom: var(--space-4); color: var(--color-text-faint); }
+.empty-state h3 { color: var(--color-text); margin-bottom: var(--space-2); font-family: var(--font-display); }
+.empty-state p { max-width: 36ch; margin-bottom: var(--space-6); }
 
-/* =============================================
-   MODAL
-   ============================================= */
-.modal-backdrop {
+/* ===== MODAL ===== */
+.modal-overlay {
   position: fixed; inset: 0; z-index: 200;
-  background: oklch(0.1 0.02 40 / 0.5);
-  backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center;
-  padding: var(--space-4);
-  opacity: 0; pointer-events: none;
-  transition: opacity 250ms ease;
+  background: oklch(0.1 0 0 / 0.5); backdrop-filter: blur(4px);
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity var(--transition-interactive);
 }
-.modal-backdrop.is-open { opacity: 1; pointer-events: auto; }
+@media (min-width: 640px) { .modal-overlay { align-items: center; } }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
 .modal {
-  background: var(--color-surface-2);
-  border-radius: var(--radius-xl);
+  background: var(--color-surface); border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%; max-width: 600px; max-height: 90dvh; overflow-y: auto;
   box-shadow: var(--shadow-lg);
-  width: 100%; max-width: 560px;
-  max-height: 90dvh;
-  overflow-y: auto;
-  transform: translateY(16px) scale(0.98);
-  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid var(--color-border);
+  transform: translateY(20px); transition: transform var(--transition-interactive);
 }
-.modal-backdrop.is-open .modal { transform: translateY(0) scale(1); }
-.modal-header { padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-divider); display: flex; align-items: center; gap: var(--space-3); position: sticky; top: 0; background: var(--color-surface-2); z-index: 1; }
-.modal-title { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 700; flex: 1; }
-.modal-body { padding: var(--space-5) var(--space-6); display: flex; flex-direction: column; gap: var(--space-5); }
-.modal-footer { padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-divider); display: flex; gap: var(--space-3); justify-content: flex-end; }
+@media (min-width: 640px) { .modal { border-radius: var(--radius-xl); } }
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-divider);
+  position: sticky; top: 0; background: var(--color-surface); z-index: 10;
+}
+.modal-title { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 700; }
+.modal-body { padding: var(--space-6); }
+.modal-footer { display: flex; gap: var(--space-3); justify-content: flex-end; padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-divider); }
 
-/* =============================================
-   FORM ELEMENTS
-   ============================================= */
-.form-group { display: flex; flex-direction: column; gap: var(--space-2); }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
-.form-label { font-size: var(--text-sm); font-weight: 600; color: var(--color-text-muted); }
+/* ===== FORMS ===== */
+.form-group { margin-bottom: var(--space-4); }
+.form-label { display: block; font-size: var(--text-sm); font-weight: 500; color: var(--color-text-muted); margin-bottom: var(--space-2); }
 .form-input, .form-select, .form-textarea {
-  padding: var(--space-3) var(--space-4); border-radius: var(--radius-md);
-  border: 1px solid var(--color-border); background: var(--color-surface);
-  color: var(--color-text); font-size: var(--text-base); width: 100%;
+  width: 100%; padding: var(--space-2) var(--space-3); font-size: var(--text-sm);
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  background: var(--color-bg); color: var(--color-text);
+  transition: border-color var(--transition-interactive), box-shadow var(--transition-interactive);
 }
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   outline: none; border-color: var(--color-primary);
   box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15);
 }
-.form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right var(--space-3) center; padding-right: var(--space-10); }
 .form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+@media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+.form-check { display: flex; align-items: center; gap: var(--space-2); }
+.form-check input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--color-primary); cursor: pointer; }
+.tag-input-container {
+  display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center;
+  padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  background: var(--color-bg); min-height: 42px; cursor: text;
+  transition: border-color var(--transition-interactive), box-shadow var(--transition-interactive);
+}
+.tag-input-container:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15);
+}
+.tag-chip {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  background: var(--color-primary-highlight); color: var(--color-primary);
+  font-size: var(--text-xs); padding: 2px var(--space-2); border-radius: var(--radius-full);
+}
+.tag-chip button { color: inherit; opacity: 0.7; line-height: 1; font-size: 0.875em; padding: 0 2px; }
+.tag-chip button:hover { opacity: 1; }
+.tag-input { border: none; outline: none; background: transparent; font-size: var(--text-sm); min-width: 80px; flex: 1; }
 
-/* =============================================
-   DETAIL VIEW
-   ============================================= */
-.detail-modal { max-width: 680px; }
-.detail-section-title { font-size: var(--text-sm); font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--space-3); display: flex; align-items: center; gap: var(--space-2); }
-.detail-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
-.detail-info-item { background: var(--color-surface-offset); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); }
-.detail-info-item .label { font-size: var(--text-xs); color: var(--color-text-muted); margin-bottom: var(--space-1); }
-.detail-info-item .value { font-weight: 600; font-size: var(--text-sm); }
-.food-list { display: flex; flex-direction: column; gap: var(--space-3); }
-.food-item { display: flex; align-items: center; gap: var(--space-3); background: var(--color-surface-offset); border-radius: var(--radius-lg); padding: var(--space-3); }
-.food-item-img { width: 64px; height: 64px; border-radius: var(--radius-md); object-fit: cover; flex-shrink: 0; border: 2px solid var(--color-divider); }
-.food-item-img-placeholder { width: 64px; height: 64px; border-radius: var(--radius-md); background: var(--color-surface-dynamic); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; border: 2px solid var(--color-divider); }
-.food-item-name { flex: 1; font-weight: 600; font-size: var(--text-base); }
-.food-item-actions { display: flex; gap: var(--space-1); }
-.add-food-row { display: flex; gap: var(--space-3); align-items: flex-end; }
-.add-food-row .form-group { flex: 1; }
-.photo-upload-label { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); border: 1px dashed var(--color-border); cursor: pointer; color: var(--color-text-muted); font-size: var(--text-sm); background: var(--color-surface); transition: border-color var(--transition-interactive), background var(--transition-interactive); }
-.photo-upload-label:hover { border-color: var(--color-primary); background: var(--color-primary-highlight); color: var(--color-primary); }
-.photo-preview { width: 56px; height: 56px; border-radius: var(--radius-md); object-fit: cover; border: 1px solid var(--color-border); }
-.food-add-area { background: var(--color-surface-offset); border-radius: var(--radius-lg); padding: var(--space-4); border: 1px solid var(--color-divider); }
-.food-add-area-title { font-size: var(--text-sm); font-weight: 600; color: var(--color-text-muted); margin-bottom: var(--space-3); }
+/* ===== DETAIL VIEW ===== */
+.detail-header { margin-bottom: var(--space-6); }
+.detail-title { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 700; margin-bottom: var(--space-3); }
+.detail-meta { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.detail-notes { color: var(--color-text-muted); margin-top: var(--space-3); line-height: 1.7; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
+.section-title { font-size: var(--text-lg); font-weight: 600; font-family: var(--font-display); }
+.food-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: var(--space-4); }
+.food-card {
+  background: var(--color-surface); border: 1px solid oklch(from var(--color-text) l c h / 0.08);
+  border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.food-img {
+  width: 100%; aspect-ratio: 4/3; object-fit: cover;
+  background: var(--color-surface-offset);
+}
+.food-img-placeholder {
+  width: 100%; aspect-ratio: 4/3; background: var(--color-surface-offset);
+  display: flex; align-items: center; justify-content: center; color: var(--color-text-faint);
+}
+.food-card-body { padding: var(--space-3); }
+.food-name { font-weight: 600; font-size: var(--text-sm); }
+.food-card-actions { display: flex; gap: var(--space-2); justify-content: flex-end; padding: var(--space-2) var(--space-3); border-top: 1px solid var(--color-divider); }
+.back-btn { display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-muted); font-size: var(--text-sm); margin-bottom: var(--space-4); cursor: pointer; background: none; border: none; }
+.back-btn:hover { color: var(--color-text); }
 
-/* =============================================
-   TOAST
-   ============================================= */
-.toast-container { position: fixed; bottom: var(--space-6); left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); pointer-events: none; }
-.toast { padding: var(--space-3) var(--space-5); border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 600; box-shadow: var(--shadow-lg); pointer-events: auto; animation: toastIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards; }
-.toast.toast-success { background: var(--color-success); color: white; }
-.toast.toast-error { background: var(--color-error); color: white; }
-.toast.toast-info { background: var(--color-text); color: var(--color-bg); }
-.toast.is-leaving { animation: toastOut 0.25s ease forwards; }
-@keyframes toastIn { from { opacity: 0; transform: translateY(12px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes toastOut { to { opacity: 0; transform: translateY(8px) scale(0.95); } }
+/* ===== SETTINGS ===== */
+.settings-section { margin-bottom: var(--space-8); }
+.settings-section-title { font-size: var(--text-lg); font-weight: 600; font-family: var(--font-display); margin-bottom: var(--space-4); padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-divider); }
+.settings-tag-list { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.settings-tag {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-1) var(--space-3); font-size: var(--text-sm);
+  background: var(--color-surface-offset); border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+.settings-tag button { color: var(--color-text-muted); }
+.settings-tag button:hover { color: var(--color-error); }
+.settings-add-row { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
+.io-section { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 
-/* =============================================
-   A2HS BANNER
-   ============================================= */
+/* ===== TOAST ===== */
+.toast-container { position: fixed; bottom: var(--space-6); left: 50%; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: var(--space-2); pointer-events: none; }
+.toast {
+  background: var(--color-text); color: var(--color-text-inverse);
+  padding: var(--space-3) var(--space-4); border-radius: var(--radius-md);
+  font-size: var(--text-sm); box-shadow: var(--shadow-lg);
+  animation: toastIn 0.25s ease, toastOut 0.3s ease 2.5s forwards;
+  white-space: nowrap;
+}
+.toast.success { background: var(--color-success); }
+.toast.error { background: var(--color-error); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* ===== A2HS BANNER ===== */
 .a2hs-banner {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
-  background: var(--color-surface-2);
-  border-top: 1px solid var(--color-divider);
-  box-shadow: var(--shadow-lg);
-  padding: var(--space-4);
-  display: flex; align-items: center; gap: var(--space-4);
-  transform: translateY(100%); transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--color-surface); border-top: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg); padding: var(--space-4);
+  display: flex; align-items: center; gap: var(--space-3);
+  transform: translateY(100%); transition: transform var(--transition-interactive);
 }
-.a2hs-banner.is-visible { transform: translateY(0); }
-.a2hs-icon { font-size: 2rem; flex-shrink: 0; }
+.a2hs-banner.show { transform: translateY(0); }
+.a2hs-icon { width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--color-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .a2hs-text { flex: 1; }
-.a2hs-text strong { display: block; font-size: var(--text-sm); font-weight: 700; margin-bottom: 2px; }
-.a2hs-text span { font-size: var(--text-xs); color: var(--color-text-muted); }
-.a2hs-ios-tip { font-size: var(--text-xs); color: var(--color-text-muted); text-align: center; padding: var(--space-3) var(--space-4); background: var(--color-surface-offset); border-radius: var(--radius-md); margin: 0 var(--space-4) var(--space-4); display: none; }
-.a2hs-ios-tip.is-visible { display: block; }
+.a2hs-title { font-weight: 600; font-size: var(--text-sm); }
+.a2hs-desc { font-size: var(--text-xs); color: var(--color-text-muted); }
+.a2hs-actions { display: flex; gap: var(--space-2); flex-shrink: 0; }
 
-/* =============================================
-   OFFLINE INDICATOR
-   ============================================= */
-.offline-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 300; background: var(--color-warning); color: white; text-align: center; font-size: var(--text-xs); font-weight: 600; padding: var(--space-2); transform: translateY(-100%); transition: transform var(--transition-interactive); }
-.offline-bar.is-visible { transform: translateY(0); }
+/* ===== STORAGE STATUS ===== */
+.storage-bar { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); color: var(--color-text-muted); padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); background: var(--color-surface-offset); }
+.storage-dot { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-text-faint); }
+.storage-dot.persistent { background: var(--color-success); }
+.storage-dot.temp { background: var(--color-orange); }
 
-/* =============================================
-   TECH INFO SECTION
-   ============================================= */
-.tech-panel { background: var(--color-surface); border: 1px solid var(--color-divider); border-radius: var(--radius-xl); padding: var(--space-5); margin-bottom: var(--space-6); }
-.tech-panel summary { cursor: pointer; font-weight: 700; font-size: var(--text-sm); color: var(--color-text-muted); display: flex; align-items: center; gap: var(--space-2); user-select: none; list-style: none; }
-.tech-panel summary::-webkit-details-marker { display: none; }
-.tech-panel summary::after { content: '▾'; margin-left: auto; transition: transform var(--transition-interactive); }
-.tech-panel[open] summary::after { transform: rotate(-180deg); }
-.tech-content { margin-top: var(--space-4); display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-4); }
-.tech-item { background: var(--color-surface-offset); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); }
-.tech-item h4 { font-size: var(--text-xs); font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-2); }
-.tech-item p { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.5; }
-.tech-item code { font-family: monospace; background: var(--color-surface-dynamic); padding: 1px 4px; border-radius: 3px; font-size: 0.85em; color: var(--color-primary); }
-
-/* =============================================
-   THEME TOGGLE
-   ============================================= */
-[data-theme-toggle] { padding: var(--space-2); border-radius: var(--radius-md); color: var(--color-text-muted); line-height: 1; }
-[data-theme-toggle]:hover { background: var(--color-surface-offset); }
-
-/* =============================================
-   RESPONSIVE
-   ============================================= */
+/* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
-  .form-row { grid-template-columns: 1fr; }
-  .detail-info-grid { grid-template-columns: 1fr; }
-  .filter-bar { gap: var(--space-2); }
-  .filter-group { min-width: 120px; }
-  .modal-body { padding: var(--space-4); }
-  .modal-header { padding: var(--space-4); }
-  .modal-footer { padding: var(--space-3) var(--space-4); }
+  .topbar { padding: var(--space-3); }
   .main-content { padding: var(--space-4) var(--space-3); }
-  .topbar-logo-text { font-size: var(--text-base); }
+  .filter-bar { padding: var(--space-3); }
 }
 </style>
 </head>
 <body>
-<!-- Offline indicator -->
-<div class="offline-bar" id="offlineBar" role="alert">⚠ 離線模式 — 所有資料已儲存於本機</div>
-
-<!-- A2HS Banner -->
-<div class="a2hs-banner" id="a2hsBanner" role="complementary" aria-label="加至主畫面提示">
-  <div class="a2hs-icon">🍜</div>
-  <div class="a2hs-text">
-    <strong>加至主畫面</strong>
-    <span>安裝為 App，離線也可使用</span>
-  </div>
-  <button class="btn btn-primary btn-sm" id="a2hsInstall">安裝</button>
-  <button class="btn btn-ghost btn-sm" id="a2hsDismiss">略過</button>
-</div>
-<div class="a2hs-ios-tip" id="a2hsIosTip">
-  📱 在 Safari 點按 <strong>分享</strong> 按鈕，然後選「加入主畫面」即可安裝
-</div>
 
 <div class="app-shell">
-  <!-- Top Bar -->
+  <!-- Topbar -->
   <header class="topbar" role="banner">
-    <a class="topbar-logo" href="#" aria-label="食記本首頁">
-      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <circle cx="16" cy="16" r="15" fill="currentColor" opacity="0.12"/>
-        <path d="M8 22C8 22 10 14 16 14C22 14 24 22 24 22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-        <path d="M16 14V9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-        <path d="M13 11C13 9.5 14.3 8 16 8C17.7 8 19 9.5 19 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-        <circle cx="16" cy="19" r="2.5" fill="currentColor"/>
+    <a class="topbar-logo" href="#" onclick="showMain(); return false;" aria-label="美食日記首頁">
+      <!-- SVG Logo: fork + knife forming a leaf -->
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <circle cx="16" cy="16" r="16" fill="var(--color-primary)"/>
+        <path d="M11 8v5c0 1.66 1.34 3 3 3v5a1 1 0 0 0 2 0v-5c1.66 0 3-1.34 3-3V8" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16 8v7" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M22 8c0 0-1 4 0 6s-1 9-1 9" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      <span class="topbar-logo-text">食記本</span>
+      <span class="topbar-logo-text">美食日記</span>
     </a>
     <div class="topbar-actions">
-      <button class="btn btn-icon" id="btnImport" title="匯入 JSON" aria-label="匯入 JSON">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      </button>
-      <button class="btn btn-icon" id="btnExport" title="匯出 JSON" aria-label="匯出 JSON">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      </button>
-      <button class="btn btn-primary" id="btnAddRestaurant">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        新增餐廳
-      </button>
-      <button class="btn-icon btn" data-theme-toggle aria-label="切換主題">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <div id="storageStatus" class="storage-bar" title="儲存狀態">
+        <div class="storage-dot" id="storageDot"></div>
+        <span id="storageText">檢查中</span>
+      </div>
+      <button class="btn-icon btn-ghost" data-theme-toggle aria-label="切換深色模式">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
     </div>
   </header>
 
-  <main class="main-content" id="mainContent">
-    <!-- Tech Info Panel -->
-    <details class="tech-panel" id="techPanel">
-      <summary>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        技術說明
-      </summary>
-      <div class="tech-content">
-        <div class="tech-item">
-          <h4>IndexedDB 資料庫</h4>
-          <p>所有餐廳及食物資料儲存在瀏覽器的 <code>IndexedDB</code>，支援大量結構化資料，食物相片以 Base64 格式儲存。</p>
-        </div>
-        <div class="tech-item">
-          <h4>持久化儲存</h4>
-          <p>使用 <code>navigator.storage.persist()</code> 申請持久化，防止瀏覽器在儲存空間不足時清除資料。</p>
-        </div>
-        <div class="tech-item">
-          <h4>Service Worker</h4>
-          <p>已安裝 Service Worker (<code>sw.js</code>)，快取所有靜態資源，讓 App 在<strong>完全離線</strong>時仍可正常使用。</p>
-        </div>
-        <div class="tech-item">
-          <h4>JSON 匯入/匯出</h4>
-          <p>可將完整資料（包括相片）匯出為 <code>.json</code> 檔案，亦可匯入相同格式以還原或遷移資料。</p>
-        </div>
-        <div class="tech-item">
-          <h4>Add to Home Screen</h4>
-          <p>配備 <code>manifest.json</code> 讓瀏覽器觸發 A2HS 安裝提示，iOS 會顯示手動指引。</p>
-        </div>
-        <div class="tech-item">
-          <h4>離線優先架構</h4>
-          <p>Cache-first 策略：所有請求先查 Cache，找不到才嘗試網路，確保離線完全可用。</p>
-        </div>
-      </div>
-    </details>
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent" role="main">
 
-    <!-- Filter Bar -->
-    <div class="filter-bar" role="search" aria-label="篩選餐廳">
-      <div class="filter-group filter-search">
-        <label class="filter-label" for="searchInput">搜尋</label>
-        <input type="search" id="searchInput" placeholder="餐廳名稱…" aria-label="搜尋餐廳">
+    <!-- ===== MAIN VIEW ===== -->
+    <div id="mainView">
+      <div class="tab-bar" role="tablist">
+        <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab('restaurants')">🍜 餐廳列表</button>
+        <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('settings')">⚙️ 設定與資料</button>
       </div>
-      <div class="filter-group">
-        <label class="filter-label" for="filterDistrict">地段</label>
-        <select id="filterDistrict" class="filter-select" aria-label="篩選地段">
-          <option value="">全部地段</option>
-          <option>栢麗</option><option>屯市</option><option>時代</option><option>錦薈</option>
-		  <option>安定</option><option>華都</option><option>置樂</option><option>彩華</option>
-		  <option>瓏門</option><option>其他</option>
-        </select>
+
+      <!-- Restaurants Tab -->
+      <div id="tab-restaurants" class="tab-panel active">
+        <!-- Filter Bar -->
+        <div class="filter-bar" role="search" aria-label="篩選器">
+          <div class="filter-group">
+            <label for="filterDistrict">地段</label>
+            <select class="filter-select" id="filterDistrict" onchange="applyFilters()">
+              <option value="">全部地段</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterType">菜式</label>
+            <select class="filter-select" id="filterType" onchange="applyFilters()">
+              <option value="">全部菜式</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterStatus">狀況</label>
+            <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+              <option value="">全部狀況</option>
+              <option value="open">營業中</option>
+              <option value="closed">已關閉</option>
+            </select>
+          </div>
+          <button class="filter-toggle" id="filterFavBtn" onclick="toggleFavFilter()" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            我的最愛
+          </button>
+          <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openAddRestaurantModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            新增餐廳
+          </button>
+        </div>
+
+        <!-- Restaurant Grid -->
+        <div id="restaurantGrid" class="restaurant-grid" role="list" aria-label="餐廳列表"></div>
+        <div id="emptyState" class="empty-state" style="display:none">
+          <svg class="empty-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="32" cy="32" r="28"/>
+            <path d="M22 22v8c0 5.5 4.5 10 10 10s10-4.5 10-10v-8"/>
+            <path d="M32 40v8"/>
+            <path d="M24 48h16"/>
+          </svg>
+          <h3>尚無餐廳記錄</h3>
+          <p>開始記錄您的美食探索之旅，點擊上方「新增餐廳」開始吧！</p>
+          <button class="btn btn-primary" onclick="openAddRestaurantModal()">新增第一間餐廳</button>
+        </div>
       </div>
-      <div class="filter-group">
-        <label class="filter-label" for="filterType">類型</label>
-        <select id="filterType" class="filter-select" aria-label="篩選類型">
-          <option value="">全部類型</option>
-          <option>快餐</option><option>港式</option><option>中式</option><option>西式</option>
-          <option>日韓台</option><option>東南亞</option><option>米線</option><option>小食</option>
-          <option>茶飲</option><option>其他</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label" for="filterStatus">狀況</label>
-        <select id="filterStatus" class="filter-select" aria-label="篩選狀況">
-          <option value="">全部</option>
-          <option value="營業">營業中</option>
-          <option value="關閉">已關閉</option>
-        </select>
-      </div>
-      <div class="filter-stats">
-        <span class="stat-badge" id="resultCount">0 間</span>
+
+      <!-- Settings Tab -->
+      <div id="tab-settings" class="tab-panel">
+        <div class="settings-section">
+          <div class="settings-section-title">📍 地段管理</div>
+          <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-3)">自定義您的地段分類，用於餐廳記錄及篩選。</p>
+          <div class="settings-add-row">
+            <input type="text" class="form-input" id="newDistrict" placeholder="輸入新地段名稱" style="flex:1" onkeydown="if(event.key==='Enter')addDistrict()">
+            <button class="btn btn-primary btn-sm" onclick="addDistrict()">新增</button>
+          </div>
+          <div class="settings-tag-list" id="districtList"></div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">🍽️ 菜式類型管理</div>
+          <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-3)">自定義菜式類型，如港式、日式、西式等。</p>
+          <div class="settings-add-row">
+            <input type="text" class="form-input" id="newCuisine" placeholder="輸入新菜式類型" style="flex:1" onkeydown="if(event.key==='Enter')addCuisine()">
+            <button class="btn btn-primary btn-sm" onclick="addCuisine()">新增</button>
+          </div>
+          <div class="settings-tag-list" id="cuisineList"></div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">📦 資料備份與還原</div>
+          <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-4)">您可以將所有餐廳資料匯出為 JSON 格式，或從備份檔案還原。</p>
+          <div class="io-section">
+            <button class="btn btn-secondary" onclick="exportData()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              匯出 JSON
+            </button>
+            <label class="btn btn-secondary" style="cursor:pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              匯入 JSON
+              <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">🔧 技術資訊</div>
+          <div style="background:var(--color-surface-offset);border-radius:var(--radius-lg);padding:var(--space-4);font-size:var(--text-sm)">
+            <p style="margin-bottom:var(--space-3);color:var(--color-text-muted)">本應用使用以下技術構建：</p>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2)">
+              <li><strong>📂 IndexedDB</strong> — 所有餐廳、食物、地段和菜式資料均儲存於瀏覽器內建的 IndexedDB 資料庫，支援大容量離線資料。</li>
+              <li><strong>🔒 Storage Persistence API</strong> — 使用 <code>navigator.storage.persist()</code> 申請持久化儲存，防止瀏覽器在磁碟空間不足時自動清除資料。</li>
+              <li><strong>⚙️ Service Worker</strong> — 完整緩存所有資源，支援離線使用。首次載入後即使無網絡連接，應用依然完全可用。</li>
+              <li><strong>📱 PWA (漸進式網絡應用)</strong> — 可添加到主畫面，以應用形式運行，支援全螢幕模式。</li>
+              <li><strong>📸 圖片儲存</strong> — 食物相片以 Base64 格式直接儲存於 IndexedDB，無需服務器。</li>
+              <li><strong>💾 JSON 匯入/匯出</strong> — 支援完整資料備份與跨設備遷移，包含所有餐廳、食物及相片資料。</li>
+            </ul>
+            <p id="techStorageInfo" style="margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--color-divider);color:var(--color-text-muted)"></p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Restaurant Grid -->
-    <div class="restaurant-grid" id="restaurantGrid" role="list" aria-label="餐廳列表"></div>
-    <div class="empty-state" id="emptyState" hidden>
-      <div class="empty-icon">🍽️</div>
-      <h3>未有餐廳記錄</h3>
-      <p>點按「新增餐廳」開始記錄您的美食足跡。</p>
-      <button class="btn btn-primary" onclick="openAddRestaurantModal()">新增第一間餐廳</button>
+    <!-- ===== DETAIL VIEW ===== -->
+    <div id="detailView" style="display:none">
+      <button class="back-btn" onclick="showMain()" aria-label="返回餐廳列表">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        返回列表
+      </button>
+      <div id="detailContent"></div>
     </div>
-    <div class="empty-state" id="noResultState" hidden>
-      <div class="empty-icon">🔍</div>
-      <h3>找不到符合的餐廳</h3>
-      <p>試試調整篩選條件。</p>
-    </div>
+
   </main>
 </div>
 
-<!-- =============================================
-     MODAL: Add / Edit Restaurant
-     ============================================= -->
-<div class="modal-backdrop" id="modalRestaurant" role="dialog" aria-modal="true" aria-labelledby="modalRestaurantTitle">
+<!-- ===== MODALS ===== -->
+
+<!-- Add/Edit Restaurant Modal -->
+<div class="modal-overlay" id="restaurantModal" role="dialog" aria-modal="true" aria-labelledby="restaurantModalTitle">
   <div class="modal">
     <div class="modal-header">
-      <h2 class="modal-title" id="modalRestaurantTitle">新增餐廳</h2>
-      <button class="btn-icon btn" onclick="closeModal('modalRestaurant')" aria-label="關閉">✕</button>
+      <h2 class="modal-title" id="restaurantModalTitle">新增餐廳</h2>
+      <button class="btn-icon btn-ghost" onclick="closeModal('restaurantModal')" aria-label="關閉">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="editRestaurantId">
-      <div class="form-group">
-        <label class="form-label" for="inputName">餐廳名稱 *</label>
-        <input type="text" id="inputName" class="form-input" placeholder="輸入餐廳名稱" required>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="rName">餐廳名稱 *</label>
+          <input class="form-input" id="rName" type="text" placeholder="例：某某茶餐廳" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="rDistrict">地段 *</label>
+          <select class="form-select" id="rDistrict" required>
+            <option value="">選擇地段</option>
+          </select>
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="inputDistrict">地段 *</label>
-          <select id="inputDistrict" class="form-select" required>
-            <option value="">請選擇</option>
-          <option>栢麗</option><option>屯市</option><option>時代</option><option>錦薈</option>
-		  <option>安定</option><option>華都</option><option>置樂</option><option>彩華</option>
-		  <option>瓏門</option><option>其他</option>
+          <label class="form-label" for="rCuisine">菜式類型 *</label>
+          <select class="form-select" id="rCuisine" required>
+            <option value="">選擇菜式</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="inputType">類型 *</label>
-          <select id="inputType" class="form-select" required>
-            <option value="">請選擇</option>
-            <option>快餐</option><option>港式</option><option>中式</option><option>西式</option>
-            <option>日韓台</option><option>東南亞</option><option>米線</option><option>小食</option>
-            <option>茶飲</option><option>其他</option>
+          <label class="form-label" for="rStatus">狀況</label>
+          <select class="form-select" id="rStatus">
+            <option value="open">營業中</option>
+            <option value="closed">已關閉</option>
           </select>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label" for="inputStatus">狀況</label>
-        <select id="inputStatus" class="form-select">
-          <option value="營業">營業</option>
-          <option value="關閉">關閉</option>
-        </select>
+        <label class="form-label" for="rNotes">備註</label>
+        <textarea class="form-textarea" id="rNotes" placeholder="地址、特色、推薦菜式等..."></textarea>
       </div>
       <div class="form-group">
-        <label class="form-label" for="inputNote">備註</label>
-        <textarea id="inputNote" class="form-textarea" placeholder="例如：價錢、時間、推薦菜式…"></textarea>
+        <label class="form-check">
+          <input type="checkbox" id="rFav">
+          <span class="form-label" style="margin-bottom:0">⭐ 加入我的最愛</span>
+        </label>
       </div>
+      <input type="hidden" id="rId">
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modalRestaurant')">取消</button>
+      <button class="btn btn-secondary" onclick="closeModal('restaurantModal')">取消</button>
       <button class="btn btn-primary" onclick="saveRestaurant()">儲存</button>
     </div>
   </div>
 </div>
 
-<!-- =============================================
-     MODAL: Restaurant Detail
-     ============================================= -->
-<div class="modal-backdrop" id="modalDetail" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
-  <div class="modal detail-modal">
+<!-- Add/Edit Food Modal -->
+<div class="modal-overlay" id="foodModal" role="dialog" aria-modal="true" aria-labelledby="foodModalTitle">
+  <div class="modal">
     <div class="modal-header">
-      <h2 class="modal-title" id="detailModalTitle">餐廳詳情</h2>
-      <button class="btn-icon btn" onclick="closeModal('modalDetail')" aria-label="關閉">✕</button>
+      <h2 class="modal-title" id="foodModalTitle">新增食物</h2>
+      <button class="btn-icon btn-ghost" onclick="closeModal('foodModal')" aria-label="關閉">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
     </div>
-    <div class="modal-body" id="detailModalBody"></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="fName">食物名稱 *</label>
+        <input class="form-input" id="fName" type="text" placeholder="例：叉燒炒飯" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="fPhoto">食物相片</label>
+        <input class="form-input" id="fPhoto" type="file" accept="image/*" capture="environment">
+        <div id="fPhotoPreview" style="margin-top:var(--space-2);display:none">
+          <img id="fPhotoImg" style="max-height:200px;border-radius:var(--radius-md);object-fit:cover" alt="食物預覽" width="300" height="200">
+        </div>
+      </div>
+      <input type="hidden" id="fId">
+      <input type="hidden" id="fRestaurantId">
+    </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost btn-danger" id="detailDeleteBtn">刪除餐廳</button>
-      <button class="btn btn-ghost" onclick="closeModal('modalDetail')">關閉</button>
-      <button class="btn btn-primary" id="detailEditBtn">編輯資料</button>
+      <button class="btn btn-secondary" onclick="closeModal('foodModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveFood()">儲存</button>
     </div>
   </div>
 </div>
 
-<!-- Import hidden input -->
-<input type="file" id="importFileInput" accept=".json" style="display:none">
-
-<!-- Toast container -->
+<!-- Toast Container -->
 <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
+<!-- A2HS Banner -->
+<div class="a2hs-banner" id="a2hsBanner" role="banner" aria-label="新增至主畫面">
+  <div class="a2hs-icon" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+      <path d="M11 8v5c0 1.66 1.34 3 3 3v5a1 1 0 0 0 2 0v-5c1.66 0 3-1.34 3-3V8" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M16 8v7" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="a2hs-text">
+    <div class="a2hs-title">新增至主畫面</div>
+    <div class="a2hs-desc">像 App 一樣使用美食日記，隨時查閱離線記錄</div>
+  </div>
+  <div class="a2hs-actions">
+    <button class="btn btn-ghost btn-sm" onclick="dismissA2HS()">稍後</button>
+    <button class="btn btn-primary btn-sm" onclick="installA2HS()" id="a2hsInstallBtn">安裝</button>
+  </div>
+</div>
+
 <script>
-// =============================================
-// DATABASE — IndexedDB
-// =============================================
-const DB_NAME = 'FoodDiaryDB';
+// =====================================================
+// SERVICE WORKER REGISTRATION
+// 將 Service Worker 程式碼內嵌為 Blob URL，實現離線功能
+// =====================================================
+const SW_CODE = `
+const CACHE_NAME = 'foodiary-v1';
+const ASSETS = [];
+
+// 安裝時快取所有頁面資源
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(ASSETS);
+    }).then(() => self.skipWaiting())
+  );
+});
+
+// 激活時清理舊緩存
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+// 攔截網絡請求：Cache First 策略
+// 優先使用緩存，網絡失敗時降級至緩存
+self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(response => {
+        if (response && response.status === 200 && response.type !== 'opaque') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+        }
+        return response;
+      }).catch(() => {
+        // 離線降級：對於 HTML 請求，返回緩存的主頁
+        if (e.request.destination === 'document') {
+          return caches.match(e.request.url);
+        }
+      });
+    })
+  );
+});
+`;
+
+// 以 Blob URL 方式註冊 Service Worker（單一檔案架構）
+// 技術說明：一般 Service Worker 需要獨立 .js 檔案，
+// 這裡使用 Blob URL 突破此限制，使整個 PWA 可以單一 HTML 檔案運行
+if ('serviceWorker' in navigator) {
+  const swBlob = new Blob([SW_CODE], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl, { scope: './' })
+    .then(reg => console.log('✅ Service Worker 已註冊', reg.scope))
+    .catch(err => console.warn('⚠️ Service Worker 註冊失敗（Blob SW 在部分瀏覽器有限制）:', err));
+}
+
+// =====================================================
+// STORAGE PERSISTENCE API
+// 申請持久化儲存，防止瀏覽器自動清除 IndexedDB 資料
+// =====================================================
+async function requestStoragePersistence() {
+  if (!navigator.storage || !navigator.storage.persist) {
+    updateStorageStatus(false, '不支援持久化 API');
+    return false;
+  }
+  // 檢查現有持久化狀態
+  const alreadyPersisted = await navigator.storage.persisted();
+  if (alreadyPersisted) {
+    updateStorageStatus(true, '持久化儲存');
+    return true;
+  }
+  // 申請持久化儲存
+  // 注意：瀏覽器可能基於以下條件自動批准：
+  // 1. 用戶已將網站加入書籤或主畫面
+  // 2. 用戶高頻使用此網站
+  // 3. 網站已獲得推送通知權限
+  const granted = await navigator.storage.persist();
+  updateStorageStatus(granted, granted ? '持久化儲存' : '臨時儲存');
+  return granted;
+}
+
+function updateStorageStatus(persistent, text) {
+  const dot = document.getElementById('storageDot');
+  const txtEl = document.getElementById('storageText');
+  const techInfo = document.getElementById('techStorageInfo');
+  if (dot) { dot.className = 'storage-dot ' + (persistent ? 'persistent' : 'temp'); }
+  if (txtEl) txtEl.textContent = text;
+  if (techInfo) {
+    techInfo.innerHTML = persistent
+      ? '✅ <strong>持久化儲存已啟用</strong>：您的美食資料已獲得持久化保護，不會被瀏覽器自動清除。'
+      : '⚠️ <strong>臨時儲存模式</strong>：瀏覽器在磁碟空間不足時可能清除資料。建議將此頁加入書籤或主畫面以獲得更好保護。';
+  }
+}
+
+// =====================================================
+// INDEXED DB — 資料庫設計
+// 版本：1
+// Object Stores：
+//   restaurants — 餐廳資料（id, name, district, cuisine, status, notes, isFav, createdAt）
+//   foods       — 食物資料（id, restaurantId, name, photo, createdAt）
+//   settings    — 設定資料（key: 'districts' | 'cuisines'）
+// =====================================================
+const DB_NAME = 'FoodDiary';
 const DB_VERSION = 1;
-let db;
+let db = null;
 
 function openDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onerror = () => reject(req.error);
-    req.onsuccess = () => { db = req.result; resolve(db); };
-    req.onupgradeneeded = e => {
+    req.onupgradeneeded = (e) => {
       const d = e.target.result;
       if (!d.objectStoreNames.contains('restaurants')) {
-        const rs = d.createObjectStore('restaurants', { keyPath: 'id' });
+        const rs = d.createObjectStore('restaurants', { keyPath: 'id', autoIncrement: true });
         rs.createIndex('district', 'district', { unique: false });
-        rs.createIndex('type', 'type', { unique: false });
+        rs.createIndex('cuisine', 'cuisine', { unique: false });
         rs.createIndex('status', 'status', { unique: false });
+        rs.createIndex('isFav', 'isFav', { unique: false });
       }
       if (!d.objectStoreNames.contains('foods')) {
-        const fs = d.createObjectStore('foods', { keyPath: 'id' });
+        const fs = d.createObjectStore('foods', { keyPath: 'id', autoIncrement: true });
         fs.createIndex('restaurantId', 'restaurantId', { unique: false });
       }
+      if (!d.objectStoreNames.contains('settings')) {
+        d.createObjectStore('settings', { keyPath: 'key' });
+      }
     };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror = () => reject(req.error);
   });
 }
 
-function dbGet(store, id) {
+// 通用 CRUD
+function dbGet(store, key) {
   return new Promise((res, rej) => {
     const tx = db.transaction(store, 'readonly');
-    const req = tx.objectStore(store).get(id);
+    const req = tx.objectStore(store).get(key);
     req.onsuccess = () => res(req.result);
     req.onerror = () => rej(req.error);
   });
@@ -653,14 +835,6 @@ function dbGetAll(store) {
     req.onerror = () => rej(req.error);
   });
 }
-function dbGetByIndex(store, index, value) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction(store, 'readonly');
-    const req = tx.objectStore(store).index(index).getAll(value);
-    req.onsuccess = () => res(req.result);
-    req.onerror = () => rej(req.error);
-  });
-}
 function dbPut(store, obj) {
   return new Promise((res, rej) => {
     const tx = db.transaction(store, 'readwrite');
@@ -669,576 +843,703 @@ function dbPut(store, obj) {
     req.onerror = () => rej(req.error);
   });
 }
-function dbDelete(store, id) {
+function dbDelete(store, key) {
   return new Promise((res, rej) => {
     const tx = db.transaction(store, 'readwrite');
-    const req = tx.objectStore(store).delete(id);
+    const req = tx.objectStore(store).delete(key);
     req.onsuccess = () => res();
     req.onerror = () => rej(req.error);
   });
 }
-function dbClear(store) {
+function dbGetByIndex(store, indexName, value) {
   return new Promise((res, rej) => {
-    const tx = db.transaction(store, 'readwrite');
-    const req = tx.objectStore(store).clear();
-    req.onsuccess = () => res();
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).index(indexName).getAll(value);
+    req.onsuccess = () => res(req.result);
     req.onerror = () => rej(req.error);
   });
 }
 
-// =============================================
-// STORAGE PERSISTENCE
-// =============================================
-async function requestPersistentStorage() {
-  if (navigator.storage && navigator.storage.persist) {
-    const granted = await navigator.storage.persist();
-    console.log(`[Storage] Persistent storage: ${granted ? '✅ granted' : '⚠ not granted'}`);
-    if (navigator.storage.estimate) {
-      const est = await navigator.storage.estimate();
-      console.log(`[Storage] Used: ${(est.usage/1024/1024).toFixed(2)} MB / ${(est.quota/1024/1024).toFixed(0)} MB`);
-    }
-  }
+// =====================================================
+// APP STATE
+// =====================================================
+let currentView = 'main'; // 'main' | 'detail'
+let currentRestaurantId = null;
+let filterFav = false;
+let deferredPrompt = null; // A2HS prompt
+let allRestaurants = []; // 快取
+
+// =====================================================
+// SETTINGS — 地段 & 菜式
+// =====================================================
+async function getSettings(key) {
+  const rec = await dbGet('settings', key);
+  return rec ? rec.values : [];
 }
-
-// =============================================
-// SERVICE WORKER
-// =============================================
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // Inline Service Worker via Blob URL — single-file PWA technique
-    const swCode = `const CACHE_NAME = 'food-diary-v1';
-let PAGE_URL = '';
-
-self.addEventListener('message', e => {
-  if (e.data?.type === 'CACHE_PAGE') {
-    PAGE_URL = e.data.url;
-    caches.open(CACHE_NAME).then(c => c.add(PAGE_URL));
-  }
-});
-
-self.addEventListener('install', e => {
-  e.waitUntil(self.skipWaiting());
-});
-
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener('fetch', e => {
-  // Only handle same-origin HTML/navigation requests for offline fallback
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        if (res && res.status === 200 && res.type !== 'opaque') {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => {
-        // Offline: return cached page for navigation requests
-        if (e.request.mode === 'navigate') {
-          return caches.match(e.request.url) ||
-                 (PAGE_URL ? caches.match(PAGE_URL) : null) ||
-                 new Response('<h1>離線中</h1><p>請先在線上開啟一次以快取頁面。</p>', {headers:{'Content-Type':'text/html;charset=utf-8'}});
-        }
-        return new Response('', {status: 503});
-      });
-    })
-  );
-});`;
-    const blob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
-    navigator.serviceWorker.register(swUrl, { scope: './' }).then(reg => {
-      console.log('[SW] Registered via Blob URL, scope:', reg.scope);
-      // Cache this page so it's available offline
-      reg.active?.postMessage({ type: 'CACHE_PAGE', url: location.href });
-    }).catch(err => console.warn('[SW] Registration failed:', err));
+async function saveSettings(key, values) {
+  await dbPut('settings', { key, values });
+}
+async function loadSettings() {
+  const districts = await getSettings('districts');
+  const cuisines = await getSettings('cuisines');
+  populateSelect('filterDistrict', districts, '全部地段');
+  populateSelect('filterType', cuisines, '全部菜式');
+  populateSelect('rDistrict', districts, '選擇地段');
+  populateSelect('rCuisine', cuisines, '選擇菜式');
+  renderSettingsList('districtList', districts, removeDistrict);
+  renderSettingsList('cuisineList', cuisines, removeCuisine);
+}
+function populateSelect(id, items, placeholder) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const val = sel.value;
+  sel.innerHTML = `<option value="">${placeholder}</option>`;
+  items.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item; opt.textContent = item;
+    if (item === val) opt.selected = true;
+    sel.appendChild(opt);
   });
 }
-
-// =============================================
-// THEME
-// =============================================
-(function(){
-  const t = document.querySelector('[data-theme-toggle]');
-  const r = document.documentElement;
-  let d = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
-  r.setAttribute('data-theme', d);
-  const sunSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
-  const moonSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-  if (t) {
-    t.innerHTML = d === 'dark' ? sunSVG : moonSVG;
-    t.addEventListener('click', () => {
-      d = d === 'dark' ? 'light' : 'dark';
-      r.setAttribute('data-theme', d);
-      t.innerHTML = d === 'dark' ? sunSVG : moonSVG;
-      t.setAttribute('aria-label', d === 'dark' ? '切換至淺色主題' : '切換至深色主題');
-    });
-  }
-})();
-
-// =============================================
-// HELPERS
-// =============================================
-function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
-
-function showToast(msg, type = 'info') {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = `toast toast-${type}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => {
-    t.classList.add('is-leaving');
-    t.addEventListener('animationend', () => t.remove());
-  }, 2800);
+function renderSettingsList(containerId, items, removeFn) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = items.length === 0
+    ? '<span style="font-size:var(--text-sm);color:var(--color-text-faint)">尚無設定，請新增</span>'
+    : items.map(item => `
+      <span class="settings-tag">
+        ${escHtml(item)}
+        <button onclick="${removeFn.name}('${escHtml(item)}')" aria-label="刪除 ${escHtml(item)}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </span>`).join('');
+}
+async function addDistrict() {
+  const input = document.getElementById('newDistrict');
+  const val = input.value.trim();
+  if (!val) return showToast('請輸入地段名稱', 'error');
+  const list = await getSettings('districts');
+  if (list.includes(val)) return showToast('地段已存在', 'error');
+  list.push(val);
+  await saveSettings('districts', list);
+  input.value = '';
+  await loadSettings();
+  showToast('地段已新增');
+}
+async function removeDistrict(name) {
+  const list = await getSettings('districts');
+  await saveSettings('districts', list.filter(d => d !== name));
+  await loadSettings();
+  showToast('地段已刪除');
+}
+async function addCuisine() {
+  const input = document.getElementById('newCuisine');
+  const val = input.value.trim();
+  if (!val) return showToast('請輸入菜式名稱', 'error');
+  const list = await getSettings('cuisines');
+  if (list.includes(val)) return showToast('菜式已存在', 'error');
+  list.push(val);
+  await saveSettings('cuisines', list);
+  input.value = '';
+  await loadSettings();
+  showToast('菜式已新增');
+}
+async function removeCuisine(name) {
+  const list = await getSettings('cuisines');
+  await saveSettings('cuisines', list.filter(c => c !== name));
+  await loadSettings();
+  showToast('菜式已刪除');
 }
 
-const TYPE_EMOJI = { '快餐':'🍔','港式':'🍵','中式':'🥢','西式':'🍝','日韓台':'🍣','東南亞':'🍲','米線':'🍜','小食':'🧆','茶飲':'🧋','其他':'🍽️' };
-
-function getTypeEmoji(type) { return TYPE_EMOJI[type] || '🍽️'; }
-
-function resizeImage(file, maxW = 800, maxH = 800, quality = 0.75) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        let w = img.width, h = img.height;
-        if (w > maxW || h > maxH) {
-          const ratio = Math.min(maxW/w, maxH/h);
-          w = Math.round(w * ratio); h = Math.round(h * ratio);
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-// =============================================
-// OFFLINE DETECTION
-// =============================================
-function updateOfflineBar() {
-  const bar = document.getElementById('offlineBar');
-  if (!navigator.onLine) bar.classList.add('is-visible');
-  else bar.classList.remove('is-visible');
-}
-window.addEventListener('online', updateOfflineBar);
-window.addEventListener('offline', updateOfflineBar);
-updateOfflineBar();
-
-// =============================================
-// A2HS
-// =============================================
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('a2hsBanner').classList.add('is-visible');
-});
-document.getElementById('a2hsInstall').addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') showToast('✅ 已加至主畫面！', 'success');
-  deferredPrompt = null;
-  document.getElementById('a2hsBanner').classList.remove('is-visible');
-});
-document.getElementById('a2hsDismiss').addEventListener('click', () => {
-  document.getElementById('a2hsBanner').classList.remove('is-visible');
-});
-
-// iOS A2HS tip
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-if (isIOS && !isInStandalone) {
-  setTimeout(() => document.getElementById('a2hsIosTip').classList.add('is-visible'), 2000);
-}
-
-// =============================================
-// MODAL HELPERS
-// =============================================
-function openModal(id) {
-  const el = document.getElementById(id);
-  el.classList.add('is-open');
-  el.querySelector('.modal').focus?.();
-  document.body.style.overflow = 'hidden';
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('is-open');
-  document.body.style.overflow = '';
-}
-// Close on backdrop click
-document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-  backdrop.addEventListener('click', e => {
-    if (e.target === backdrop) closeModal(backdrop.id);
-  });
-});
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-backdrop.is-open').forEach(m => closeModal(m.id));
-  }
-});
-
-// =============================================
-// RENDER
-// =============================================
-let allRestaurants = [];
-let foodsMap = {};
-
-async function loadAll() {
+// =====================================================
+// RESTAURANTS
+// =====================================================
+async function loadRestaurants() {
   allRestaurants = await dbGetAll('restaurants');
-  const foods = await dbGetAll('foods');
-  foodsMap = {};
-  foods.forEach(f => {
-    if (!foodsMap[f.restaurantId]) foodsMap[f.restaurantId] = [];
-    foodsMap[f.restaurantId].push(f);
-  });
-  renderGrid();
+  applyFilters();
 }
 
-function getFilters() {
-  return {
-    search: document.getElementById('searchInput').value.toLowerCase().trim(),
-    district: document.getElementById('filterDistrict').value,
-    type: document.getElementById('filterType').value,
-    status: document.getElementById('filterStatus').value
-  };
-}
+function applyFilters() {
+  const district = document.getElementById('filterDistrict')?.value || '';
+  const type = document.getElementById('filterType')?.value || '';
+  const status = document.getElementById('filterStatus')?.value || '';
 
-function renderGrid() {
-  const { search, district, type, status } = getFilters();
   let filtered = allRestaurants.filter(r => {
-    if (search && !r.name.toLowerCase().includes(search) && !(r.note||'').toLowerCase().includes(search)) return false;
     if (district && r.district !== district) return false;
-    if (type && r.type !== type) return false;
+    if (type && r.cuisine !== type) return false;
     if (status && r.status !== status) return false;
+    if (filterFav && !r.isFav) return false;
     return true;
   });
-  filtered.sort((a,b) => b.updatedAt - a.updatedAt);
 
+  // 排序：最愛優先，再按建立時間降序
+  filtered.sort((a, b) => {
+    if (a.isFav && !b.isFav) return -1;
+    if (!a.isFav && b.isFav) return 1;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+
+  renderRestaurantGrid(filtered);
+}
+
+function toggleFavFilter() {
+  filterFav = !filterFav;
+  const btn = document.getElementById('filterFavBtn');
+  btn.classList.toggle('active', filterFav);
+  btn.setAttribute('aria-pressed', filterFav);
+  applyFilters();
+}
+
+async function renderRestaurantGrid(restaurants) {
   const grid = document.getElementById('restaurantGrid');
   const empty = document.getElementById('emptyState');
-  const noResult = document.getElementById('noResultState');
-  const count = document.getElementById('resultCount');
+  if (!grid) return;
 
-  count.textContent = filtered.length + ' 間';
-
-  if (allRestaurants.length === 0) {
-    grid.innerHTML = ''; empty.hidden = false; noResult.hidden = true; return;
+  if (restaurants.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'flex';
+    return;
   }
-  empty.hidden = true;
-  if (filtered.length === 0) {
-    grid.innerHTML = ''; noResult.hidden = false; return;
-  }
-  noResult.hidden = true;
+  empty.style.display = 'none';
 
-  grid.innerHTML = filtered.map(r => {
-    const foods = foodsMap[r.id] || [];
-    const isOpen = r.status === '営業' || r.status === '營業';
-    const thumbs = foods.slice(0, 4).map(f =>
-      f.photo
-        ? `<img src="${f.photo}" alt="${f.name}" class="food-thumb" loading="lazy" width="36" height="36">`
-        : `<span class="food-thumb-placeholder" title="${f.name}">🍴</span>`
-    ).join('');
-    const moreCount = foods.length > 4 ? `<span class="food-count-more">+${foods.length-4}</span>` : '';
-    return `
-    <article class="restaurant-card${!isOpen ? ' is-closed' : ''}" role="listitem"
-      onclick="openDetail('${r.id}')" tabindex="0"
-      onkeydown="if(event.key==='Enter'||event.key===' ')openDetail('${r.id}')"
-      aria-label="${r.name}，${r.district}，${r.type}">
+  // 為每間餐廳獲取食物數量
+  const foodCounts = {};
+  const foodPreviews = {};
+  for (const r of restaurants) {
+    const foods = await dbGetByIndex('foods', 'restaurantId', r.id);
+    foodCounts[r.id] = foods.length;
+    foodPreviews[r.id] = foods.slice(0, 3);
+  }
+
+  grid.innerHTML = restaurants.map(r => `
+    <article class="restaurant-card" role="listitem" onclick="showDetail(${r.id})" aria-label="${escHtml(r.name)}">
       <div class="card-header">
-        <div class="card-icon" style="background:var(--color-primary-highlight)">${getTypeEmoji(r.type)}</div>
+        <div class="card-title-row">
+          <h3 class="card-title">${escHtml(r.name)}</h3>
+          <button class="fav-star ${r.isFav ? 'active' : ''}" onclick="toggleFav(event, ${r.id})"
+            aria-label="${r.isFav ? '取消最愛' : '加入最愛'}" title="${r.isFav ? '取消最愛' : '加入最愛'}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="${r.isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </button>
+        </div>
         <div class="card-meta">
-          <div class="card-name" title="${r.name}">${r.name}</div>
-          <div class="card-badges">
-            <span class="badge badge-district">${r.district}</span>
-            <span class="badge badge-type">${r.type}</span>
-            <span class="badge ${isOpen ? 'badge-open' : 'badge-closed'}">${r.status}</span>
-          </div>
+          ${r.district ? `<span class="badge badge-district">📍 ${escHtml(r.district)}</span>` : ''}
+          ${r.cuisine ? `<span class="badge badge-type">🍽️ ${escHtml(r.cuisine)}</span>` : ''}
+          <span class="badge ${r.status === 'closed' ? 'badge-closed' : 'badge-open'}">${r.status === 'closed' ? '🔴 已關閉' : '🟢 營業中'}</span>
+          ${r.isFav ? '<span class="badge badge-fav">⭐ 最愛</span>' : ''}
         </div>
       </div>
-      ${r.note ? `<div class="card-note">${r.note}</div>` : ''}
-      <div class="card-foods">
-        ${foods.length > 0 ? thumbs + moreCount : '<span class="card-no-food">尚未記錄食物</span>'}
-      </div>
-    </article>`;
-  }).join('');
-}
-
-['searchInput','filterDistrict','filterType','filterStatus'].forEach(id => {
-  document.getElementById(id).addEventListener('input', renderGrid);
-});
-
-// =============================================
-// ADD / EDIT RESTAURANT
-// =============================================
-function openAddRestaurantModal() {
-  document.getElementById('editRestaurantId').value = '';
-  document.getElementById('inputName').value = '';
-  document.getElementById('inputDistrict').value = '';
-  document.getElementById('inputType').value = '';
-  document.getElementById('inputStatus').value = '營業';
-  document.getElementById('inputNote').value = '';
-  document.getElementById('modalRestaurantTitle').textContent = '新增餐廳';
-  openModal('modalRestaurant');
-  document.getElementById('inputName').focus();
-}
-
-async function saveRestaurant() {
-  const name = document.getElementById('inputName').value.trim();
-  const district = document.getElementById('inputDistrict').value;
-  const type = document.getElementById('inputType').value;
-  const status = document.getElementById('inputStatus').value;
-  const note = document.getElementById('inputNote').value.trim();
-  if (!name || !district || !type) { showToast('⚠ 請填寫必填欄位', 'error'); return; }
-  const editId = document.getElementById('editRestaurantId').value;
-  const now = Date.now();
-  const restaurant = {
-    id: editId || genId(),
-    name, district, type, status, note,
-    createdAt: editId ? (allRestaurants.find(r=>r.id===editId)?.createdAt||now) : now,
-    updatedAt: now
-  };
-  await dbPut('restaurants', restaurant);
-  closeModal('modalRestaurant');
-  showToast(editId ? '✅ 餐廳資料已更新' : '✅ 餐廳已新增', 'success');
-  await loadAll();
-}
-
-document.getElementById('btnAddRestaurant').addEventListener('click', openAddRestaurantModal);
-
-// =============================================
-// DETAIL VIEW
-// =============================================
-let currentDetailId = null;
-let pendingFoodName = '';
-let pendingFoodPhoto = null;
-
-async function openDetail(id) {
-  currentDetailId = id;
-  const restaurant = allRestaurants.find(r => r.id === id);
-  if (!restaurant) return;
-  const foods = foodsMap[id] || [];
-  const isOpen = restaurant.status === '営業' || restaurant.status === '營業';
-
-  document.getElementById('detailModalTitle').textContent = restaurant.name;
-
-  const foodListHtml = foods.map(f => `
-    <div class="food-item" id="food-${f.id}">
-      ${f.photo
-        ? `<img src="${f.photo}" alt="${f.name}" class="food-item-img" loading="lazy" width="64" height="64">`
-        : `<div class="food-item-img-placeholder">${getTypeEmoji(restaurant.type)}</div>`}
-      <span class="food-item-name">${f.name}</span>
-      <div class="food-item-actions">
-        <button class="btn btn-icon btn-sm" onclick="deleteFood('${f.id}')" aria-label="刪除 ${f.name}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      ${r.notes ? `<div class="card-body"><p class="card-notes">${escHtml(r.notes)}</p></div>` : ''}
+      ${foodPreviews[r.id] && foodPreviews[r.id].length > 0 ? `
+        <div class="food-items-preview">
+          ${foodPreviews[r.id].map(f => `
+            <span class="food-chip">
+              ${f.photo ? `<img src="${f.photo}" alt="${escHtml(f.name)}" width="20" height="20" loading="lazy">` : ''}
+              ${escHtml(f.name)}
+            </span>
+          `).join('')}
+          ${foodCounts[r.id] > 3 ? `<span class="food-chip">+${foodCounts[r.id] - 3} 項</span>` : ''}
+        </div>
+      ` : ''}
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm" onclick="showDetail(${r.id})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          查看 (${foodCounts[r.id]} 道菜)
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="openEditRestaurantModal(${r.id})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          編輯
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteRestaurant(${r.id})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          刪除
         </button>
       </div>
-    </div>`).join('');
+    </article>
+  `).join('');
+}
 
-  document.getElementById('detailModalBody').innerHTML = `
-    <div>
-      <div class="detail-section-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-        餐廳資料
+function openAddRestaurantModal() {
+  document.getElementById('restaurantModalTitle').textContent = '新增餐廳';
+  document.getElementById('rId').value = '';
+  document.getElementById('rName').value = '';
+  document.getElementById('rDistrict').value = '';
+  document.getElementById('rCuisine').value = '';
+  document.getElementById('rStatus').value = 'open';
+  document.getElementById('rNotes').value = '';
+  document.getElementById('rFav').checked = false;
+  openModal('restaurantModal');
+}
+async function openEditRestaurantModal(id) {
+  const r = await dbGet('restaurants', id);
+  if (!r) return;
+  document.getElementById('restaurantModalTitle').textContent = '編輯餐廳';
+  document.getElementById('rId').value = r.id;
+  document.getElementById('rName').value = r.name;
+  document.getElementById('rDistrict').value = r.district || '';
+  document.getElementById('rCuisine').value = r.cuisine || '';
+  document.getElementById('rStatus').value = r.status || 'open';
+  document.getElementById('rNotes').value = r.notes || '';
+  document.getElementById('rFav').checked = !!r.isFav;
+  openModal('restaurantModal');
+}
+async function saveRestaurant() {
+  const name = document.getElementById('rName').value.trim();
+  const district = document.getElementById('rDistrict').value;
+  const cuisine = document.getElementById('rCuisine').value;
+  if (!name) return showToast('請輸入餐廳名稱', 'error');
+  if (!district) return showToast('請選擇地段', 'error');
+  if (!cuisine) return showToast('請選擇菜式', 'error');
+
+  const idVal = document.getElementById('rId').value;
+  const obj = {
+    name,
+    district,
+    cuisine,
+    status: document.getElementById('rStatus').value,
+    notes: document.getElementById('rNotes').value.trim(),
+    isFav: document.getElementById('rFav').checked,
+    createdAt: idVal ? undefined : Date.now()
+  };
+  if (idVal) { obj.id = parseInt(idVal); }
+  if (!obj.createdAt && idVal) {
+    const existing = await dbGet('restaurants', parseInt(idVal));
+    obj.createdAt = existing?.createdAt || Date.now();
+  }
+  await dbPut('restaurants', obj);
+  closeModal('restaurantModal');
+  await loadRestaurants();
+  showToast(idVal ? '餐廳已更新' : '餐廳已新增', 'success');
+}
+async function deleteRestaurant(id) {
+  if (!confirm('確定刪除此餐廳？相關食物記錄也將一併刪除。')) return;
+  await dbDelete('restaurants', id);
+  // 刪除相關食物
+  const foods = await dbGetByIndex('foods', 'restaurantId', id);
+  for (const f of foods) await dbDelete('foods', f.id);
+  await loadRestaurants();
+  showToast('已刪除', 'success');
+}
+async function toggleFav(event, id) {
+  event.stopPropagation();
+  const r = await dbGet('restaurants', id);
+  if (!r) return;
+  r.isFav = !r.isFav;
+  await dbPut('restaurants', r);
+  await loadRestaurants();
+  // 若在詳情頁
+  if (currentRestaurantId === id) showDetail(id);
+  showToast(r.isFav ? '已加入最愛 ⭐' : '已移除最愛');
+}
+
+// =====================================================
+// DETAIL VIEW
+// =====================================================
+async function showDetail(restaurantId) {
+  currentRestaurantId = restaurantId;
+  const r = await dbGet('restaurants', restaurantId);
+  if (!r) return;
+  const foods = await dbGetByIndex('foods', 'restaurantId', restaurantId);
+
+  document.getElementById('mainView').style.display = 'none';
+  const detailView = document.getElementById('detailView');
+  detailView.style.display = 'block';
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-header">
+      <div style="display:flex;align-items:flex-start;gap:var(--space-3);justify-content:space-between">
+        <h2 class="detail-title">${escHtml(r.name)}</h2>
+        <button class="fav-star ${r.isFav ? 'active' : ''}" onclick="toggleFav(event, ${r.id})"
+          aria-label="${r.isFav ? '取消最愛' : '加入最愛'}" style="flex-shrink:0;margin-top:4px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="${r.isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </button>
       </div>
-      <div class="detail-info-grid">
-        <div class="detail-info-item"><div class="label">地段</div><div class="value">${restaurant.district}</div></div>
-        <div class="detail-info-item"><div class="label">類型</div><div class="value">${restaurant.type}</div></div>
-        <div class="detail-info-item"><div class="label">狀況</div><div class="value"><span class="badge ${isOpen ? 'badge-open' : 'badge-closed'}">${restaurant.status}</span></div></div>
-        <div class="detail-info-item"><div class="label">最後更新</div><div class="value">${new Date(restaurant.updatedAt).toLocaleDateString('zh-Hant')}</div></div>
+      <div class="detail-meta">
+        ${r.district ? `<span class="badge badge-district">📍 ${escHtml(r.district)}</span>` : ''}
+        ${r.cuisine ? `<span class="badge badge-type">🍽️ ${escHtml(r.cuisine)}</span>` : ''}
+        <span class="badge ${r.status === 'closed' ? 'badge-closed' : 'badge-open'}">${r.status === 'closed' ? '🔴 已關閉' : '🟢 營業中'}</span>
+        ${r.isFav ? '<span class="badge badge-fav">⭐ 我的最愛</span>' : ''}
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="openEditRestaurantModal(${r.id})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          編輯餐廳
+        </button>
       </div>
-      ${restaurant.note ? `<div style="margin-top:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--color-surface-offset);border-radius:var(--radius-lg);font-size:var(--text-sm);color:var(--color-text-muted)">${restaurant.note}</div>` : ''}
+      ${r.notes ? `<p class="detail-notes">${escHtml(r.notes)}</p>` : ''}
     </div>
+
     <div>
-      <div class="detail-section-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 2l1.5 15L12 22l7.5-5L21 2z"/></svg>
-        食物記錄 <span style="font-weight:400;font-size:var(--text-xs);color:var(--color-text-faint)">(${foods.length} 項)</span>
+      <div class="section-header">
+        <h3 class="section-title">🍜 食物記錄 (${foods.length})</h3>
+        <button class="btn btn-primary btn-sm" onclick="openAddFoodModal(${r.id})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          新增食物
+        </button>
       </div>
-      <div class="food-list" id="foodList">${foodListHtml || '<div style="color:var(--color-text-faint);font-size:var(--text-sm);text-align:center;padding:var(--space-4)">尚未記錄食物</div>'}</div>
-    </div>
-    <div class="food-add-area">
-      <div class="food-add-area-title">新增食物</div>
-      <div class="add-food-row">
-        <div class="form-group">
-          <input type="text" id="newFoodName" class="form-input" placeholder="食物名稱" aria-label="新食物名稱">
+      ${foods.length === 0 ? `
+        <div class="empty-state" style="padding:var(--space-10) var(--space-4)">
+          <svg class="empty-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="32" cy="22" r="10"/><path d="M16 56c0-8.8 7.2-16 16-16s16 7.2 16 16"/>
+            <path d="M44 14l4 4M44 22h5M40 10l2-4"/>
+          </svg>
+          <h3>尚無食物記錄</h3>
+          <p>記錄這間餐廳的招牌菜式和美味料理</p>
+          <button class="btn btn-primary btn-sm" onclick="openAddFoodModal(${r.id})">新增食物</button>
         </div>
-        <label class="photo-upload-label" for="newFoodPhoto" title="上傳食物相片">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          <span id="photoLabel">相片</span>
-        </label>
-        <input type="file" id="newFoodPhoto" accept="image/*" capture="environment" style="display:none" aria-label="上傳食物相片">
-        <button class="btn btn-primary btn-sm" onclick="addFood()">新增</button>
+      ` : `
+        <div class="food-grid" id="foodGrid">
+          ${foods.map(f => renderFoodCard(f)).join('')}
+        </div>
+      `}
+    </div>
+  `;
+  currentView = 'detail';
+}
+
+function renderFoodCard(f) {
+  return `
+    <div class="food-card">
+      ${f.photo
+        ? `<img class="food-img" src="${f.photo}" alt="${escHtml(f.name)}" width="300" height="225" loading="lazy">`
+        : `<div class="food-img-placeholder" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+           </div>`}
+      <div class="food-card-body">
+        <div class="food-name">${escHtml(f.name)}</div>
       </div>
-      <div id="photoPreviewContainer" style="margin-top:var(--space-2);display:none">
-        <img id="photoPreview" alt="預覽" class="photo-preview" width="56" height="56">
+      <div class="food-card-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openEditFoodModal(${f.id})">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          編輯
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteFood(${f.id})">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          刪除
+        </button>
       </div>
     </div>
   `;
-
-  // Photo input handler
-  document.getElementById('newFoodPhoto').addEventListener('change', async e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    pendingFoodPhoto = await resizeImage(file);
-    document.getElementById('photoLabel').textContent = '✓ 已選';
-    document.getElementById('photoPreview').src = pendingFoodPhoto;
-    document.getElementById('photoPreviewContainer').style.display = 'block';
-  });
-  pendingFoodPhoto = null;
-
-  document.getElementById('detailEditBtn').onclick = () => {
-    closeModal('modalDetail');
-    openEditRestaurantModal(id);
-  };
-  document.getElementById('detailDeleteBtn').onclick = () => deleteRestaurant(id);
-  openModal('modalDetail');
 }
 
-function openEditRestaurantModal(id) {
-  const r = allRestaurants.find(x => x.id === id);
-  if (!r) return;
-  document.getElementById('editRestaurantId').value = r.id;
-  document.getElementById('inputName').value = r.name;
-  document.getElementById('inputDistrict').value = r.district;
-  document.getElementById('inputType').value = r.type;
-  document.getElementById('inputStatus').value = r.status;
-  document.getElementById('inputNote').value = r.note || '';
-  document.getElementById('modalRestaurantTitle').textContent = '編輯餐廳';
-  openModal('modalRestaurant');
+function showMain() {
+  document.getElementById('mainView').style.display = 'block';
+  document.getElementById('detailView').style.display = 'none';
+  currentView = 'main';
+  currentRestaurantId = null;
 }
 
-// =============================================
-// FOOD CRUD
-// =============================================
-async function addFood() {
-  const name = document.getElementById('newFoodName').value.trim();
-  if (!name) { showToast('⚠ 請輸入食物名稱', 'error'); return; }
-  const food = { id: genId(), restaurantId: currentDetailId, name, photo: pendingFoodPhoto, createdAt: Date.now() };
-  await dbPut('foods', food);
-  showToast('✅ 食物已新增', 'success');
-  document.getElementById('newFoodName').value = '';
-  document.getElementById('photoLabel').textContent = '相片';
-  document.getElementById('photoPreviewContainer').style.display = 'none';
-  pendingFoodPhoto = null;
-  if (document.getElementById('newFoodPhoto')) document.getElementById('newFoodPhoto').value = '';
-  await loadAll();
-  // Re-render food list without closing modal
-  const foods = foodsMap[currentDetailId] || [];
-  const foodListEl = document.getElementById('foodList');
-  if (foodListEl) {
-    const restaurant = allRestaurants.find(r => r.id === currentDetailId);
-    foodListEl.innerHTML = foods.length ? foods.map(f => `
-      <div class="food-item" id="food-${f.id}">
-        ${f.photo
-          ? `<img src="${f.photo}" alt="${f.name}" class="food-item-img" loading="lazy" width="64" height="64">`
-          : `<div class="food-item-img-placeholder">${getTypeEmoji(restaurant?.type||'其他')}</div>`}
-        <span class="food-item-name">${f.name}</span>
-        <div class="food-item-actions">
-          <button class="btn btn-icon btn-sm" onclick="deleteFood('${f.id}')" aria-label="刪除 ${f.name}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-          </button>
-        </div>
-      </div>`).join('') : '<div style="color:var(--color-text-faint);font-size:var(--text-sm);text-align:center;padding:var(--space-4)">尚未記錄食物</div>';
-    // re-attach photo handler
-    const newPhotoInput = document.getElementById('newFoodPhoto');
-    if (newPhotoInput) {
-      newPhotoInput.addEventListener('change', async e2 => {
-        const file = e2.target.files[0];
-        if (!file) return;
-        pendingFoodPhoto = await resizeImage(file);
-        document.getElementById('photoLabel').textContent = '✓ 已選';
-        document.getElementById('photoPreview').src = pendingFoodPhoto;
-        document.getElementById('photoPreviewContainer').style.display = 'block';
-      });
-    }
+// =====================================================
+// FOODS
+// =====================================================
+function openAddFoodModal(restaurantId) {
+  document.getElementById('foodModalTitle').textContent = '新增食物';
+  document.getElementById('fId').value = '';
+  document.getElementById('fRestaurantId').value = restaurantId;
+  document.getElementById('fName').value = '';
+  document.getElementById('fPhoto').value = '';
+  document.getElementById('fPhotoPreview').style.display = 'none';
+  openModal('foodModal');
+}
+async function openEditFoodModal(foodId) {
+  const f = await dbGet('foods', foodId);
+  if (!f) return;
+  document.getElementById('foodModalTitle').textContent = '編輯食物';
+  document.getElementById('fId').value = f.id;
+  document.getElementById('fRestaurantId').value = f.restaurantId;
+  document.getElementById('fName').value = f.name;
+  document.getElementById('fPhoto').value = '';
+  if (f.photo) {
+    document.getElementById('fPhotoImg').src = f.photo;
+    document.getElementById('fPhotoPreview').style.display = 'block';
+  } else {
+    document.getElementById('fPhotoPreview').style.display = 'none';
   }
+  openModal('foodModal');
+}
+async function saveFood() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) return showToast('請輸入食物名稱', 'error');
+  const idVal = document.getElementById('fId').value;
+  const restaurantId = parseInt(document.getElementById('fRestaurantId').value);
+  const photoFile = document.getElementById('fPhoto').files[0];
+
+  let photo = null;
+  if (photoFile) {
+    // 將圖片轉換為 Base64 儲存於 IndexedDB
+    // 技術說明：使用 FileReader API 將圖片轉為 Data URL，
+    // 直接儲存於 IndexedDB，無需外部服務器
+    photo = await new Promise(res => {
+      const reader = new FileReader();
+      reader.onload = e => res(e.target.result);
+      reader.readAsDataURL(photoFile);
+    });
+  } else if (idVal) {
+    const existing = await dbGet('foods', parseInt(idVal));
+    photo = existing?.photo || null;
+  }
+
+  const obj = { name, restaurantId, photo, createdAt: Date.now() };
+  if (idVal) obj.id = parseInt(idVal);
+  await dbPut('foods', obj);
+  closeModal('foodModal');
+  await showDetail(restaurantId);
+  showToast(idVal ? '食物已更新' : '食物已新增', 'success');
+}
+async function deleteFood(id) {
+  if (!confirm('確定刪除此食物記錄？')) return;
+  const f = await dbGet('foods', id);
+  await dbDelete('foods', id);
+  await showDetail(f.restaurantId);
+  showToast('已刪除', 'success');
 }
 
-async function deleteFood(foodId) {
-  if (!confirm('確定刪除這項食物記錄？')) return;
-  await dbDelete('foods', foodId);
-  await loadAll();
-  const el = document.getElementById('food-' + foodId);
-  if (el) el.remove();
-  showToast('已刪除食物記錄', 'info');
-}
+// 相片預覽
+document.getElementById('fPhoto').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('fPhotoImg').src = e.target.result;
+    document.getElementById('fPhotoPreview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
 
-async function deleteRestaurant(id) {
-  const r = allRestaurants.find(x => x.id === id);
-  if (!r) return;
-  if (!confirm(`確定刪除「${r.name}」及其所有食物記錄？`)) return;
-  await dbDelete('restaurants', id);
-  const foods = foodsMap[id] || [];
-  for (const f of foods) await dbDelete('foods', f.id);
-  closeModal('modalDetail');
-  showToast('已刪除餐廳', 'info');
-  await loadAll();
-}
-
-// =============================================
-// JSON EXPORT
-// =============================================
-document.getElementById('btnExport').addEventListener('click', async () => {
+// =====================================================
+// JSON IMPORT / EXPORT
+// 技術說明：匯出包含所有資料（含圖片 Base64），
+// 匯入時會覆蓋現有資料（合併模式：新增不存在的記錄）
+// =====================================================
+async function exportData() {
   const restaurants = await dbGetAll('restaurants');
   const foods = await dbGetAll('foods');
-  const data = { version: 1, exportedAt: new Date().toISOString(), restaurants, foods };
+  const districts = await getSettings('districts');
+  const cuisines = await getSettings('cuisines');
+
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    appName: 'FoodDiary',
+    restaurants,
+    foods,
+    settings: { districts, cuisines }
+  };
+
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `food-diary-${new Date().toISOString().slice(0,10)}.json`;
+  a.href = url;
+  a.download = `fooddiary-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('✅ 資料已匯出', 'success');
-});
+  showToast(`已匯出 ${restaurants.length} 間餐廳`, 'success');
+}
 
-// =============================================
-// JSON IMPORT
-// =============================================
-document.getElementById('btnImport').addEventListener('click', () => {
-  document.getElementById('importFileInput').click();
-});
-document.getElementById('importFileInput').addEventListener('change', async e => {
-  const file = e.target.files[0];
+async function importData(event) {
+  const file = event.target.files[0];
   if (!file) return;
+  if (!confirm('匯入將會合併資料（不刪除現有記錄）。確定繼續？')) {
+    event.target.value = '';
+    return;
+  }
+
   try {
     const text = await file.text();
     const data = JSON.parse(text);
-    if (!data.restaurants || !Array.isArray(data.restaurants)) throw new Error('格式不正確');
-    if (!confirm(`即將匯入 ${data.restaurants.length} 間餐廳及 ${(data.foods||[]).length} 項食物記錄。現有資料將被覆蓋，確定繼續？`)) return;
-    await dbClear('restaurants');
-    await dbClear('foods');
-    for (const r of data.restaurants) await dbPut('restaurants', r);
-    for (const f of (data.foods || [])) await dbPut('foods', f);
-    showToast(`✅ 已匯入 ${data.restaurants.length} 間餐廳`, 'success');
-    await loadAll();
-  } catch (err) {
-    showToast('❌ 匯入失敗：' + err.message, 'error');
+
+    if (data.appName !== 'FoodDiary' && !confirm('此檔案可能不是美食日記的備份。確定繼續匯入？')) return;
+
+    let importedR = 0, importedF = 0;
+
+    // 匯入設定
+    if (data.settings) {
+      if (data.settings.districts) {
+        const existing = await getSettings('districts');
+        const merged = [...new Set([...existing, ...data.settings.districts])];
+        await saveSettings('districts', merged);
+      }
+      if (data.settings.cuisines) {
+        const existing = await getSettings('cuisines');
+        const merged = [...new Set([...existing, ...data.settings.cuisines])];
+        await saveSettings('cuisines', merged);
+      }
+    }
+
+    // 建立 ID 映射（舊 ID → 新 ID），處理可能的 ID 衝突
+    const restaurantIdMap = {};
+    if (data.restaurants) {
+      for (const r of data.restaurants) {
+        const oldId = r.id;
+        const newR = { ...r };
+        delete newR.id;
+        newR.createdAt = r.createdAt || Date.now();
+        const newId = await dbPut('restaurants', newR);
+        restaurantIdMap[oldId] = newId;
+        importedR++;
+      }
+    }
+    if (data.foods) {
+      for (const f of data.foods) {
+        const newF = { ...f };
+        delete newF.id;
+        newF.restaurantId = restaurantIdMap[f.restaurantId] || f.restaurantId;
+        await dbPut('foods', newF);
+        importedF++;
+      }
+    }
+
+    await loadSettings();
+    await loadRestaurants();
+    showToast(`已匯入 ${importedR} 間餐廳、${importedF} 道食物`, 'success');
+  } catch (e) {
+    showToast('匯入失敗：' + e.message, 'error');
   }
-  e.target.value = '';
+  event.target.value = '';
+}
+
+// =====================================================
+// UI HELPERS
+// =====================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+// 點擊背景關閉 Modal
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+// ESC 鍵關閉 Modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+  }
 });
 
-// =============================================
-// INIT
-// =============================================
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    const active = i === (tabName === 'restaurants' ? 0 : 1);
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-selected', active);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tabName)?.classList.add('active');
+  if (tabName === 'settings') loadSettings();
+}
+
+function showToast(msg, type = '') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (type ? ' ' + type : '');
+  toast.textContent = msg;
+  toast.setAttribute('role', 'status');
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// =====================================================
+// DARK MODE TOGGLE
+// =====================================================
+(function(){
+  const btn = document.querySelector('[data-theme-toggle]');
+  const root = document.documentElement;
+  let dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  root.setAttribute('data-theme', dark ? 'dark' : 'light');
+  updateToggleIcon(dark);
+  function updateToggleIcon(isDark) {
+    if (!btn) return;
+    btn.setAttribute('aria-label', isDark ? '切換淺色模式' : '切換深色模式');
+    btn.innerHTML = isDark
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+      : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  }
+  if (btn) btn.addEventListener('click', () => {
+    dark = !dark;
+    root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    updateToggleIcon(dark);
+  });
+})();
+
+// =====================================================
+// ADD TO HOME SCREEN (A2HS)
+// 技術說明：
+// Android Chrome: 監聽 beforeinstallprompt 事件，延遲原生提示，
+//   在適當時機顯示自定義橫幅，用戶確認後觸發原生安裝流程。
+// iOS Safari: 無原生安裝 API，偵測平台後顯示說明橫幅，
+//   引導用戶手動使用「分享 → 加入主畫面」功能。
+// =====================================================
+let a2hsShown = false;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // 延遲 3 秒後顯示，讓用戶先使用應用
+  if (!a2hsShown) setTimeout(showA2HSBanner, 3000);
+});
+window.addEventListener('appinstalled', () => {
+  dismissA2HS();
+  deferredPrompt = null;
+  showToast('應用已成功安裝！', 'success');
+});
+
+function showA2HSBanner() {
+  if (a2hsShown) return;
+  const banner = document.getElementById('a2hsBanner');
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (isInStandaloneMode) return; // 已安裝，不顯示
+  a2hsShown = true;
+  if (isIOS) {
+    // iOS 設備顯示手動安裝說明
+    document.querySelector('.a2hs-desc').textContent = '點擊 Safari 底部「分享」圖示 → 選擇「加入主畫面」';
+    document.getElementById('a2hsInstallBtn').style.display = 'none';
+  }
+  banner.classList.add('show');
+}
+function dismissA2HS() {
+  document.getElementById('a2hsBanner').classList.remove('show');
+}
+async function installA2HS() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') showToast('正在安裝應用...', 'success');
+  deferredPrompt = null;
+  dismissA2HS();
+}
+
+// 非 PWA 環境：5 秒後顯示橫幅（用於一般瀏覽器提示）
+setTimeout(() => {
+  if (!a2hsShown && !window.matchMedia('(display-mode: standalone)').matches) {
+    showA2HSBanner();
+  }
+}, 5000);
+
+// =====================================================
+// APP INIT
+// =====================================================
 async function init() {
   await openDB();
-  await requestPersistentStorage();
-  await loadAll();
+  await requestStoragePersistence();
+  await loadSettings();
+  await loadRestaurants();
 }
-init().catch(err => { console.error('Init failed:', err); showToast('❌ 初始化失敗', 'error'); });
+
+init().catch(console.error);
 </script>
 </body>
 </html>

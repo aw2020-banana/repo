@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="離線相簿 — 使用 IndexedDB 與 Service Worker 的 PWA 相簿應用">
+<meta name="theme-color" content="#01696f">
+<meta name="mobile-web-app-capable" content="true">
+<meta name="apple-mobile-web-app-capable" content="true">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="相簿">
+<title>📷 離線相簿 PWA</title>
+
+<!-- Manifest inline (Data URI) — makes Add to Home Screen work from single HTML -->
+<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22%E9%9B%A2%E7%B7%9A%E7%9B%B8%E7%B0%BF%22,%22short_name%22:%22%E7%9B%B8%E7%B0%BF%22,%22description%22:%22%E4%BD%BF%E7%94%A8IndexedDB%E5%84%B2%E5%AD%98%EF%BC%8C%E7%A6%BB%E7%B7%9A%E5%8F%AF%E7%94%A8%E7%9A%84PWA%E7%9B%B8%E7%B0%BF%22,%22start_url%22:%22./%22,%22display%22:%22standalone%22,%22background_color%22:%22%23f7f6f2%22,%22theme_color%22:%22%2301696f%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27192%27%20height%3D%27192%27%20viewBox%3D%270%200%20192%20192%27%3E%3Crect%20width%3D%27192%27%20height%3D%27192%27%20rx%3D%2740%27%20fill%3D%27%2301696f%27%2F%3E%3Ccircle%20cx%3D%2796%27%20cy%3D%2796%27%20r%3D%2748%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%2710%27%2F%3E%3Ccircle%20cx%3D%2796%27%20cy%3D%2796%27%20r%3D%2724%27%20fill%3D%27white%27%2F%3E%3Ccircle%20cx%3D%27130%27%20cy%3D%2758%27%20r%3D%278%27%20fill%3D%27white%27%2F%3E%3C%2Fsvg%3E%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22},{%22src%22:%22data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27512%27%20height%3D%27512%27%20viewBox%3D%270%200%20512%20512%27%3E%3Crect%20width%3D%27512%27%20height%3D%27512%27%20rx%3D%27100%27%20fill%3D%27%2301696f%27%2F%3E%3Ccircle%20cx%3D%27256%27%20cy%3D%27256%27%20r%3D%27128%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%2726%27%2F%3E%3Ccircle%20cx%3D%27256%27%20cy%3D%27256%27%20r%3D%2762%27%20fill%3D%27white%27%2F%3E%3Ccircle%20cx%3D%27346%27%20cy%3D%27152%27%20r%3D%2722%27%20fill%3D%27white%27%2F%3E%3C%2Fsvg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22}]}">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300..700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+/* ══════════════════════════════════════════════
+   DESIGN TOKENS — Nexus Design System (Custom)
+   Art direction: 相簿 → warm, minimal, clean
+   Palette: warm beige + teal accent
+   Typography: DM Serif Display (display) + DM Sans (body)
+   Density: balanced
+   ══════════════════════════════════════════════ */
+:root, [data-theme="light"] {
+  --color-bg:              #f7f6f2;
+  --color-surface:         #f9f8f5;
+  --color-surface-2:       #fbfbf9;
+  --color-surface-offset:  #f3f0ec;
+  --color-surface-dynamic: #e6e4df;
+  --color-divider:         #dcd9d5;
+  --color-border:          #d4d1ca;
+  --color-text:            #28251d;
+  --color-text-muted:      #7a7974;
+  --color-text-faint:      #bab9b4;
+  --color-text-inverse:    #f9f8f4;
+  --color-primary:         #01696f;
+  --color-primary-hover:   #0c4e54;
+  --color-primary-active:  #0f3638;
+  --color-primary-highlight: #cedcd8;
+  --color-error:           #a12c7b;
+  --color-error-highlight: #e0ced7;
+  --color-success:         #437a22;
+  --color-success-highlight: #d4dfcc;
+  --color-warning:         #964219;
+
+  --radius-sm:   0.375rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+  --radius-full: 9999px;
+
+  --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
+  --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
+  --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12);
+
+  --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
+  --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
+  --text-base: clamp(1rem,     0.95rem + 0.25vw, 1.125rem);
+  --text-lg:   clamp(1.125rem, 1rem    + 0.75vw, 1.5rem);
+  --text-xl:   clamp(1.5rem,   1.2rem  + 1.25vw, 2.25rem);
+
+  --space-1:  0.25rem;  --space-2:  0.5rem;   --space-3:  0.75rem;
+  --space-4:  1rem;     --space-5:  1.25rem;  --space-6:  1.5rem;
+  --space-8:  2rem;     --space-10: 2.5rem;   --space-12: 3rem;
+  --space-16: 4rem;     --space-20: 5rem;
+
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body:    'DM Sans', 'Helvetica Neue', sans-serif;
+
+  --content-default: 1200px;
+  --header-h: 56px;
+}
+
+[data-theme="dark"] {
+  --color-bg:              #171614;
+  --color-surface:         #1c1b19;
+  --color-surface-2:       #201f1d;
+  --color-surface-offset:  #1d1c1a;
+  --color-surface-dynamic: #2d2c2a;
+  --color-divider:         #262523;
+  --color-border:          #393836;
+  --color-text:            #cdccca;
+  --color-text-muted:      #797876;
+  --color-text-faint:      #5a5957;
+  --color-text-inverse:    #2b2a28;
+  --color-primary:         #4f98a3;
+  --color-primary-hover:   #227f8b;
+  --color-primary-active:  #1a626b;
+  --color-primary-highlight: #313b3b;
+  --color-error:           #d163a7;
+  --color-error-highlight: #4c3d46;
+  --color-success:         #6daa45;
+  --color-success-highlight: #3a4435;
+  --color-warning:         #bb653b;
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
+  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-bg: #171614; --color-surface: #1c1b19; --color-surface-2: #201f1d;
+    --color-surface-offset: #1d1c1a; --color-surface-dynamic: #2d2c2a;
+    --color-divider: #262523; --color-border: #393836;
+    --color-text: #cdccca; --color-text-muted: #797876; --color-text-faint: #5a5957;
+    --color-text-inverse: #2b2a28;
+    --color-primary: #4f98a3; --color-primary-hover: #227f8b; --color-primary-active: #1a626b;
+    --color-primary-highlight: #313b3b;
+    --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+    --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
+    --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
+  }
+}
+
+/* ══════════════════════════════════════════════
+   BASE RESET
+   ══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + var(--space-4));
+}
+body {
+  min-height: 100dvh;
+  line-height: 1.6;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; height: auto; }
+button { cursor: pointer; background: none; border: none; font: inherit; color: inherit; }
+input, select, textarea { font: inherit; color: inherit; }
+ul { list-style: none; }
+h1,h2,h3,h4 { text-wrap: balance; line-height: 1.2; }
+p { text-wrap: pretty; max-width: 72ch; }
+::selection { background: oklch(from var(--color-primary) l c h / 0.2); }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-sm); }
+a, button, [role="button"] {
+  transition: color var(--transition-interactive),
+              background var(--transition-interactive),
+              opacity var(--transition-interactive),
+              box-shadow var(--transition-interactive),
+              transform var(--transition-interactive);
+}
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ══════════════════════════════════════════════
+   LAYOUT
+   ══════════════════════════════════════════════ */
+#app { display: flex; flex-direction: column; min-height: 100dvh; }
+
+/* HEADER */
+header {
+  position: sticky; top: 0; z-index: 100;
+  height: var(--header-h);
+  background: color-mix(in oklch, var(--color-bg) 90%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-divider);
+  display: flex; align-items: center;
+  padding-inline: var(--space-4);
+  gap: var(--space-3);
+}
+.header-logo {
+  display: flex; align-items: center; gap: var(--space-2);
+  text-decoration: none; color: inherit;
+  flex-shrink: 0;
+}
+.header-logo svg { width: 28px; height: 28px; }
+.logo-text {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+.header-spacer { flex: 1; }
+.header-actions { display: flex; align-items: center; gap: var(--space-2); }
+.icon-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+}
+.icon-btn:hover { background: var(--color-surface-offset); color: var(--color-text); }
+.icon-btn:active { background: var(--color-surface-dynamic); transform: scale(0.96); }
+
+/* SEARCH BAR */
+.search-wrap {
+  flex: 1; max-width: 360px;
+  position: relative;
+}
+.search-wrap svg {
+  position: absolute; left: var(--space-3); top: 50%; transform: translateY(-50%);
+  color: var(--color-text-faint); width: 16px; height: 16px; pointer-events: none;
+}
+#searchInput {
+  width: 100%; height: 36px;
+  padding: 0 var(--space-3) 0 calc(var(--space-3) + 16px + var(--space-2));
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  transition: border-color var(--transition-interactive), box-shadow var(--transition-interactive);
+}
+#searchInput:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.15); }
+
+/* MAIN */
+main { flex: 1; padding: var(--space-6) var(--space-4) var(--space-16); max-width: var(--content-default); margin-inline: auto; width: 100%; }
+
+/* TOOLBAR */
+.toolbar {
+  display: flex; align-items: center; gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+.toolbar-title { font-family: var(--font-display); font-size: var(--text-xl); letter-spacing: -0.02em; margin-right: auto; }
+.album-count { font-size: var(--text-xs); color: var(--color-text-muted); font-family: var(--font-body); font-weight: 400; margin-left: var(--space-2); vertical-align: middle; }
+.btn {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  height: 36px; padding: 0 var(--space-4);
+  font-size: var(--text-sm); font-weight: 500;
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-primary:active { background: var(--color-primary-active); transform: scale(0.98); }
+.btn-ghost { color: var(--color-text-muted); border: 1px solid var(--color-border); }
+.btn-ghost:hover { background: var(--color-surface-offset); color: var(--color-text); }
+.btn-ghost:active { background: var(--color-surface-dynamic); transform: scale(0.98); }
+.btn-danger { background: var(--color-error); color: #fff; }
+.btn-danger:hover { opacity: 0.85; }
+.btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* FILTER CHIPS */
+.filter-row {
+  display: flex; gap: var(--space-2); flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+.chip {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  height: 28px; padding: 0 var(--space-3);
+  font-size: var(--text-xs); font-weight: 500;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition-interactive), color var(--transition-interactive), border-color var(--transition-interactive);
+}
+.chip:hover { background: var(--color-surface-offset); color: var(--color-text); }
+.chip.active { background: var(--color-primary-highlight); color: var(--color-primary); border-color: var(--color-primary); }
+
+/* PHOTO GRID */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+  gap: var(--space-3);
+}
+@media (min-width: 640px) {
+  .photo-grid { grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); }
+}
+@media (min-width: 1024px) {
+  .photo-grid { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+}
+
+.photo-card {
+  position: relative;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid oklch(from var(--color-text) l c h / 0.07);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: box-shadow var(--transition-interactive), transform var(--transition-interactive);
+  animation: cardIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.photo-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.photo-card:active { transform: scale(0.98); box-shadow: var(--shadow-sm); }
+.photo-card .thumb-wrap {
+  aspect-ratio: 4/3;
+  background: var(--color-surface-offset);
+  overflow: hidden;
+  position: relative;
+}
+.photo-card img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.photo-card:hover img { transform: scale(1.04); }
+.photo-card .card-body {
+  padding: var(--space-3);
+  display: flex; flex-direction: column; gap: var(--space-1);
+}
+.card-title {
+  font-size: var(--text-sm); font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-meta {
+  font-size: var(--text-xs); color: var(--color-text-muted);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.card-tag {
+  display: inline-block;
+  padding: 0 var(--space-2); height: 18px; line-height: 18px;
+  font-size: 0.7rem; font-weight: 500; letter-spacing: 0.03em;
+  background: var(--color-primary-highlight); color: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+.card-actions {
+  position: absolute; top: var(--space-2); right: var(--space-2);
+  display: flex; gap: var(--space-1);
+  opacity: 0; transition: opacity var(--transition-interactive);
+}
+.photo-card:hover .card-actions,
+.photo-card:focus-within .card-actions { opacity: 1; }
+.card-action-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: color-mix(in oklch, var(--color-bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  transition: background var(--transition-interactive);
+}
+.card-action-btn:hover { background: var(--color-surface); }
+.card-action-btn.del:hover { background: var(--color-error-highlight); color: var(--color-error); }
+.card-action-btn svg { width: 14px; height: 14px; }
+
+/* EMPTY STATE */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: var(--space-20) var(--space-8);
+  color: var(--color-text-muted);
+  animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.empty-icon {
+  width: 64px; height: 64px; margin-bottom: var(--space-6);
+  color: var(--color-text-faint);
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.empty-state h3 { font-family: var(--font-display); font-size: var(--text-lg); color: var(--color-text); margin-bottom: var(--space-2); }
+.empty-state p { font-size: var(--text-sm); max-width: 36ch; margin-bottom: var(--space-6); }
+
+/* ══════════════════════════════════════════════
+   MODAL — LIGHTBOX
+   ══════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: oklch(0.1 0.01 80 / 0.92);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-4);
+  animation: overlayIn 0.2s ease;
+}
+@keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-overlay.hidden { display: none; }
+.lightbox {
+  max-width: 90vw; max-height: 90dvh;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  display: flex; flex-direction: column;
+  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.lightbox-img-wrap {
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  max-height: 65dvh; overflow: hidden;
+}
+.lightbox-img-wrap img { max-width: 100%; max-height: 65dvh; object-fit: contain; }
+.lightbox-info {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-divider);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4);
+}
+.lightbox-info h3 { font-family: var(--font-display); font-size: var(--text-lg); margin-bottom: var(--space-1); }
+.lightbox-info .meta { font-size: var(--text-xs); color: var(--color-text-muted); }
+.lightbox-close {
+  position: absolute; top: var(--space-4); right: var(--space-4);
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in oklch, var(--color-bg) 80%, transparent);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-full);
+  color: var(--color-text-inverse);
+  font-size: 18px;
+}
+.lightbox-close:hover { background: color-mix(in oklch, var(--color-bg) 95%, transparent); color: var(--color-text); }
+.lightbox-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in oklch, var(--color-bg) 80%, transparent);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-full);
+  color: var(--color-text-inverse);
+}
+.lightbox-nav:hover { background: color-mix(in oklch, var(--color-bg) 95%, transparent); color: var(--color-text); }
+.lightbox-nav.prev { left: var(--space-3); }
+.lightbox-nav.next { right: var(--space-3); }
+.lightbox-nav svg { width: 20px; height: 20px; }
+
+/* ══════════════════════════════════════════════
+   MODAL — UPLOAD / EDIT FORM
+   ══════════════════════════════════════════════ */
+.form-modal-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: oklch(0.1 0.01 80 / 0.7);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-4);
+  animation: overlayIn 0.2s ease;
+}
+.form-modal-overlay.hidden { display: none; }
+.form-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-6);
+  width: 100%; max-width: 480px;
+  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.form-modal h2 { font-family: var(--font-display); font-size: var(--text-lg); margin-bottom: var(--space-5); }
+.field { margin-bottom: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
+.field label { font-size: var(--text-sm); font-weight: 500; color: var(--color-text-muted); }
+.field input, .field select, .field textarea {
+  width: 100%; padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  transition: border-color var(--transition-interactive), box-shadow var(--transition-interactive);
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.12);
+}
+.field textarea { resize: vertical; min-height: 80px; }
+
+/* Drop zone */
+.dropzone {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-interactive), background var(--transition-interactive);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  position: relative;
+  min-height: 120px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2);
+}
+.dropzone:hover, .dropzone.dragging { border-color: var(--color-primary); background: var(--color-primary-highlight); color: var(--color-primary); }
+.dropzone svg { width: 32px; height: 32px; margin-bottom: var(--space-1); }
+.dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.drop-preview { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-3); }
+.drop-preview img { width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-md); border: 2px solid var(--color-primary); }
+
+.form-actions { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-5); }
+
+/* ══════════════════════════════════════════════
+   TOAST
+   ══════════════════════════════════════════════ */
+#toast-container {
+  position: fixed; bottom: var(--space-6); left: 50%; transform: translateX(-50%);
+  z-index: 999; display: flex; flex-direction: column; gap: var(--space-2);
+  pointer-events: none; width: max-content; max-width: calc(100vw - var(--space-8));
+}
+.toast {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-text);
+  color: var(--color-bg);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm); font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+.toast.success { background: var(--color-success); color: #fff; }
+.toast.error   { background: var(--color-error);   color: #fff; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(8px) scale(0.95); } }
+.toast.out { animation: toastOut 0.25s ease forwards; }
+.toast svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════
+   ADD TO HOME SCREEN BANNER
+   ══════════════════════════════════════════════ */
+#a2hs-banner {
+  position: fixed; bottom: var(--space-4); right: var(--space-4); z-index: 500;
+  max-width: 320px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-lg);
+  animation: bannerIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; flex-direction: column; gap: var(--space-3);
+}
+@keyframes bannerIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+#a2hs-banner.hidden { display: none; }
+.a2hs-header { display: flex; align-items: flex-start; gap: var(--space-3); }
+.a2hs-icon {
+  width: 48px; height: 48px; flex-shrink: 0;
+  background: var(--color-primary);
+  border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+}
+.a2hs-icon svg { width: 24px; height: 24px; }
+.a2hs-text h4 { font-size: var(--text-sm); font-weight: 600; margin-bottom: 2px; }
+.a2hs-text p  { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.5; }
+.a2hs-actions { display: flex; gap: var(--space-2); justify-content: flex-end; }
+.a2hs-actions .btn { height: 32px; font-size: var(--text-xs); }
+
+/* ══════════════════════════════════════════════
+   TECH INFO PANEL
+   ══════════════════════════════════════════════ */
+#info-panel {
+  position: fixed; inset: 0; z-index: 400;
+  background: oklch(0.1 0.01 80 / 0.7);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-4);
+  animation: overlayIn 0.2s ease;
+}
+#info-panel.hidden { display: none; }
+.info-box {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  max-width: 560px; width: 100%;
+  max-height: 80dvh; overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.info-box h2 { font-family: var(--font-display); font-size: var(--text-lg); margin-bottom: var(--space-5); display: flex; align-items: center; gap: var(--space-2); }
+.tech-section { margin-bottom: var(--space-5); }
+.tech-section h3 { font-size: var(--text-sm); font-weight: 600; color: var(--color-primary); margin-bottom: var(--space-2); letter-spacing: 0.05em; text-transform: uppercase; }
+.tech-section p { font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-2); line-height: 1.7; }
+.tech-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs); font-weight: 500;
+  border-radius: var(--radius-sm);
+  margin: 2px;
+}
+.badge-green { background: var(--color-success-highlight); color: var(--color-success); }
+.badge-teal  { background: var(--color-primary-highlight); color: var(--color-primary); }
+.badge-purple{ background: var(--color-error-highlight);   color: var(--color-error); }
+.badge-warn  { background: color-mix(in oklch, var(--color-warning) 15%, var(--color-bg)); color: var(--color-warning); }
+.status-row { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
+.status-row:last-child { border: none; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-green  { background: var(--color-success); }
+.dot-yellow { background: var(--color-warning); }
+.dot-gray   { background: var(--color-text-faint); }
+.status-label { color: var(--color-text-muted); flex: 1; }
+.status-value { font-weight: 500; font-size: var(--text-xs); color: var(--color-text); text-align: right; max-width: 55%; word-break: break-all; }
+
+/* Storage bar */
+.storage-bar-wrap { margin-top: var(--space-2); }
+.storage-bar-bg { height: 6px; background: var(--color-surface-dynamic); border-radius: var(--radius-full); overflow: hidden; }
+.storage-bar-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.6s ease; }
+.storage-label { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
+
+/* ══════════════════════════════════════════════
+   SKELETON
+   ══════════════════════════════════════════════ */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--color-surface-offset) 25%, var(--color-surface-dynamic) 50%, var(--color-surface-offset) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ══════════════════════════════════════════════
+   OFFLINE BANNER
+   ══════════════════════════════════════════════ */
+#offline-banner {
+  background: var(--color-warning);
+  color: #fff;
+  text-align: center;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-xs); font-weight: 500;
+  display: none;
+}
+body.offline #offline-banner { display: block; }
+
+/* ══════════════════════════════════════════════
+   PROGRESS BAR
+   ══════════════════════════════════════════════ */
+#upload-progress {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  height: 3px; background: var(--color-primary);
+  transform-origin: left; transform: scaleX(0);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+#upload-progress.active { opacity: 1; }
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE TWEAKS
+   ══════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .logo-text { display: none; }
+  .search-wrap { max-width: unset; }
+  .toolbar { gap: var(--space-2); }
+  .toolbar-title { font-size: var(--text-lg); }
+  #a2hs-banner { left: var(--space-4); right: var(--space-4); max-width: unset; }
+}
+@media (min-width: 768px) {
+  main { padding: var(--space-8) var(--space-8) var(--space-16); }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ PROGRESS BAR ══ -->
+<div id="upload-progress" role="progressbar" aria-label="上傳進度"></div>
+
+<!-- ══ OFFLINE BANNER ══ -->
+<div id="offline-banner" role="alert">
+  ⚡ 離線模式 — 所有相片均已快取，可完整瀏覽
+</div>
+
+<div id="app">
+
+  <!-- ══ HEADER ══ -->
+  <header role="banner">
+    <a href="#" class="header-logo" aria-label="相簿首頁">
+      <!-- Custom SVG Logo: Camera lens mark -->
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="28" height="28" rx="7" fill="var(--color-primary)"/>
+        <circle cx="14" cy="14.5" r="5.5" stroke="white" stroke-width="1.8"/>
+        <circle cx="14" cy="14.5" r="2.5" fill="white"/>
+        <rect x="9.5" y="7" width="4" height="2.5" rx="1" fill="white"/>
+        <circle cx="21" cy="9" r="1.2" fill="white"/>
+      </svg>
+      <span class="logo-text">相簿</span>
+    </a>
+
+    <!-- Search -->
+    <div class="search-wrap" role="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="search" id="searchInput" placeholder="搜尋相片名稱、標籤…" autocomplete="off" aria-label="搜尋相片">
+    </div>
+
+    <div class="header-spacer"></div>
+
+    <div class="header-actions">
+      <!-- Info / Tech button -->
+      <button class="icon-btn" id="infoBtn" aria-label="技術資訊" title="技術說明">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+        </svg>
+      </button>
+      <!-- Dark mode toggle -->
+      <button class="icon-btn" data-theme-toggle aria-label="切換深色模式" title="深色/淺色模式">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ══ MAIN ══ -->
+  <main id="main" role="main">
+    <div class="toolbar">
+      <h1 class="toolbar-title">
+        我的相簿
+        <span class="album-count" id="photoCount"></span>
+      </h1>
+      <button class="btn btn-primary" id="addBtn" aria-label="新增相片">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        新增相片
+      </button>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="filter-row" id="filterRow" role="group" aria-label="標籤篩選"></div>
+
+    <!-- Photo grid -->
+    <div class="photo-grid" id="photoGrid" role="list" aria-label="相片列表"></div>
+
+    <!-- Empty state (hidden by default) -->
+    <div class="empty-state hidden" id="emptyState">
+      <svg class="empty-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="8" y="16" width="48" height="36" rx="4"/>
+        <circle cx="32" cy="34" r="10"/>
+        <circle cx="32" cy="34" r="5"/>
+        <rect x="22" y="10" width="10" height="6" rx="2"/>
+        <circle cx="48" cy="24" r="2"/>
+      </svg>
+      <h3>尚無相片</h3>
+      <p>點擊「新增相片」上傳你的第一張照片，資料儲存於瀏覽器 IndexedDB，完全離線可用。</p>
+      <button class="btn btn-primary" id="emptyAddBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        上傳第一張相片
+      </button>
+    </div>
+  </main>
+
+</div><!-- /#app -->
+
+<!-- ══ TOAST CONTAINER ══ -->
+<div id="toast-container" role="region" aria-live="polite" aria-label="通知"></div>
+
+<!-- ══ ADD TO HOME SCREEN BANNER ══ -->
+<div id="a2hs-banner" class="hidden" role="dialog" aria-labelledby="a2hs-title" aria-describedby="a2hs-desc">
+  <div class="a2hs-header">
+    <div class="a2hs-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="5" y="2" width="14" height="20" rx="2"/>
+        <circle cx="12" cy="14" r="4"/><circle cx="12" cy="14" r="1.5"/>
+        <path d="M9 6h6"/>
+      </svg>
+    </div>
+    <div class="a2hs-text">
+      <h4 id="a2hs-title">安裝到主畫面</h4>
+      <p id="a2hs-desc">將相簿加至主畫面，享受全螢幕離線體驗，與原生 App 無異。</p>
+    </div>
+  </div>
+  <div class="a2hs-actions">
+    <button class="btn btn-ghost" id="a2hsDismiss">稍後再說</button>
+    <button class="btn btn-primary" id="a2hsInstall">立即安裝</button>
+  </div>
+</div>
+
+<!-- ══ LIGHTBOX ══ -->
+<div class="modal-overlay hidden" id="lightboxOverlay" role="dialog" aria-modal="true" aria-label="相片預覽">
+  <button class="lightbox-close" id="lightboxClose" aria-label="關閉預覽">✕</button>
+  <button class="lightbox-nav prev" id="lightboxPrev" aria-label="上一張">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button class="lightbox-nav next" id="lightboxNext" aria-label="下一張">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+  <div class="lightbox">
+    <div class="lightbox-img-wrap">
+      <img id="lightboxImg" src="" alt="" loading="lazy" decoding="async">
+    </div>
+    <div class="lightbox-info">
+      <div>
+        <h3 id="lightboxTitle"></h3>
+        <div class="meta" id="lightboxMeta"></div>
+      </div>
+      <button class="btn btn-ghost" id="lightboxDownload" aria-label="下載相片">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        下載
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ UPLOAD / EDIT FORM MODAL ══ -->
+<div class="form-modal-overlay hidden" id="formOverlay" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+  <div class="form-modal">
+    <h2 id="formTitle">新增相片</h2>
+    <form id="photoForm" novalidate>
+      <input type="hidden" id="editId">
+      <!-- Drop zone (only for add) -->
+      <div class="field" id="fileField">
+        <label>選擇相片 <span style="color:var(--color-error)">*</span></label>
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="點擊或拖曳上傳相片">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>點擊或拖曳相片至此（支援多張）</span>
+          <small style="color:var(--color-text-faint)">JPG、PNG、WebP、GIF</small>
+          <input type="file" id="fileInput" accept="image/*" multiple aria-label="選擇相片檔案">
+        </div>
+        <div class="drop-preview" id="dropPreview"></div>
+      </div>
+      <div class="field">
+        <label for="photoTitle">標題</label>
+        <input type="text" id="photoTitle" placeholder="為這張相片取個名字" maxlength="60">
+      </div>
+      <div class="field">
+        <label for="photoTag">標籤</label>
+        <input type="text" id="photoTag" placeholder="例如：旅遊、家人、風景（逗號分隔）" maxlength="100">
+      </div>
+      <div class="field">
+        <label for="photoNote">備注</label>
+        <textarea id="photoNote" placeholder="記下這個時刻的故事…" rows="3"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="formCancel">取消</button>
+        <button type="submit" class="btn btn-primary" id="formSubmit">儲存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ TECH INFO PANEL ══ -->
+<div id="info-panel" class="hidden" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+  <div class="info-box">
+    <h2 id="infoTitle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      技術架構說明
+    </h2>
+
+    <div class="tech-section">
+      <h3>⚡ 儲存層 — IndexedDB</h3>
+      <p>相片以 <strong>Blob</strong> 形式直接存入 IndexedDB（Object Store: <code>photos</code>），無需伺服器，完全本機儲存。透過 <code>IDBObjectStore</code> 支援 CRUD 操作，讀取時用 <code>URL.createObjectURL(blob)</code> 轉成臨時 URL 渲染圖片。</p>
+      <div>
+        <span class="tech-badge badge-teal">IndexedDB v3</span>
+        <span class="tech-badge badge-green">Blob 原始格式</span>
+        <span class="tech-badge badge-purple">IDBKeyRange 查詢</span>
+      </div>
+    </div>
+
+    <div class="tech-section">
+      <h3>🔒 持久化儲存 — navigator.storage.persist()</h3>
+      <p>一般情況下瀏覽器在磁碟空間不足時會自動清除 IndexedDB 資料。本 App 在啟動時呼叫 <code>navigator.storage.persist()</code>，取得「持久化」許可後，瀏覽器將保護此 origin 的資料不被自動清除，等同原生 App 的儲存保障。</p>
+      <div>
+        <span class="tech-badge badge-warn">需使用者授權</span>
+        <span class="tech-badge badge-green">保護 IndexedDB</span>
+      </div>
+    </div>
+
+    <div class="tech-section">
+      <h3>📱 Add to Home Screen — PWA</h3>
+      <p>App 包含 Web App Manifest（<code>manifest.json</code>，此處以 Data URI 內嵌），宣告 <code>display: standalone</code>、icon、theme color。瀏覽器偵測到 <code>beforeinstallprompt</code> 事件後，右下角出現安裝橫幅。iOS Safari 用戶可透過分享選單手動加入主畫面。</p>
+      <div>
+        <span class="tech-badge badge-teal">Web App Manifest</span>
+        <span class="tech-badge badge-green">beforeinstallprompt</span>
+        <span class="tech-badge badge-purple">standalone display</span>
+      </div>
+    </div>
+
+    <div class="tech-section">
+      <h3>🔧 離線支援 — Service Worker</h3>
+      <p>Service Worker（內嵌於此頁，以 Blob URL 動態注冊）攔截所有網路請求，採 <strong>Cache First</strong> 策略：優先從 Cache Storage 回應，失敗時才請求網路，確保完全離線可用。App Shell（HTML/CSS/JS）在首次載入時預快取。</p>
+      <div>
+        <span class="tech-badge badge-green">Cache First</span>
+        <span class="tech-badge badge-teal">Cache Storage</span>
+        <span class="tech-badge badge-warn">動態 Blob 注冊</span>
+      </div>
+    </div>
+
+    <div class="tech-section">
+      <h3>📊 目前狀態</h3>
+      <div id="statusRows">
+        <div class="status-row">
+          <div class="status-dot dot-gray" id="swDot"></div>
+          <span class="status-label">Service Worker</span>
+          <span class="status-value" id="swStatus">偵測中…</span>
+        </div>
+        <div class="status-row">
+          <div class="status-dot dot-gray" id="persistDot"></div>
+          <span class="status-label">儲存持久化</span>
+          <span class="status-value" id="persistStatus">偵測中…</span>
+        </div>
+        <div class="status-row">
+          <div class="status-dot dot-gray" id="netDot"></div>
+          <span class="status-label">網路狀態</span>
+          <span class="status-value" id="netStatus">偵測中…</span>
+        </div>
+        <div class="status-row">
+          <div class="status-dot dot-gray" id="dbDot"></div>
+          <span class="status-label">IndexedDB</span>
+          <span class="status-value" id="dbStatus">偵測中…</span>
+        </div>
+      </div>
+      <div class="storage-bar-wrap">
+        <div class="storage-bar-bg"><div class="storage-bar-fill" id="storageBar" style="width:0%"></div></div>
+        <div class="storage-label">
+          <span>已使用儲存空間</span>
+          <span id="storageText">— / —</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions" style="margin-top:var(--space-4)">
+      <button class="btn btn-primary" id="infoPanelClose">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     JAVASCRIPT
+     ══════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─── Dark Mode Toggle ─── */
+(function(){
+  const t = document.querySelector('[data-theme-toggle]');
+  const r = document.documentElement;
+  let d = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+  r.setAttribute('data-theme', d);
+  const sunIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+  const moonIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  const update = () => { if(t) t.innerHTML = d === 'dark' ? sunIcon : moonIcon; };
+  update();
+  if(t) t.addEventListener('click', () => { d = d === 'dark' ? 'light' : 'dark'; r.setAttribute('data-theme', d); update(); });
+})();
+
+/* ─── Toast ─── */
+function showToast(msg, type = '', duration = 3000) {
+  const c = document.getElementById('toast-container');
+  const icons = {
+    success: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`,
+    error:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>`,
+    '':      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>`,
+  };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `${icons[type] || icons['']}${msg}`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.classList.add('out');
+    setTimeout(() => t.remove(), 300);
+  }, duration);
+}
+
+/* ─── Progress Bar ─── */
+function setProgress(v) {
+  const bar = document.getElementById('upload-progress');
+  bar.classList.add('active');
+  bar.style.transform = `scaleX(${v})`;
+  if(v >= 1) setTimeout(() => { bar.classList.remove('active'); bar.style.transform = 'scaleX(0)'; }, 400);
+}
+
+/* ─── Offline Banner ─── */
+function updateOnlineStatus() {
+  document.body.classList.toggle('offline', !navigator.onLine);
+  const nd = document.getElementById('netDot');
+  const ns = document.getElementById('netStatus');
+  if(nd && ns) {
+    nd.className = 'status-dot ' + (navigator.onLine ? 'dot-green' : 'dot-yellow');
+    ns.textContent = navigator.onLine ? '在線' : '離線';
+  }
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
+
+/* ─── IndexedDB ─── */
+const DB_NAME    = 'PhotoAlbum';
+const DB_VERSION = 1;
+const STORE_NAME = 'photos';
+let db = null;
+
+async function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains(STORE_NAME)) {
+        const store = d.createObjectStore(STORE_NAME, { keyPath:'id', autoIncrement:true });
+        store.createIndex('createdAt', 'createdAt');
+        store.createIndex('tag',       'tags',      { multiEntry: true });
+      }
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function getDB() {
+  if(!db) db = await openDB();
+  return db;
+}
+
+async function addPhoto(photo) {
+  const d = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx   = d.transaction(STORE_NAME, 'readwrite');
+    const req  = tx.objectStore(STORE_NAME).add(photo);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function getAllPhotos() {
+  const d = await getDB();
+  return new Promise((resolve, reject) => {
+    const req = d.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function getPhoto(id) {
+  const d = await getDB();
+  return new Promise((resolve, reject) => {
+    const req = d.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(id);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function updatePhoto(id, data) {
+  const d = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = d.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const get = store.get(id);
+    get.onsuccess = () => {
+      const rec = Object.assign(get.result, data);
+      const put = store.put(rec);
+      put.onsuccess = () => resolve();
+      put.onerror   = e => reject(e.target.error);
+    };
+    get.onerror = e => reject(e.target.error);
+  });
+}
+
+async function deletePhoto(id) {
+  const d = await getDB();
+  return new Promise((resolve, reject) => {
+    const req = d.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+/* ─── State ─── */
+let allPhotos   = [];
+let pendingFiles = [];
+let lightboxIndex = 0;
+let filteredPhotos = [];
+let activeTag  = null;
+let searchQuery = '';
+const objURLs = new Map(); // id → object url (revoke on delete)
+
+/* ─── Render ─── */
+function fmtDate(ts) {
+  if(!ts) return '';
+  return new Date(ts).toLocaleDateString('zh-Hant', { year:'numeric', month:'short', day:'numeric' });
+}
+
+function getObjURL(photo) {
+  if(objURLs.has(photo.id)) return objURLs.get(photo.id);
+  if(!photo.blob) return '';
+  const url = URL.createObjectURL(photo.blob);
+  objURLs.set(photo.id, url);
+  return url;
+}
+
+function computeFiltered() {
+  let list = [...allPhotos].reverse();
+  if(activeTag) list = list.filter(p => p.tags && p.tags.includes(activeTag));
+  if(searchQuery) {
+    const q = searchQuery.toLowerCase();
+    list = list.filter(p =>
+      (p.title||'').toLowerCase().includes(q) ||
+      (p.tags||[]).some(t => t.toLowerCase().includes(q)) ||
+      (p.note||'').toLowerCase().includes(q)
+    );
+  }
+  filteredPhotos = list;
+}
+
+function renderFilterChips() {
+  const row = document.getElementById('filterRow');
+  const allTags = new Set();
+  allPhotos.forEach(p => (p.tags||[]).forEach(t => allTags.add(t)));
+  row.innerHTML = '';
+  if(!allTags.size) return;
+  const all = document.createElement('button');
+  all.className = 'chip' + (!activeTag ? ' active' : '');
+  all.textContent = '全部';
+  all.setAttribute('aria-pressed', !activeTag);
+  all.addEventListener('click', () => { activeTag = null; renderAll(); });
+  row.appendChild(all);
+  allTags.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (activeTag === tag ? ' active' : '');
+    btn.textContent = tag;
+    btn.setAttribute('aria-pressed', activeTag === tag);
+    btn.addEventListener('click', () => { activeTag = activeTag === tag ? null : tag; renderAll(); });
+    row.appendChild(btn);
+  });
+}
+
+function renderGrid() {
+  const grid = document.getElementById('photoGrid');
+  const empty = document.getElementById('emptyState');
+  const countEl = document.getElementById('photoCount');
+
+  computeFiltered();
+  grid.innerHTML = '';
+
+  countEl.textContent = allPhotos.length > 0 ? `${allPhotos.length} 張` : '';
+
+  if(filteredPhotos.length === 0) {
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  filteredPhotos.forEach((photo, idx) => {
+    const url = getObjURL(photo);
+    const tagsHtml = (photo.tags||[]).map(t => `<span class="card-tag">${t}</span>`).join(' ');
+    const card = document.createElement('div');
+    card.className = 'photo-card';
+    card.setAttribute('role', 'listitem');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', photo.title || `相片 ${photo.id}`);
+    card.style.animationDelay = `${idx * 0.03}s`;
+    card.innerHTML = `
+      <div class="thumb-wrap">
+        <img src="${url}" alt="${photo.title || '相片'}" loading="lazy" decoding="async" width="300" height="225">
+      </div>
+      <div class="card-body">
+        <div class="card-title">${photo.title || '未命名'}</div>
+        <div class="card-meta">
+          <span>${fmtDate(photo.createdAt)}</span>
+          ${tagsHtml}
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="card-action-btn edit" data-id="${photo.id}" aria-label="編輯">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="card-action-btn del" data-id="${photo.id}" aria-label="刪除">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    `;
+    card.addEventListener('click', e => {
+      if(e.target.closest('.card-action-btn')) return;
+      openLightbox(photo.id);
+    });
+    card.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' ') openLightbox(photo.id); });
+    card.querySelector('.edit').addEventListener('click', e => { e.stopPropagation(); openEditForm(photo.id); });
+    card.querySelector('.del').addEventListener('click',  e => { e.stopPropagation(); confirmDelete(photo.id); });
+    grid.appendChild(card);
+  });
+}
+
+function renderAll() {
+  renderFilterChips();
+  renderGrid();
+}
+
+async function loadPhotos() {
+  try {
+    allPhotos = await getAllPhotos();
+    renderAll();
+    updateDbStatus(true);
+  } catch(e) {
+    showToast('載入相片失敗：' + e.message, 'error');
+    updateDbStatus(false);
+  }
+}
+
+/* ─── Lightbox ─── */
+function openLightbox(id) {
+  const idx = filteredPhotos.findIndex(p => p.id === id);
+  if(idx === -1) return;
+  lightboxIndex = idx;
+  renderLightbox();
+  const ov = document.getElementById('lightboxOverlay');
+  ov.classList.remove('hidden');
+  ov.focus();
+  document.body.style.overflow = 'hidden';
+}
+
+function renderLightbox() {
+  const photo = filteredPhotos[lightboxIndex];
+  if(!photo) return;
+  const url = getObjURL(photo);
+  document.getElementById('lightboxImg').src  = url;
+  document.getElementById('lightboxImg').alt  = photo.title || '相片';
+  document.getElementById('lightboxTitle').textContent = photo.title || '未命名';
+  const tags = (photo.tags||[]).map(t => `<span class="card-tag">${t}</span>`).join(' ');
+  document.getElementById('lightboxMeta').innerHTML =
+    `${fmtDate(photo.createdAt)}${tags ? ' · ' + tags : ''}${photo.note ? '<br><span style="margin-top:4px;display:block">'+photo.note+'</span>' : ''}`;
+  document.getElementById('lightboxPrev').style.display = lightboxIndex > 0 ? 'flex' : 'none';
+  document.getElementById('lightboxNext').style.display = lightboxIndex < filteredPhotos.length-1 ? 'flex' : 'none';
+  // Download
+  document.getElementById('lightboxDownload').onclick = () => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (photo.title || 'photo') + (photo.mime ? '.'+photo.mime.split('/')[1] : '.jpg');
+    a.click();
+  };
+}
+
+function closeLightbox() {
+  document.getElementById('lightboxOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+document.getElementById('lightboxOverlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeLightbox(); });
+document.getElementById('lightboxPrev').addEventListener('click', () => { lightboxIndex--; renderLightbox(); });
+document.getElementById('lightboxNext').addEventListener('click', () => { lightboxIndex++; renderLightbox(); });
+document.addEventListener('keydown', e => {
+  const ov = document.getElementById('lightboxOverlay');
+  if(!ov.classList.contains('hidden')) {
+    if(e.key === 'Escape') closeLightbox();
+    if(e.key === 'ArrowLeft'  && lightboxIndex > 0)                       { lightboxIndex--; renderLightbox(); }
+    if(e.key === 'ArrowRight' && lightboxIndex < filteredPhotos.length-1) { lightboxIndex++; renderLightbox(); }
+  }
+});
+// Swipe support
+let touchStartX = 0;
+document.getElementById('lightboxOverlay').addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive:true });
+document.getElementById('lightboxOverlay').addEventListener('touchend',   e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if(Math.abs(dx) < 50) return;
+  if(dx < 0 && lightboxIndex < filteredPhotos.length-1) { lightboxIndex++; renderLightbox(); }
+  if(dx > 0 && lightboxIndex > 0)                       { lightboxIndex--; renderLightbox(); }
+});
+
+/* ─── Add / Edit Form ─── */
+function openAddForm() {
+  document.getElementById('formTitle').textContent = '新增相片';
+  document.getElementById('editId').value = '';
+  document.getElementById('photoTitle').value = '';
+  document.getElementById('photoTag').value   = '';
+  document.getElementById('photoNote').value  = '';
+  document.getElementById('fileField').style.display = '';
+  pendingFiles = [];
+  document.getElementById('dropPreview').innerHTML = '';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('formSubmit').textContent = '上傳';
+  document.getElementById('formOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+async function openEditForm(id) {
+  const photo = await getPhoto(id);
+  if(!photo) return;
+  document.getElementById('formTitle').textContent = '編輯相片';
+  document.getElementById('editId').value = id;
+  document.getElementById('photoTitle').value = photo.title || '';
+  document.getElementById('photoTag').value   = (photo.tags||[]).join(', ');
+  document.getElementById('photoNote').value  = photo.note  || '';
+  document.getElementById('fileField').style.display = 'none';
+  document.getElementById('formSubmit').textContent = '儲存';
+  document.getElementById('formOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeForm() {
+  document.getElementById('formOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+  pendingFiles = [];
+}
+
+document.getElementById('formCancel').addEventListener('click', closeForm);
+document.getElementById('formOverlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeForm(); });
+document.getElementById('addBtn').addEventListener('click', openAddForm);
+document.getElementById('emptyAddBtn').addEventListener('click', openAddForm);
+
+/* File picker / drag-drop */
+const fileInput = document.getElementById('fileInput');
+const dropzone  = document.getElementById('dropzone');
+const preview   = document.getElementById('dropPreview');
+
+function handleFiles(files) {
+  pendingFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+  preview.innerHTML = '';
+  pendingFiles.forEach(f => {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(f);
+    img.alt = f.name;
+    img.width = 64; img.height = 64;
+    preview.appendChild(img);
+  });
+}
+
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('dragging'); });
+dropzone.addEventListener('dragleave', e => { dropzone.classList.remove('dragging'); });
+dropzone.addEventListener('drop',      e => { e.preventDefault(); dropzone.classList.remove('dragging'); handleFiles(e.dataTransfer.files); });
+
+/* Form submit */
+document.getElementById('photoForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const editId = document.getElementById('editId').value;
+  const title  = document.getElementById('photoTitle').value.trim();
+  const tags   = document.getElementById('photoTag').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const note   = document.getElementById('photoNote').value.trim();
+
+  if(!editId && pendingFiles.length === 0) {
+    showToast('請至少選擇一張相片', 'error'); return;
+  }
+
+  const btn = document.getElementById('formSubmit');
+  btn.disabled = true; btn.textContent = '處理中…';
+  setProgress(0.1);
+
+  try {
+    if(editId) {
+      // Update metadata only
+      await updatePhoto(parseInt(editId), { title, tags, note });
+      showToast('已更新相片資訊', 'success');
+    } else {
+      // Add new photo(s)
+      const total = pendingFiles.length;
+      for(let i = 0; i < total; i++) {
+        const file = pendingFiles[i];
+        const photo = {
+          blob: file,
+          mime: file.type,
+          title: total === 1 ? (title || file.name.replace(/\.[^.]+$/, '')) : (title ? `${title} ${i+1}` : file.name.replace(/\.[^.]+$/, '')),
+          tags, note,
+          size: file.size,
+          createdAt: Date.now(),
+        };
+        await addPhoto(photo);
+        setProgress((i+1) / total);
+      }
+      showToast(`已新增 ${total} 張相片`, 'success');
+    }
+    closeForm();
+    await loadPhotos();
+  } catch(err) {
+    showToast('儲存失敗：' + err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = editId ? '儲存' : '上傳';
+    setProgress(1);
+  }
+});
+
+/* ─── Delete ─── */
+async function confirmDelete(id) {
+  // Simple confirm
+  const photo = allPhotos.find(p => p.id === id);
+  const name = photo ? (photo.title || '此相片') : '此相片';
+  if(!confirm(`確定刪除「${name}」？此操作無法復原。`)) return;
+  try {
+    if(objURLs.has(id)) { URL.revokeObjectURL(objURLs.get(id)); objURLs.delete(id); }
+    await deletePhoto(id);
+    showToast('已刪除相片', '');
+    await loadPhotos();
+  } catch(err) {
+    showToast('刪除失敗：' + err.message, 'error');
+  }
+}
+
+/* ─── Search ─── */
+let searchTimer;
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { searchQuery = e.target.value.trim(); renderAll(); }, 200);
+});
+
+/* ─── Info Panel ─── */
+document.getElementById('infoBtn').addEventListener('click', () => {
+  document.getElementById('info-panel').classList.remove('hidden');
+  refreshStatus();
+});
+document.getElementById('infoPanelClose').addEventListener('click', () => {
+  document.getElementById('info-panel').classList.add('hidden');
+});
+document.getElementById('info-panel').addEventListener('click', e => {
+  if(e.target === e.currentTarget) document.getElementById('info-panel').classList.add('hidden');
+});
+
+function setStatus(dotId, statusId, ok, text) {
+  const dot = document.getElementById(dotId);
+  const val = document.getElementById(statusId);
+  if(dot) dot.className = 'status-dot ' + (ok === true ? 'dot-green' : ok === false ? 'dot-yellow' : 'dot-gray');
+  if(val) val.textContent = text;
+}
+
+async function refreshStatus() {
+  // SW
+  const swOK = 'serviceWorker' in navigator && !!navigator.serviceWorker.controller;
+  setStatus('swDot', 'swStatus', swOK, swOK ? '已啟動 (Cache First)' : 'service worker 未控制頁面');
+  // Persist
+  if(navigator.storage && navigator.storage.persisted) {
+    const persisted = await navigator.storage.persisted();
+    setStatus('persistDot', 'persistStatus', persisted, persisted ? '已持久化 ✓' : '尚未持久化');
+  } else {
+    setStatus('persistDot', 'persistStatus', false, '瀏覽器不支援');
+  }
+  // Net
+  updateOnlineStatus();
+  // DB
+  try {
+    await getDB();
+    setStatus('dbDot', 'dbStatus', true, `已連線 (${allPhotos.length} 筆記錄)`);
+  } catch(e) {
+    setStatus('dbDot', 'dbStatus', false, '連線失敗');
+  }
+  // Storage quota
+  if(navigator.storage && navigator.storage.estimate) {
+    const est = await navigator.storage.estimate();
+    const used = est.usage   || 0;
+    const total = est.quota  || 0;
+    const pct  = total ? Math.round(used / total * 100) : 0;
+    const fmt  = v => v > 1e9 ? (v/1e9).toFixed(2)+'GB' : v > 1e6 ? (v/1e6).toFixed(1)+'MB' : (v/1e3).toFixed(0)+'KB';
+    document.getElementById('storageBar').style.width = pct + '%';
+    document.getElementById('storageText').textContent = `${fmt(used)} / ${fmt(total)} (${pct}%)`;
+  }
+}
+
+/* ─── navigator.storage.persist() ─── */
+async function requestPersistentStorage() {
+  if(!navigator.storage || !navigator.storage.persist) return;
+  try {
+    const persisted = await navigator.storage.persisted();
+    if(!persisted) {
+      const result = await navigator.storage.persist();
+      if(result) {
+        console.log('[Storage] 持久化儲存已授權 ✓');
+        // Toast only if user is already on the page for a while
+        setTimeout(() => showToast('已取得持久化儲存授權，資料不會被自動清除 ✓', 'success'), 1000);
+      } else {
+        console.log('[Storage] 持久化儲存未授權（瀏覽器可能需要更多互動）');
+      }
+    } else {
+      console.log('[Storage] 已是持久化儲存');
+    }
+  } catch(e) { console.warn('[Storage] persist() 失敗:', e); }
+}
+
+/* ─── Service Worker (inline as Blob) ─── */
+const SW_CODE = `
+const CACHE_NAME = 'photo-album-v1';
+const APP_SHELL  = ['./'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(c => c.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+// Cache First strategy
+self.addEventListener('fetch', e => {
+  if(e.request.method !== 'GET') return;
+  // Skip cross-origin requests except fonts
+  const url = new URL(e.request.url);
+  if(url.origin !== location.origin && !url.hostname.includes('fonts')) return;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if(cached) return cached;
+      return fetch(e.request).then(resp => {
+        if(!resp || resp.status !== 200 || resp.type === 'opaque') return resp;
+        const clone = resp.clone();
+        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+        return resp;
+      }).catch(() => {
+        // Offline fallback for HTML pages
+        if(e.request.destination === 'document') return caches.match('./');
+      });
+    })
+  );
+});
+`;
+
+async function registerServiceWorker() {
+  if(!('serviceWorker' in navigator)) {
+    console.log('[SW] 瀏覽器不支援 Service Worker');
+    return;
+  }
+  try {
+    const blob = new Blob([SW_CODE], { type: 'application/javascript' });
+    const url  = URL.createObjectURL(blob);
+    const reg  = await navigator.serviceWorker.register(url, { scope: './' });
+    console.log('[SW] 注冊成功，scope:', reg.scope);
+    // 注意：Blob URL SW 有部分瀏覽器限制，實際部署建議使用外部 sw.js 檔案
+  } catch(e) {
+    console.warn('[SW] 注冊失敗（可能因 Blob URL 限制）:', e.message);
+  }
+}
+
+/* ─── Add to Home Screen ─── */
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show after 3 seconds
+  setTimeout(() => {
+    document.getElementById('a2hs-banner').classList.remove('hidden');
+  }, 3000);
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('a2hs-banner').classList.add('hidden');
+  showToast('已成功安裝到主畫面 🎉', 'success');
+  deferredPrompt = null;
+});
+
+document.getElementById('a2hsInstall').addEventListener('click', async () => {
+  if(!deferredPrompt) {
+    // iOS fallback instructions
+    showToast('iOS：請點選 Safari 分享按鈕 → 加入主畫面', '', 5000);
+    document.getElementById('a2hs-banner').classList.add('hidden');
+    return;
+  }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if(outcome === 'accepted') { showToast('正在安裝…', 'success'); }
+  deferredPrompt = null;
+  document.getElementById('a2hs-banner').classList.add('hidden');
+});
+
+document.getElementById('a2hsDismiss').addEventListener('click', () => {
+  document.getElementById('a2hs-banner').classList.add('hidden');
+});
+
+/* ─── Boot ─── */
+(async function boot() {
+  await registerServiceWorker();
+  await requestPersistentStorage();
+  await loadPhotos();
+})();
+</script>
+</body>
+</html>

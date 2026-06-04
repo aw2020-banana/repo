@@ -1,0 +1,321 @@
+<!--
+/* -->
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>電吉他 DB (Single-File PWA)</title>
+    <script>
+        // 1. 動態注入 PWA Manifest (繞過外部檔案限制)
+        const manifest = {
+            "name": "電吉他設備資料庫",
+            "short_name": "吉他DB",
+            "start_url": location.pathname,
+            "display": "standalone",
+            "background_color": "#121212",
+            "theme_color": "#bb86fc",
+            "icons": [{
+                "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎸</text></svg>",
+                "sizes": "192x192",
+                "type": "image/svg+xml"
+            }]
+        };
+        const manifestUrl = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
+        const link = document.createElement('link');
+        link.rel = 'manifest'; link.href = manifestUrl;
+        document.head.appendChild(link);
+    </script>
+    <style>
+        :root { --bg: #121212; --surf: #1e1e1e; --pri: #bb86fc; --txt: #e0e0e0; --brd: #333; --err: #cf6679; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--txt); padding-bottom: 50px; }
+        header { background: var(--surf); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--brd); position: sticky; top: 0; z-index: 100; }
+        .controls button { background: var(--pri); color: #000; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; margin-left: 5px; cursor: pointer; }
+        #install-btn { display: none; background: #03dac6; }
+        .status-bar { padding: 5px 15px; font-size: 0.8rem; background: #000; color: #888; display: flex; justify-content: space-between; }
+        .filters { padding: 15px; display: flex; gap: 10px; background: var(--surf); }
+        input, select, textarea { background: #2c2c2c; border: 1px solid var(--brd); color: var(--txt); padding: 8px; border-radius: 4px; width: 100%; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: var(--surf); border-radius: 8px; border: 1px solid var(--brd); display: flex; flex-direction: column; overflow: hidden; }
+        .img-scroll { height: 180px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; }
+        .img-scroll img { height: 100%; object-fit: contain; scroll-snap-align: center; flex: 0 0 100%; }
+        .card-body { padding: 15px; flex: 1; }
+        .card-title { font-weight: bold; color: var(--pri); margin-bottom: 5px; }
+        .card-price { font-size: 1.2rem; font-weight: bold; color: #03dac6; margin: 5px 0; }
+        .card-actions { display: flex; gap: 10px; padding: 15px; border-top: 1px solid var(--brd); }
+        .card-actions button { flex: 1; padding: 8px; border: none; border-radius: 4px; cursor: pointer; background: #333; color: white;}
+        .card-actions .del { background: var(--err); color: #000; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto; padding: 20px; align-items: flex-start; justify-content: center; }
+        .modal-content { background: var(--surf); padding: 20px; border-radius: 8px; width: 100%; max-width: 600px; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .form-row > div { flex: 1; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .pagination { display: flex; justify-content: center; gap: 15px; padding: 20px; }
+        .pagination button { padding: 5px 15px; cursor: pointer; background: var(--surf); color: var(--txt); border: 1px solid var(--brd); }
+        .pagination button:disabled { opacity: 0.5; }
+    </style>
+</head>
+<body>
+    <header>
+        <h3>🎸 吉他 DB</h3>
+        <div class="controls">
+            <button id="install-btn">安裝桌面版</button>
+            <button onclick="exportJSON()">匯出</button>
+            <button onclick="document.getElementById('file-in').click()">匯入</button>
+            <input type="file" id="file-in" style="display:none" accept=".json" onchange="importJSON(event)">
+            <button onclick="openModal()">+ 新增</button>
+        </div>
+    </header>
+    
+    <div class="status-bar">
+        <span id="storage-status">持久化: 檢查中</span>
+        <span id="sw-status">SW: 嘗試註冊</span>
+    </div>
+
+    <div class="filters">
+        <input type="text" id="f-brand" list="dl-brands" placeholder="篩選品牌" onchange="loadData()">
+        <select id="f-status" onchange="loadData()">
+            <option value="">所有狀態</option>
+            <option value="上架">上架</option>
+            <option value="下架">下架</option>
+        </select>
+        <datalist id="dl-brands"></datalist>
+    </div>
+
+    <div id="grid" class="grid"></div>
+    <div class="pagination">
+        <button id="p-prev" onclick="chgPage(-1)">上一頁</button>
+        <span id="p-info">1 / 1</span>
+        <button id="p-next" onclick="chgPage(1)">下一頁</button>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2>編輯吉他資料</h2><br>
+            <form id="g-form" onsubmit="saveData(event)">
+                <input type="hidden" id="g-id">
+                <div class="form-row">
+                    <div><label>標題 *</label><input type="text" id="g-title" required></div>
+                    <div><label>品牌 *</label><input type="text" id="g-brand" list="dl-brands" required></div>
+                </div>
+                <div class="form-row">
+                    <div><label>形狀</label><input type="text" id="g-shape" list="dl-shapes">
+                        <datalist id="dl-shapes"><option value="Strat"></option><option value="Tele"></option></datalist>
+                    </div>
+                    <div><label>顏色</label><input type="text" id="g-color"></div>
+                </div>
+                <div class="form-row">
+                    <div><label>價錢 *</label><input type="number" step="0.01" id="g-price" required></div>
+                    <div><label>貨幣</label><select id="g-currency">
+                        <option value="RMB">RMB</option><option value="HKD">HKD</option>
+                        <option value="USD">USD</option><option value="JPY">JPY</option>
+                    </select></div>
+                </div>
+                <div class="form-row">
+                    <div><label>系列</label><input type="text" id="g-series"></div>
+                    <div><label>型號</label><input type="text" id="g-model"></div>
+                </div>
+                <div class="form-row">
+                    <div><label>琴體</label><input type="text" id="g-body"></div>
+                    <div><label>琴頸</label><input type="text" id="g-neck"></div>
+                </div>
+                <div class="form-row">
+                    <div><label>指板</label><input type="text" id="g-fretboard"></div>
+                    <div><label>拾音器</label><input type="text" id="g-pickups"></div>
+                </div>
+                <div class="form-row">
+                    <div><label>弦長</label><input type="text" id="g-scale"></div>
+                    <div><label>弧度</label><input type="text" id="g-radius"></div>
+                </div>
+                <div class="form-row">
+                    <div><label>狀態</label><select id="g-status"><option value="上架">上架</option><option value="下架">下架</option></select></div>
+                </div>
+                <div><label>圖片 (最多10張自動壓縮)</label><input type="file" id="g-imgs" multiple accept="image/*"></div><br>
+                <div><label>備註</label><textarea id="g-notes"></textarea></div>
+                <div class="modal-actions">
+                    <button type="button" onclick="document.getElementById('modal').style.display='none'">取消</button>
+                    <button type="submit" style="background:var(--pri);color:#000;">儲存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 2. 觸發 Storage Persist
+        (async () => {
+            if (navigator.storage && navigator.storage.persist) {
+                const p = await navigator.storage.persisted() || await navigator.storage.persist();
+                document.getElementById('storage-status').innerText = '持久化: ' + (p ? '✅' : '❌');
+            }
+        })();
+
+        // 3. Service Worker 註冊 (Polyglot 本體請求)
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+            const swUrl = location.href.split('?')[0].split('#')[0] + '?sw=1';
+            navigator.serviceWorker.register(swUrl)
+                .then(() => document.getElementById('sw-status').innerText = 'SW: ✅ (支援離線)')
+                .catch(e => {
+                    console.warn(e);
+                    document.getElementById('sw-status').innerText = 'SW: ❌ (MIME Type限制)';
+                });
+        } else { document.getElementById('sw-status').innerText = 'SW: 本地環境不適用'; }
+
+        // A2HS 安裝提示
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); deferredPrompt = e;
+            document.getElementById('install-btn').style.display = 'inline-block';
+        });
+        document.getElementById('install-btn').onclick = async () => {
+            if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt = null; document.getElementById('install-btn').style.display = 'none'; }
+        };
+
+        // 4. IndexedDB 核心邏輯
+        let db;
+        const initDB = () => new Promise((res, rej) => {
+            const req = indexedDB.open('GDB', 1);
+            req.onupgradeneeded = e => {
+                const s = e.target.result.createObjectStore('guitars', { keyPath: 'id', autoIncrement: true });
+                s.createIndex('brand', 'brand', {unique: false});
+            };
+            req.onsuccess = e => { db = e.target.result; res(db); };
+            req.onerror = e => rej(e.target.error);
+        });
+        const idb = (mode, cb) => new Promise((res, rej) => {
+            const tx = db.transaction('guitars', mode);
+            const req = cb(tx.objectStore('guitars'));
+            if (req) { req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); }
+            else { tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }
+        });
+
+        const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        let allData = [], currPage = 1, currentEditImages = [];
+        
+        async function loadData() {
+            if (!db) await initDB();
+            const brandF = document.getElementById('f-brand').value.toLowerCase();
+            const statusF = document.getElementById('f-status').value;
+            const raw = await idb('readonly', s => s.getAll());
+            
+            allData = raw.filter(g => (!brandF || g.brand.toLowerCase().includes(brandF)) && (!statusF || g.status === statusF))
+                         .sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+            
+            document.getElementById('dl-brands').innerHTML = [...new Set(raw.map(g=>g.brand))].map(b=>`<option value="${esc(b)}">`).join('');
+            render();
+        }
+
+        function render() {
+            const total = Math.ceil(allData.length / 20) || 1;
+            currPage = Math.min(Math.max(1, currPage), total);
+            const slice = allData.slice((currPage - 1) * 20, currPage * 20);
+            
+            document.getElementById('grid').innerHTML = slice.map(g => `
+                <div class="card">
+                    <div class="img-scroll">${g.images?.length ? g.images.map(i=>`<img src="${i}">`).join('') : '<span style="margin:auto">無圖片</span>'}</div>
+                    <div class="card-body">
+                        <div class="card-title">${esc(g.brand)} - ${esc(g.title)}</div>
+                        <div style="font-size:0.85em;color:#aaa">型號: ${esc(g.model)} | 狀態: ${esc(g.status)}</div>
+                        <div class="card-price">${g.currency} ${g.price}</div>
+                    </div>
+                    <div class="card-actions">
+                        <button onclick='edit(${JSON.stringify(g).replace(/'/g,"&#39;")})'>編輯</button>
+                        <button class="del" onclick="del(${g.id})">刪除</button>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('p-info').innerText = `${currPage} / ${total}`;
+            document.getElementById('p-prev').disabled = currPage === 1;
+            document.getElementById('p-next').disabled = currPage === total;
+        }
+        function chgPage(d) { currPage += d; render(); }
+
+        const compress = file => new Promise(res => {
+            const r = new FileReader();
+            r.onload = e => {
+                const img = new Image();
+                img.onload = () => {
+                    const cvs = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if(w > 1200) { h = Math.round(h * 1200 / w); w = 1200; }
+                    cvs.width = w; cvs.height = h;
+                    cvs.getContext('2d').drawImage(img, 0, 0, w, h);
+                    res(cvs.toDataURL('image/webp', 0.7));
+                };
+                img.src = e.target.result;
+            };
+            r.readAsDataURL(file);
+        });
+
+        function openModal() { document.getElementById('g-form').reset(); document.getElementById('g-id').value=''; currentEditImages=[]; document.getElementById('modal').style.display='flex'; }
+        function edit(g) {
+            ['id','title','brand','shape','color','price','currency','series','model','body','neck','fretboard','pickups','scale','radius','status','notes'].forEach(k => {
+                if(document.getElementById('g-'+k)) document.getElementById('g-'+k).value = g[k] || (g.specs?.[k]) || '';
+            });
+            currentEditImages = g.images || [];
+            document.getElementById('modal').style.display='flex';
+        }
+        async function saveData(e) {
+            e.preventDefault();
+            const id = document.getElementById('g-id').value;
+            const files = document.getElementById('g-imgs').files;
+            if(files.length + currentEditImages.length > 10 && !id) return alert('最多10張圖片');
+            
+            let imgs = [...currentEditImages];
+            if(!id) imgs = []; // 新增時清空暫存陣列
+            for(let i=0; i<files.length; i++) { if(imgs.length>=10) break; imgs.push(await compress(files[i])); }
+            
+            const data = {
+                title: document.getElementById('g-title').value, brand: document.getElementById('g-brand').value,
+                shape: document.getElementById('g-shape').value, color: document.getElementById('g-color').value,
+                price: document.getElementById('g-price').value, currency: document.getElementById('g-currency').value,
+                series: document.getElementById('g-series').value, model: document.getElementById('g-model').value,
+                status: document.getElementById('g-status').value, notes: document.getElementById('g-notes').value,
+                specs: {
+                    body: document.getElementById('g-body').value, neck: document.getElementById('g-neck').value,
+                    fretboard: document.getElementById('g-fretboard').value, pickups: document.getElementById('g-pickups').value,
+                    scale: document.getElementById('g-scale').value, radius: document.getElementById('g-radius').value
+                },
+                images: files.length > 0 ? imgs : currentEditImages, updatedAt: new Date().toISOString()
+            };
+            
+            if (id) { data.id = parseInt(id); data.createdAt = (await idb('readonly', s=>s.get(data.id))).createdAt; await idb('readwrite', s=>s.put(data)); }
+            else { data.createdAt = data.updatedAt; await idb('readwrite', s=>s.add(data)); }
+            document.getElementById('modal').style.display='none'; loadData();
+        }
+        async function del(id) { if(confirm('刪除?')) { await idb('readwrite', s=>s.delete(id)); loadData(); } }
+        async function exportJSON() {
+            const blob = new Blob([JSON.stringify(await idb('readonly', s=>s.getAll()))], {type: "application/json"});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'GuitarDB.json'; a.click();
+        }
+        function importJSON(e) {
+            const r = new FileReader();
+            r.onload = async ev => {
+                const data = JSON.parse(ev.target.result);
+                for(const item of data) { delete item.id; await idb('readwrite', s=>s.add(item)); }
+                alert('匯入完成'); loadData();
+            };
+            r.readAsText(e.target.files[0]);
+        }
+        window.onload = loadData;
+    </script>
+</body>
+</html>
+<!-- */
+// ==========================================
+// SERVICE WORKER 行程區段 (Polyglot Hack)
+// ==========================================
+const CACHE_NAME = 'guitar-db-single-v2';
+self.addEventListener('install', event => {
+    self.skipWaiting();
+    const mainUrl = location.href.split('?')[0].split('#')[0];
+    event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.add(mainUrl)));
+});
+self.addEventListener('activate', event => event.waitUntil(clients.claim()));
+self.addEventListener('fetch', event => {
+    if (event.request.method !== 'GET') return;
+    event.respondWith(
+        fetch(event.request).catch(() => caches.match(event.request).then(res => res || caches.match(location.href.split('?')[0])))
+    );
+});
+// -->

@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電吉他收藏資料庫 Master Guitars</title>
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22%E9%9B%BB%E5%90%89%E4%BB%96%E8%B3%87%E6%96%99%E5%A0%B4%22,%22short_name%22:%22%E5%90%89%E4%BB%96%E5%BA%AB%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%231a1a1a%22,%22theme_color%22:%22%23d97706%22,%22icons%22:[{%22src%22:%22data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🎸</text></svg>%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22}]}">
+    
+    <style>
+        :root {
+            --bg-main: #121212;
+            --bg-card: #1e1e1e;
+            --bg-input: #2a2a2a;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --accent: #d97706; /* 經典琥珀木色 */
+            --accent-hover: #b45309;
+            --border: #333333;
+            --success: #059669;
+            --danger: #dc2626;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        h1 { font-size: 1.8rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        
+        button, .btn-label {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        button:hover, .btn-label:hover { background-color: var(--accent-hover); }
+        button.secondary { background-color: #4b5563; }
+        button.secondary:hover { background-color: #374151; }
+        button.danger { background-color: var(--danger); }
+        button.danger:hover { background-color: #b91c1c; }
+
+        /* 狀態提示列 */
+        .status-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            background: var(--bg-card);
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .status-item { display: flex; align-items: center; gap: 5px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .dot.active { background-color: var(--success); }
+        .dot.inactive { background-color: var(--danger); }
+
+        /* A2HS 提示橫幅 */
+        #a2hs-banner {
+            display: none;
+            background: linear-gradient(135deg, var(--accent), #b45309);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 主要佈局：響應式 Grid */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        @media (min-width: 1024px) {
+            .main-layout { grid-template-columns: 1fr 450px; }
+        }
+
+        /* 表單與卡片樣式 */
+        .panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .panel-title { font-size: 1.3rem; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; color: var(--accent); }
+
+        /* 篩選與搜尋欄 */
+        .filter-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        /* 表單元素 */
+        .form-group { margin-bottom: 15px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+        input, select, textarea {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; }
+
+        /* 圖片上傳與預覽 */
+        .image-upload-zone {
+            border: 2px dashed var(--border);
+            padding: 20px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            background: var(--bg-input);
+            margin-bottom: 10px;
+        }
+        .image-preview-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .preview-wrapper { position: relative; aspect-ratio: 1; }
+        .preview-wrapper img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+        .del-img-btn { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none;}
+
+        /* 吉他列表展示 */
+        .guitar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .guitar-card {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+        }
+        .guitar-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+        .card-img-carousel { width: 100%; aspect-ratio: 16/10; background: #000; position: relative; }
+        .card-img-carousel img { width: 100%; height: 100%; object-fit: contain; }
+        .card-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+        .card-title { font-size: 1.1rem; font-weight: bold; }
+        .badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .badge.active { background: var(--success); color: white; }
+        .badge.inactive { background: #4b5563; color: white; }
+        .price-tag { color: var(--accent); font-size: 1.2rem; font-weight: bold; margin: 5px 0; }
+        .specs-summary { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
+
+        /* 分頁控制 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        /* 隱藏原生檔案輸入框 */
+        #file-input { display: none; }
+        #import-input { display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎸 Master Guitars 電吉他資料庫</h1>
+        <div class="btn-group">
+            <button class="secondary" onclick="exportJSON()">📤 匯出 JSON</button>
+            <label class="btn-label" for="import-input">📥 匯入 JSON</label>
+            <input type="file" id="import-input" accept=".json" onchange="importJSON(event)">
+        </div>
+    </header>
+
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="dot" id="persist-dot"></span>儲存持久化: <span id="persist-text">檢測中...</span>
+        </div>
+        <div class="status-item">
+            <span class="dot active" id="online-dot"></span>運作模式: <span id="online-text">線上</span>
+        </div>
+    </div>
+
+    <div id="a2hs-banner">
+        <span>將「電吉他資料庫」加入主畫面，享受全螢幕與更流暢的離線體驗！</span>
+        <div class="btn-group">
+            <button onclick="triggerA2HS()" style="background: white; color: var(--accent);">立即新增</button>
+            <button class="secondary" onclick="document.getElementById('a2hs-banner').style.display='none'">拒絕</button>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <div class="form-group" style="margin-bottom:0">
+            <label>篩選品牌</label>
+            <select id="filter-brand" onchange="loadGuitars(1)">
+                <option value="">全部品牌</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+            <label>篩選狀態</label>
+            <select id="filter-status" onchange="loadGuitars(1)">
+                <option value="">全部狀態</option>
+                <option value="上架">上架</option>
+                <option value="下架">下架</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end;">
+            <button class="secondary" style="width:100%" onclick="resetFilters()">重置篩選</button>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        
+        <div>
+            <div class="guitar-grid" id="guitar-list">
+                </div>
+            <div class="pagination">
+                <button class="secondary" id="prev-page" onclick="changePage(-1)">上一頁</button>
+                <span id="page-info">第 1 / 1 頁</span>
+                <button class="secondary" id="next-page" onclick="changePage(1)">下一頁</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3 class="panel-title" id="form-title">🎸 新增電吉他收藏</h3>
+            <form id="guitar-form" onsubmit="saveGuitar(event)">
+                <input type="hidden" id="guitar-id">
+                
+                <div class="form-group">
+                    <label>標題 *</label>
+                    <input type="text" id="title" required placeholder="例如：Fender Custom Shop '61">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>品牌 (可自行輸入)</label>
+                        <input type="text" id="brand" list="brand-datalist" placeholder="選擇或輸入">
+                        <datalist id="brand-datalist"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>琴體形狀</label>
+                        <input type="text" id="shape" list="shape-datalist" placeholder="選擇或輸入">
+                        <datalist id="shape-datalist">
+                            <option value="Strat"></option>
+                            <option value="Tele"></option>
+                        </datalist>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>系列</label>
+                        <input type="text" id="series" placeholder="如：American Ultra">
+                    </div>
+                    <div class="form-group">
+                        <label>型號</label>
+                        <input type="text" id="model" placeholder="如：Stratocaster HSS">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>顏色</label>
+                        <input type="text" id="color" placeholder="如：Sunburst">
+                    </div>
+                    <div class="form-group">
+                        <label>狀態</label>
+                        <select id="status">
+                            <option value="上架">上架</option>
+                            <option value="下架">下架</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>價格</label>
+                        <input type="number" id="price" min="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>貨幣</label>
+                        <select id="currency">
+                            <option value="人民幣">人民幣 (CNY)</option>
+                            <option value="港元">港元 (HKD)</option>
+                            <option value="美元">美元 (USD)</option>
+                            <option value="日元">日元 (JPY)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <fieldset style="border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                    <legend style="font-size: 0.8rem; color: var(--accent); padding: 0 5px;">規格參數 (Other Specs)</legend>
+                    <div class="form-row">
+                        <div class="form-group"><label>琴頸 (Neck)</label><input type="text" id="spec-neck"></div>
+                        <div class="form-group"><label>琴體 (Body)</label><input type="text" id="spec-body"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>指板 (Fretboard)</label><input type="text" id="spec-fretboard"></div>
+                        <div class="form-group"><label>拾音器 (Pickups)</label><input type="text" id="spec-pickups"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>弦長 (Scale Length)</label><input type="text" id="spec-scale"></div>
+                        <div class="form-group"><label>指板弧度 (Radius)</label><input type="text" id="spec-radius"></div>
+                    </div>
+                </fieldset>
+
+                <div class="form-group">
+                    <label>備註</label>
+                    <textarea id="notes" rows="2" placeholder="其他細節描述..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>圖片上傳 (最多 10 張，會自動壓縮)</label>
+                    <div class="image-upload-zone" onclick="document.getElementById('file-input').click()">
+                        📸 點擊選擇或拖放圖片
+                    </div>
+                    <input type="file" id="file-input" accept="image/*" multiple onchange="handleImageUpload(event)">
+                    <div class="image-preview-container" id="image-previews"></div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" style="flex:1">💾 儲存吉他資訊</button>
+                    <button type="button" class="secondary" id="cancel-edit" style="display:none" onclick="resetForm()">取消編輯</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid var(--border); margin: 40px 0 20px 0;">
+    <div class="panel" style="background:#151515; font-size:0.85rem; color:var(--text-muted)">
+        <h4 style="color:var(--accent); margin-bottom:10px;">💡 架構與技術規格說明：</h4>
+        <ul style="margin-left:20px; display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:10px;">
+            <li><strong>儲存核心 (IndexedDB)：</strong> 使用瀏覽器內建非關聯式資料庫，支援事務（Transactions），適合大容量結構化數據及二進位/Base64 圖片儲存。</li>
+            <li><strong>持久化申請 (Storage Persistence)：</strong> 自動調用 <code>navigator.storage.persist()</code>。核准後，除非用戶手動清除，否則瀏覽器在磁碟不足時絕不會自動刪除此資料庫。</li>
+            <li><strong>圖片壓縮機制：</strong> 利用 <code>HTML5 Canvas API</code> 在前端將上傳圖片等比例限寬 800px 並進行 JPEG 75% 壓縮，單張圖片體積通常可縮減 80% 以上，防止過度佔用 IndexedDB 空間。</li>
+            <li><strong>全單檔案離線（Offline-Capable）：</strong> 本系統採用無依賴設計。對於進階 PWA 離線能力，本頁面整合了內聯 manifest。當部署在 HTTPS 環境時，即可解鎖完整「加入主畫面 (A2HS)」能力。</li>
+        </ul>
+    </div>
+
+    <script>
+        // --- 全域變數定義 ---
+        let db;
+        let currentUploadedImages = []; // 暫存當前正在編輯/新增的圖片 Base64 陣列
+        let allGuitarsCached = [];      // 暫存篩選後的吉他清單，用於記憶體分頁
+        let currentPage = 1;
+        const ITEMS_PER_PAGE = 20;
+        let deferredPrompt;             // 用於 PWA A2HS
+
+        // --- 初始化配置 ---
+        document.addEventListener("DOMContentLoaded", () => {
+            initIndexedDB();
+            checkStoragePersistence();
+            checkOnlineStatus();
+            setupA2HS();
+            
+            window.addEventListener('online', checkOnlineStatus);
+            window.addEventListener('offline', checkOnlineStatus);
+        });
+
+        function checkOnlineStatus() {
+            const dot = document.getElementById('online-dot');
+            const txt = document.getElementById('online-text');
+            if (navigator.onLine) {
+                dot.className = "dot active";
+                txt.textContent = "線上 (網路已連線)";
+            } else {
+                dot.className = "dot inactive";
+                txt.textContent = "離線運作模式 (資料完全自本機載入)";
+            }
+        }
+
+        // --- 1. IndexedDB 初始化 ---
+        function initIndexedDB() {
+            const request = indexedDB.open("GuitarDatabase", 1);
+
+            request.onerror = (event) => console.error("Database error:", event.target.error);
+            
+            request.onupgradeneeded = (event) => {
+                db = event.target.result;
+                const objectStore = db.createObjectStore("guitars", { keyPath: "id", autoIncrement: true });
+                objectStore.createIndex("brand", "brand", { unique: false });
+                objectStore.createIndex("status", "status", { unique: false });
+            };
+
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                updateBrandAndShapeDatalists();
+                loadGuitars();
+            };
+        }
+
+        // --- 2. 申請儲存持久化 (Storage Persistence) ---
+        async function checkStoragePersistence() {
+            if (navigator.storage && navigator.storage.persist) {
+                const isPersisted = await navigator.storage.persisted();
+                if (isPersisted) {
+                    setPersistUI(true);
+                } else {
+                    const reqPersist = await navigator.storage.persist();
+                    setPersistUI(reqPersist);
+                }
+            } else {
+                document.getElementById('persist-text').textContent = "不支援此瀏覽器";
+            }
+        }
+
+        function setPersistUI(granted) {
+            const dot = document.getElementById('persist-dot');
+            const txt = document.getElementById('persist-text');
+            if (granted) {
+                dot.className = "dot active";
+                txt.textContent = "已啟用 (資料受保護，防瀏覽器自動清理)";
+            } else {
+                dot.className = "dot inactive";
+                txt.textContent = "未核准 (可能隨瀏覽器清理機制消失)";
+            }
+        }
+
+        // --- 3. 圖片壓縮與處理 (HTML5 Canvas) ---
+        async function handleImageUpload(event) {
+            const files = Array.from(event.target.files);
+            const remainingSlots = 10 - currentUploadedImages.length;
+            
+            if (files.length > remainingSlots) {
+                alert(`最多只能上傳 10 張圖片，您目前還可以選擇 ${remainingSlots} 張。`);
+            }
+
+            const filesToProcess = files.slice(0, remainingSlots);
+
+            for (let file of filesToProcess) {
+                try {
+                    const compressedBase64 = await compressImage(file);
+                    currentUploadedImages.push(compressedBase64);
+                } catch (err) {
+                    console.error("圖片壓縮出錯:", err);
+                }
+            }
+            renderImagePreviews();
+            event.target.value = ''; // 清空 file input
+        }
+
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // 設定最大寬度
+                        const MAX_WIDTH = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > MAX_WIDTH) {
+                            height = Math.round((height * MAX_WIDTH) / width);
+                            width = MAX_WIDTH;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // 進行 JPEG 壓縮 (品質設為 0.75)
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                        resolve(compressedDataUrl);
+                    };
+                };
+                reader.onerror = (err) => reject(err);
+            });
+        }
+
+        function renderImagePreviews() {
+            const container = document.getElementById('image-previews');
+            container.innerHTML = '';
+            currentUploadedImages.forEach((base64, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'preview-wrapper';
+                wrapper.innerHTML = `
+                    <img src="${base64}">
+                    <button type="button" class="del-img-btn" onclick="removeImage(${index})">×</button>
+                `;
+                container.appendChild(wrapper);
+            });
+        }
+
+        function removeImage(index) {
+            currentUploadedImages.splice(index, 1);
+            renderImagePreviews();
+        }
+
+        // --- 4. 讀取、搜尋篩選與分頁運算 ---
+        function loadGuitars(page = 1) {
+            currentPage = page;
+            const targetBrand = document.getElementById('filter-brand').value;
+            const targetStatus = document.getElementById('filter-status').value;
+
+            const transaction = db.transaction(["guitars"], "readonly");
+            const objectStore = transaction.objectStore("guitars");
+            const getAllRequest = objectStore.getAll();
+
+            getAllRequest.onsuccess = (event) => {
+                const allData = event.target.result;
+                
+                // 前端條件過濾 (因應單檔案、離線動態查詢優化)
+                allGuitarsCached = allData.filter(guitar => {
+                    const matchBrand = !targetBrand || guitar.brand === targetBrand;
+                    const matchStatus = !targetStatus || guitar.status === targetStatus;
+                    return matchBrand && matchStatus;
+                });
+
+                // 按更新日期倒序排列
+                allGuitarsCached.sort((a,b) => new Date(b.updateDate) - new Date(a.updateDate));
+
+                renderGuitarGrid();
+            };
+        }
+
+        function renderGuitarGrid() {
+            const grid = document.getElementById('guitar-list');
+            grid.innerHTML = '';
+
+            const totalItems = allGuitarsCached.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+            
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            // 計算分頁裁切區間
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const pageData = allGuitarsCached.slice(startIndex, endIndex);
+
+            if (pageData.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px 0;">📭 目前查無任何電吉他資料。</div>`;
+            }
+
+            pageData.forEach(g => {
+                const card = document.createElement('div');
+                card.className = 'guitar-card';
+                
+                // 首圖處理
+                const mainImg = (g.images && g.images.length > 0) 
+                    ? g.images[0] 
+                    : `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' style='background:%23222;'><text x='50%' y='55%' font-size='12' fill='%23555' text-anchor='middle'>NO IMAGE</text></svg>`;
+
+                card.innerHTML = `
+                    <div class="card-img-carousel">
+                        <img src="${mainImg}" alt="Guitar Image">
+                    </div>
+                    <div class="card-content">
+                        <div>
+                            <div class="card-header">
+                                <span style="font-size:0.85rem; color:var(--accent); font-weight:bold;">${g.brand || '未命名品牌'}</span>
+                                <span class="badge ${g.status === '上架' ? 'active' : 'inactive'}">${g.status}</span>
+                            </div>
+                            <div class="card-title">${g.title}</div>
+                            <div class="price-tag">${formatCurrency(g.currency)} ${Number(g.price).toLocaleString()}</div>
+                            <div class="specs-summary">
+                                <div>型號: ${g.model || '-'} | 系列: ${g.series || '-'}</div>
+                                <div>琴體: ${g.specs?.body || '-'} | 拾音器: ${g.specs?.pickups || '-'}</div>
+                            </div>
+                        </div>
+                        <div class="btn-group" style="margin-top: 10px;">
+                            <button type="button" style="padding: 4px 10px; font-size:0.8rem;" onclick="editGuitar(${g.id})">✏️ 編輯</button>
+                            <button type="button" class="danger" style="padding: 4px 10px; font-size:0.8rem;" onclick="deleteGuitar(${g.id})">🗑️ 刪除</button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // UI 更新分頁資訊
+            document.getElementById('page-info').textContent = `第 ${currentPage} / ${totalPages} 頁 (共 ${totalItems} 筆)`;
+            document.getElementById('prev-page').disabled = currentPage === 1;
+            document.getElementById('next-page').disabled = currentPage === totalPages;
+        }
+
+        function formatCurrency(curr) {
+            switch(curr) {
+                case '港元': return 'HKD$';
+                case '美元': return 'USD$';
+                case '日元': return '¥';
+                default: return '¥'; // 人民幣
+            }
+        }
+
+        function changePage(direction) {
+            const next = currentPage + direction;
+            const totalPages = Math.ceil(allGuitarsCached.length / ITEMS_PER_PAGE) || 1;
+            if (next >= 1 && next <= totalPages) {
+                loadGuitars(next);
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-brand').value = '';
+            document.getElementById('filter-status').value = '';
+            loadGuitars(1);
+        }
+
+        // --- 5. 新增 / 修改 邏輯 ---
+        function saveGuitar(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('guitar-id').value;
+            const now = new Date().toISOString().split('T')[0];
+
+            const guitarData = {
+                title: document.getElementById('title').value,
+                brand: document.getElementById('brand').value.trim(),
+                shape: document.getElementById('shape').value.trim(),
+                series: document.getElementById('series').value,
+                model: document.getElementById('model').value,
+                color: document.getElementById('color').value,
+                status: document.getElementById('status').value,
+                price: parseFloat(document.getElementById('price').value) || 0,
+                currency: document.getElementById('currency').value,
+                notes: document.getElementById('notes').value,
+                specs: {
+                    neck: document.getElementById('spec-neck').value,
+                    body: document.getElementById('spec-body').value,
+                    fretboard: document.getElementById('spec-fretboard').value,
+                    pickups: document.getElementById('spec-pickups').value,
+                    scale: document.getElementById('spec-scale').value,
+                    radius: document.getElementById('spec-radius').value,
+                },
+                images: currentUploadedImages,
+                updateDate: now
+            };
+
+            const transaction = db.transaction(["guitars"], "readwrite");
+            const objectStore = transaction.objectStore("guitars");
+
+            if (id) {
+                // 編輯模式
+                guitarData.id = parseInt(id);
+                // 保留原始建立日期
+                objectStore.get(parseInt(id)).onsuccess = (event) => {
+                    guitarData.inputDate = event.target.result.inputDate || now;
+                    const updateReq = objectStore.put(guitarData);
+                    updateReq.onsuccess = () => handleSaveSuccess();
+                };
+            } else {
+                // 新增模式
+                guitarData.inputDate = now;
+                const addReq = objectStore.add(guitarData);
+                addReq.onsuccess = () => handleSaveSuccess();
+            }
+        }
+
+        function handleSaveSuccess() {
+            resetForm();
+            updateBrandAndShapeDatalists();
+            loadGuitars(currentPage);
+            alert("資料已成功同步儲存至 IndexedDB！");
+        }
+
+        function editGuitar(id) {
+            const transaction = db.transaction(["guitars"], "readonly");
+            const objectStore = transaction.objectStore("guitars");
+            const request = objectStore.get(id);
+
+            request.onsuccess = (event) => {
+                const g = event.target.result;
+                if(!g) return;
+
+                document.getElementById('guitar-id').value = g.id;
+                document.getElementById('title').value = g.title;
+                document.getElementById('brand').value = g.brand || '';
+                document.getElementById('shape').value = g.shape || '';
+                document.getElementById('series').value = g.series || '';
+                document.getElementById('model').value = g.model || '';
+                document.getElementById('color').value = g.color || '';
+                document.getElementById('status').value = g.status;
+                document.getElementById('price').value = g.price;
+                document.getElementById('currency').value = g.currency;
+                document.getElementById('notes').value = g.notes || '';
+                
+                if(g.specs) {
+                    document.getElementById('spec-neck').value = g.specs.neck || '';
+                    document.getElementById('spec-body').value = g.specs.body || '';
+                    document.getElementById('spec-fretboard').value = g.specs.fretboard || '';
+                    document.getElementById('spec-pickups').value = g.specs.pickups || '';
+                    document.getElementById('spec-scale').value = g.specs.scale || '';
+                    document.getElementById('spec-radius').value = g.specs.radius || '';
+                }
+
+                currentUploadedImages = g.images || [];
+                renderImagePreviews();
+
+                document.getElementById('form-title').textContent = "✏️ 編輯電吉他資訊";
+                document.getElementById('cancel-edit').style.display = "inline-block";
+                
+                // 錨點滾動到表單
+                document.getElementById('guitar-form').scrollIntoView({ behavior: 'smooth' });
+            };
+        }
+
+        function deleteGuitar(id) {
+            if (confirm("確定要永久刪除此把吉他資料嗎？此操作無法撤銷。")) {
+                const transaction = db.transaction(["guitars"], "readwrite");
+                const objectStore = transaction.objectStore("guitars");
+                objectStore.delete(id).onsuccess = () => {
+                    updateBrandAndShapeDatalists();
+                    loadGuitars(currentPage);
+                };
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('guitar-form').reset();
+            document.getElementById('guitar-id').value = '';
+            currentUploadedImages = [];
+            document.getElementById('image-previews').innerHTML = '';
+            document.getElementById('form-title').textContent = "🎸 新增電吉他收藏";
+            document.getElementById('cancel-edit').style.display = "none";
+        }
+
+        // 動態填充品牌的動態 Datalist
+        function updateBrandAndShapeDatalists() {
+            const transaction = db.transaction(["guitars"], "readonly");
+            const objectStore = transaction.objectStore("guitars");
+            
+            objectStore.getAll().onsuccess = (e) => {
+                const list = e.target.result;
+                
+                const brands = new Set();
+                const shapes = new Set(['Strat', 'Tele']); // 預設提供
+
+                list.forEach(item => {
+                    if(item.brand) brands.add(item.brand);
+                    if(item.shape) shapes.add(item.shape);
+                });
+
+                // 更新表單選單
+                const brandDatalist = document.getElementById('brand-datalist');
+                brandDatalist.innerHTML = '';
+                brands.forEach(b => brandDatalist.innerHTML += `<option value="${b}"></option>`);
+
+                const shapeDatalist = document.getElementById('shape-datalist');
+                shapeDatalist.innerHTML = '';
+                shapes.forEach(s => shapeDatalist.innerHTML += `<option value="${s}"></option>`);
+
+                // 更新篩選選單
+                const filterBrandSelect = document.getElementById('filter-brand');
+                const lastSelected = filterBrandSelect.value;
+                filterBrandSelect.innerHTML = '<option value="">全部品牌</option>';
+                brands.forEach(b => {
+                    filterBrandSelect.innerHTML += `<option value="${b}">${b}</option>`;
+                });
+                filterBrandSelect.value = lastSelected;
+            };
+        }
+
+        // --- 6. JSON 匯入與匯出核心功能 ---
+        function exportJSON() {
+            const transaction = db.transaction(["guitars"], "readonly");
+            const objectStore = transaction.objectStore("guitars");
+            
+            objectStore.getAll().onsuccess = (event) => {
+                const data = event.target.result;
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Guitar_Database_Backup_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (!Array.isArray(importedData)) {
+                        throw new Error("匯入格式不正確，應為吉他陣列清單。");
+                    }
+
+                    if (confirm(`檢測到 ${importedData.length} 筆吉他數據。是否將其全數合併導入目前資料庫？`)) {
+                        const transaction = db.transaction(["guitars"], "readwrite");
+                        const objectStore = transaction.objectStore("guitars");
+
+                        importedData.forEach(item => {
+                            // 移除原有的自增 ID 防止衝突，以新環境自增為主
+                            if(item.id) delete item.id; 
+                            objectStore.add(item);
+                        });
+
+                        transaction.oncomplete = () => {
+                            alert("數據成功合併導入！");
+                            updateBrandAndShapeDatalists();
+                            loadGuitars(1);
+                        };
+                    }
+                } catch (err) {
+                    alert("匯入失敗，請確認 JSON 格式是否正確：" + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // 釋放
+        }
+
+        // --- 7. PWA「Add to Home Screen」提示引導 ---
+        function setupA2HS() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // 阻止 Chrome 67 及更早版本自動顯示提示
+                e.preventDefault();
+                // 存放事件以便稍後觸發
+                deferredPrompt = e;
+                // 更新 UI 顯示自訂 A2HS 通知橫幅
+                document.getElementById('a2hs-banner').style.display = 'flex';
+            });
+
+            window.addEventListener('appinstalled', (evt) => {
+                console.log('應用程式已被安裝。');
+                document.getElementById('a2hs-banner').style.display = 'none';
+            });
+        }
+
+        function triggerA2HS() {
+            if (!deferredPrompt) return;
+            // 顯示提示
+            deferredPrompt.prompt();
+            // 等待用戶回應
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('用戶接受安裝');
+                } else {
+                    console.log('用戶拒絕安裝');
+                }
+                deferredPrompt = null;
+                document.getElementById('a2hs-banner').style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>

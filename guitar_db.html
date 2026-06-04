@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="zh-HK" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="電吉他資料庫 — 離線可用 PWA，支援 IndexedDB 儲存">
+<meta name="theme-color" content="#01696f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="電吉他庫">
+<title>電吉他資料庫</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+<style>
+/* ===== DESIGN TOKENS ===== */
+:root, [data-theme="light"] {
+  --color-bg: #f7f6f2;
+  --color-surface: #f9f8f5;
+  --color-surface-2: #fbfbf9;
+  --color-surface-offset: #f3f0ec;
+  --color-surface-offset-2: #edeae5;
+  --color-surface-dynamic: #e6e4df;
+  --color-divider: #dcd9d5;
+  --color-border: #d4d1ca;
+  --color-text: #28251d;
+  --color-text-muted: #7a7974;
+  --color-text-faint: #bab9b4;
+  --color-text-inverse: #f9f8f4;
+  --color-primary: #01696f;
+  --color-primary-hover: #0c4e54;
+  --color-primary-active: #0f3638;
+  --color-primary-highlight: #cedcd8;
+  --color-warning: #964219;
+  --color-warning-highlight: #ddcfc6;
+  --color-error: #a12c7b;
+  --color-error-hover: #7d1e5e;
+  --color-error-highlight: #e0ced7;
+  --color-success: #437a22;
+  --color-success-highlight: #d4dfcc;
+  --color-gold: #d19900;
+  --color-gold-highlight: #e9e0c6;
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
+  --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
+  --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12);
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+  --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+  --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+  --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem;
+  --space-12: 3rem; --space-16: 4rem;
+  --font-body: "Noto Sans TC", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --content-default: 1200px;
+}
+[data-theme="dark"] {
+  --color-bg: #171614;
+  --color-surface: #1c1b19;
+  --color-surface-2: #201f1d;
+  --color-surface-offset: #1d1c1a;
+  --color-surface-offset-2: #22211f;
+  --color-surface-dynamic: #2d2c2a;
+  --color-divider: #262523;
+  --color-border: #393836;
+  --color-text: #cdccca;
+  --color-text-muted: #797876;
+  --color-text-faint: #5a5957;
+  --color-text-inverse: #2b2a28;
+  --color-primary: #4f98a3;
+  --color-primary-hover: #227f8b;
+  --color-primary-active: #1a626b;
+  --color-primary-highlight: #313b3b;
+  --color-warning: #bb653b;
+  --color-warning-highlight: #564942;
+  --color-error: #d163a7;
+  --color-error-hover: #b9478f;
+  --color-error-highlight: #4c3d46;
+  --color-success: #6daa45;
+  --color-success-highlight: #3a4435;
+  --color-gold: #e8af34;
+  --color-gold-highlight: #4d4332;
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+  --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
+  --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-bg: #171614; --color-surface: #1c1b19; --color-surface-2: #201f1d;
+    --color-surface-offset: #1d1c1a; --color-surface-offset-2: #22211f;
+    --color-surface-dynamic: #2d2c2a; --color-divider: #262523; --color-border: #393836;
+    --color-text: #cdccca; --color-text-muted: #797876; --color-text-faint: #5a5957;
+    --color-text-inverse: #2b2a28; --color-primary: #4f98a3; --color-primary-hover: #227f8b;
+    --color-primary-active: #1a626b; --color-primary-highlight: #313b3b;
+    --color-warning: #bb653b; --color-warning-highlight: #564942;
+    --color-error: #d163a7; --color-error-hover: #b9478f; --color-error-highlight: #4c3d46;
+    --color-success: #6daa45; --color-success-highlight: #3a4435;
+    --color-gold: #e8af34; --color-gold-highlight: #4d4332;
+    --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+    --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
+    --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
+  }
+}
+
+/* ===== BASE RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: none; text-size-adjust: none; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+body { min-height: 100dvh; line-height: 1.6; font-family: var(--font-body); font-size: var(--text-base); color: var(--color-text); background: var(--color-bg); transition: background var(--transition-interactive), color var(--transition-interactive); }
+img, video { display: block; max-width: 100%; height: auto; }
+input, button, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: none; }
+table { border-collapse: collapse; width: 100%; }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-sm); }
+::selection { background: oklch(from var(--color-primary) l c h / 0.25); color: var(--color-text); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* ===== LAYOUT ===== */
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: color-mix(in oklch, var(--color-surface) 90%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-6);
+  display: flex; align-items: center; gap: var(--space-4);
+}
+.header-logo { display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: var(--color-text); flex-shrink: 0; }
+.header-logo svg.logo-icon { color: var(--color-primary); }
+.header-logo .logo-text { font-size: var(--text-lg); font-weight: 700; letter-spacing: -0.02em; }
+.header-spacer { flex: 1; }
+.header-actions { display: flex; align-items: center; gap: var(--space-2); }
+
+.main-content { max-width: var(--content-default); margin-inline: auto; padding: var(--space-6); }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-4); border-radius: var(--radius-md);
+  font-size: var(--text-sm); font-weight: 500; text-decoration: none;
+  transition: background var(--transition-interactive), color var(--transition-interactive), box-shadow var(--transition-interactive);
+  white-space: nowrap; border: 1px solid transparent;
+}
+.btn-primary { background: var(--color-primary); color: var(--color-text-inverse); }
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-primary:active { background: var(--color-primary-active); }
+.btn-secondary { background: var(--color-surface-offset); color: var(--color-text); border-color: var(--color-border); }
+.btn-secondary:hover { background: var(--color-surface-dynamic); }
+.btn-ghost { color: var(--color-text-muted); }
+.btn-ghost:hover { background: var(--color-surface-offset); color: var(--color-text); }
+.btn-danger { background: var(--color-error-highlight); color: var(--color-error); border-color: color-mix(in oklch, var(--color-error) 20%, transparent); }
+.btn-danger:hover { background: var(--color-error); color: var(--color-text-inverse); }
+.btn-icon { padding: var(--space-2); border-radius: var(--radius-md); min-width: 36px; min-height: 36px; justify-content: center; }
+.btn-sm { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); }
+
+/* ===== FORM ELEMENTS ===== */
+.form-group { display: flex; flex-direction: column; gap: var(--space-1); }
+.form-label { font-size: var(--text-sm); font-weight: 500; color: var(--color-text); }
+.form-label .req { color: var(--color-error); margin-left: 2px; }
+.form-hint { font-size: var(--text-xs); color: var(--color-text-muted); }
+.form-input, .form-select, .form-textarea {
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+  border: 1px solid var(--color-border); background: var(--color-surface);
+  color: var(--color-text); font-size: var(--text-sm); width: 100%;
+  transition: border-color var(--transition-interactive), box-shadow var(--transition-interactive);
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 20%, transparent);
+}
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-select option { background: var(--color-surface); }
+
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4); }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.form-section-title { font-size: var(--text-sm); font-weight: 600; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-divider); margin-bottom: var(--space-3); }
+
+/* ===== CARDS ===== */
+.card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+.card-header { padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-divider); display: flex; align-items: center; gap: var(--space-3); }
+.card-body { padding: var(--space-5); }
+
+/* ===== BADGES ===== */
+.badge { display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 500; }
+.badge-active { background: var(--color-success-highlight); color: var(--color-success); }
+.badge-inactive { background: var(--color-surface-dynamic); color: var(--color-text-muted); }
+.badge-currency { background: var(--color-gold-highlight); color: var(--color-gold); font-family: var(--font-mono); }
+
+/* ===== TOOLBAR ===== */
+.toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-4) var(--space-5); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); margin-bottom: var(--space-5); }
+.toolbar-group { display: flex; align-items: center; gap: var(--space-2); }
+.toolbar-divider { width: 1px; height: 24px; background: var(--color-divider); }
+.toolbar-spacer { flex: 1; }
+
+/* ===== GUITAR CARDS GRID ===== */
+.guitar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: var(--space-5); }
+.guitar-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; cursor: pointer; transition: box-shadow var(--transition-interactive), border-color var(--transition-interactive), transform var(--transition-interactive); display: flex; flex-direction: column; }
+.guitar-card:hover { box-shadow: var(--shadow-md); border-color: color-mix(in oklch, var(--color-primary) 40%, var(--color-border)); transform: translateY(-2px); }
+.guitar-card:active { transform: translateY(0); }
+.guitar-card-image { aspect-ratio: 4/3; background: var(--color-surface-offset); position: relative; overflow: hidden; }
+.guitar-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 300ms ease; }
+.guitar-card:hover .guitar-card-image img { transform: scale(1.03); }
+.guitar-card-no-image { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--color-text-faint); }
+.guitar-card-body { padding: var(--space-4); flex: 1; display: flex; flex-direction: column; gap: var(--space-2); }
+.guitar-card-title { font-size: var(--text-base); font-weight: 600; color: var(--color-text); line-height: 1.3; }
+.guitar-card-brand { font-size: var(--text-xs); color: var(--color-text-muted); }
+.guitar-card-meta { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-top: auto; padding-top: var(--space-2); }
+.guitar-card-price { font-family: var(--font-mono); font-size: var(--text-sm); font-weight: 500; color: var(--color-gold); }
+.guitar-card-actions { display: flex; gap: var(--space-1); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-divider); background: var(--color-surface-offset); }
+
+/* ===== EMPTY STATE ===== */
+.empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-16) var(--space-8); color: var(--color-text-muted); }
+.empty-state-icon { width: 64px; height: 64px; margin-bottom: var(--space-4); color: var(--color-text-faint); }
+.empty-state h3 { color: var(--color-text); margin-bottom: var(--space-2); font-size: var(--text-lg); }
+.empty-state p { max-width: 36ch; margin-bottom: var(--space-6); }
+
+/* ===== PAGINATION ===== */
+.pagination { display: flex; align-items: center; justify-content: center; gap: var(--space-2); padding: var(--space-6) 0; }
+.pagination-info { font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* ===== MODAL / DRAWER ===== */
+.modal-backdrop { position: fixed; inset: 0; background: oklch(0 0 0 / 0.6); backdrop-filter: blur(4px); z-index: 200; display: flex; align-items: flex-start; justify-content: center; padding: var(--space-4); opacity: 0; pointer-events: none; transition: opacity 200ms ease; }
+.modal-backdrop.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); width: 100%; max-width: 860px; max-height: calc(100dvh - var(--space-8)); overflow-y: auto; transform: translateY(20px); transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1); margin-top: var(--space-4); }
+.modal-backdrop.open .modal { transform: translateY(0); }
+.modal-header { position: sticky; top: 0; background: var(--color-surface); border-bottom: 1px solid var(--color-divider); padding: var(--space-4) var(--space-5); display: flex; align-items: center; gap: var(--space-3); z-index: 1; }
+.modal-title { font-size: var(--text-lg); font-weight: 600; flex: 1; }
+.modal-body { padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); }
+.modal-footer { padding: var(--space-4) var(--space-5); border-top: 1px solid var(--color-divider); display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); }
+
+/* ===== DETAIL VIEW ===== */
+.detail-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--space-3); }
+.detail-gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-md); cursor: zoom-in; border: 1px solid var(--color-border); }
+.detail-specs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-3); }
+.spec-item { background: var(--color-surface-offset); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); }
+.spec-label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1); }
+.spec-value { font-size: var(--text-sm); color: var(--color-text); font-weight: 500; }
+
+/* ===== IMAGE UPLOAD ===== */
+.image-upload-zone { border: 2px dashed var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); text-align: center; cursor: pointer; transition: border-color var(--transition-interactive), background var(--transition-interactive); color: var(--color-text-muted); font-size: var(--text-sm); }
+.image-upload-zone:hover, .image-upload-zone.drag-over { border-color: var(--color-primary); background: var(--color-primary-highlight); color: var(--color-primary); }
+.image-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: var(--space-2); margin-top: var(--space-3); }
+.image-preview-item { position: relative; aspect-ratio: 1; }
+.image-preview-item img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--color-border); }
+.image-preview-remove { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; background: var(--color-error); color: white; border-radius: var(--radius-full); font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; line-height: 1; }
+
+/* ===== TOAST ===== */
+.toast-container { position: fixed; bottom: var(--space-6); right: var(--space-6); z-index: 999; display: flex; flex-direction: column; gap: var(--space-2); pointer-events: none; }
+.toast { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); font-size: var(--text-sm); box-shadow: var(--shadow-lg); pointer-events: all; display: flex; align-items: center; gap: var(--space-2); min-width: 240px; max-width: 380px; animation: toastIn 200ms cubic-bezier(0.16, 1, 0.3, 1); }
+.toast.success { border-color: var(--color-success); color: var(--color-success); }
+.toast.error { border-color: var(--color-error); color: var(--color-error); }
+.toast.info { border-color: var(--color-primary); color: var(--color-primary); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+/* ===== A2HS BANNER ===== */
+.a2hs-banner { background: color-mix(in oklch, var(--color-primary) 10%, var(--color-surface)); border: 1px solid color-mix(in oklch, var(--color-primary) 30%, var(--color-border)); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-5); }
+.a2hs-text { flex: 1; }
+.a2hs-text strong { display: block; font-size: var(--text-sm); color: var(--color-text); margin-bottom: 2px; }
+.a2hs-text span { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+/* ===== TECH INFO ===== */
+.tech-info-panel { background: var(--color-surface-offset); border: 1px solid var(--color-divider); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.8; }
+.tech-info-panel summary { font-size: var(--text-sm); font-weight: 600; color: var(--color-text); cursor: pointer; list-style: none; display: flex; align-items: center; gap: var(--space-2); }
+.tech-info-panel summary::-webkit-details-marker { display: none; }
+.tech-status-row { display: flex; gap: var(--space-4); flex-wrap: wrap; margin-top: var(--space-3); }
+.tech-status-item { display: flex; align-items: center; gap: var(--space-1); }
+.status-dot { width: 8px; height: 8px; border-radius: var(--radius-full); }
+.status-dot.ok { background: var(--color-success); }
+.status-dot.warn { background: var(--color-warning); }
+.status-dot.err { background: var(--color-error); }
+
+/* ===== LIGHTBOX ===== */
+.lightbox { position: fixed; inset: 0; background: oklch(0 0 0 / 0.92); z-index: 500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 200ms ease; }
+.lightbox.open { opacity: 1; pointer-events: all; }
+.lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: var(--radius-md); }
+.lightbox-close { position: absolute; top: var(--space-4); right: var(--space-4); color: white; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .main-content { padding: var(--space-4); }
+  .app-header { padding: var(--space-3) var(--space-4); }
+  .toolbar { gap: var(--space-2); }
+  .header-logo .logo-text { font-size: var(--text-base); }
+  .modal-body { padding: var(--space-4); gap: var(--space-4); }
+  .form-grid-2 { grid-template-columns: 1fr; }
+  .btn span.label-text { display: none; }
+  .toast-container { left: var(--space-4); right: var(--space-4); bottom: var(--space-4); }
+}
+@media (max-width: 480px) {
+  .guitar-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== MISC ===== */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
+.separator { height: 1px; background: var(--color-divider); }
+.count-badge { background: var(--color-primary); color: var(--color-text-inverse); border-radius: var(--radius-full); font-size: 11px; font-weight: 600; padding: 1px 6px; font-family: var(--font-mono); }
+details > summary { user-select: none; }
+.currency-price { font-family: var(--font-mono); }
+
+/* Shimmer skeleton */
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+.skeleton { background: linear-gradient(90deg, var(--color-surface-offset) 25%, var(--color-surface-dynamic) 50%, var(--color-surface-offset) 75%); background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; border-radius: var(--radius-sm); }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="app-header">
+  <a href="#" class="header-logo" aria-label="電吉他資料庫首頁">
+    <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <path d="M20 4 C20 4 24 6 26 10 C28 14 26 18 22 20 L18 24 L16 26 L12 28 C10 28 8 26 8 24 C8 22 10 20 12 20 L14 18 L18 14 C16 10 16 6 20 4 Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+      <circle cx="10.5" cy="24.5" r="2" fill="currentColor" opacity="0.5"/>
+      <path d="M22 8 L24 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M24 10 L26 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <span class="logo-text">電吉他資料庫</span>
+  </a>
+  <div class="header-spacer"></div>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-icon" id="importBtn" title="匯入 JSON" aria-label="匯入 JSON">
+      <i data-lucide="upload" width="18" height="18"></i>
+    </button>
+    <button class="btn btn-ghost btn-icon" id="exportBtn" title="匯出 JSON" aria-label="匯出 JSON">
+      <i data-lucide="download" width="18" height="18"></i>
+    </button>
+    <button class="btn btn-ghost btn-icon" data-theme-toggle aria-label="切換色彩主題">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="btn btn-primary" id="addGuitarBtn">
+      <i data-lucide="plus" width="16" height="16"></i>
+      <span class="label-text">新增吉他</span>
+    </button>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main class="main-content" id="main">
+
+  <!-- A2HS Banner -->
+  <div class="a2hs-banner" id="a2hsBanner" style="display:none" role="banner" aria-label="加入主畫面提示">
+    <div style="color:var(--color-primary)"><i data-lucide="smartphone" width="24" height="24"></i></div>
+    <div class="a2hs-text">
+      <strong>加入主畫面</strong>
+      <span>安裝此應用程式到主畫面，享受離線功能</span>
+    </div>
+    <button class="btn btn-primary btn-sm" id="a2hsInstallBtn">安裝</button>
+    <button class="btn btn-ghost btn-icon btn-sm" id="a2hsDismissBtn" aria-label="關閉">
+      <i data-lucide="x" width="16" height="16"></i>
+    </button>
+  </div>
+
+  <!-- Tech Info -->
+  <details class="tech-info-panel" style="margin-bottom:var(--space-5)">
+    <summary>
+      <i data-lucide="info" width="14" height="14"></i>
+      技術說明 &amp; 儲存狀態
+    </summary>
+    <div class="tech-status-row" id="techStatusRow">
+      <div class="tech-status-item"><div class="status-dot warn" id="dotIDB"></div><span id="lblIDB">IndexedDB：檢查中…</span></div>
+      <div class="tech-status-item"><div class="status-dot warn" id="dotPersist"></div><span id="lblPersist">持久化儲存：檢查中…</span></div>
+      <div class="tech-status-item"><div class="status-dot warn" id="dotSW"></div><span id="lblSW">Service Worker：檢查中…</span></div>
+      <div class="tech-status-item"><div class="status-dot warn" id="dotOnline"></div><span id="lblOnline">網路：檢查中…</span></div>
+    </div>
+    <div style="margin-top:var(--space-3); line-height:2;">
+      <b>IndexedDB</b>：本地瀏覽器資料庫，資料存於裝置，無需伺服器。支援離線讀寫，重啟後資料依然保留。<br>
+      <b>navigator.storage.persist()</b>：向瀏覽器申請「持久化儲存」權限，防止瀏覽器在空間不足時自動清除資料。<br>
+      <b>Service Worker</b>：背景執行的 JS Worker，攔截網路請求並回傳快取，實現完全離線功能。<br>
+      <b>圖片壓縮</b>：上載時使用 Canvas API 將圖片縮小至最大 1200px 並轉為 JPEG 80% 品質，大幅減少儲存空間。<br>
+      <b>JSON 匯入/匯出</b>：所有資料（含圖片 Base64）可完整匯出為 JSON，並可在其他裝置匯入還原。
+    </div>
+  </details>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <label class="sr-only" for="filterBrand">篩選品牌</label>
+      <select class="form-select" id="filterBrand" style="min-width:120px">
+        <option value="">所有品牌</option>
+      </select>
+    </div>
+    <div class="toolbar-group">
+      <label class="sr-only" for="filterStatus">篩選狀態</label>
+      <select class="form-select" id="filterStatus" style="min-width:100px">
+        <option value="">所有狀態</option>
+        <option value="上架">上架</option>
+        <option value="下架">下架</option>
+      </select>
+    </div>
+    <button class="btn btn-secondary btn-sm" id="clearFilterBtn">
+      <i data-lucide="x" width="14" height="14"></i>
+      清除篩選
+    </button>
+    <div class="toolbar-spacer"></div>
+    <div style="font-size:var(--text-xs);color:var(--color-text-muted);display:flex;align-items:center;gap:var(--space-2)">
+      共 <span class="count-badge" id="totalCount">0</span> 把
+    </div>
+  </div>
+
+  <!-- Guitar Grid -->
+  <div id="guitarGrid" class="guitar-grid" role="list" aria-live="polite">
+    <!-- cards rendered here -->
+  </div>
+
+  <!-- Empty State -->
+  <div id="emptyState" class="empty-state" style="display:none">
+    <div class="empty-state-icon"><i data-lucide="guitar" width="64" height="64"></i></div>
+    <h3>尚無吉他資料</h3>
+    <p>點擊「新增吉他」開始建立你的收藏資料庫</p>
+    <button class="btn btn-primary" onclick="openAddModal()">
+      <i data-lucide="plus" width="16" height="16"></i>新增吉他
+    </button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="paginationBar" style="display:none">
+    <button class="btn btn-ghost btn-sm" id="prevPageBtn" aria-label="上一頁">
+      <i data-lucide="chevron-left" width="16" height="16"></i>
+    </button>
+    <span class="pagination-info" id="pageInfo">第 1 頁 / 共 1 頁</span>
+    <button class="btn btn-ghost btn-sm" id="nextPageBtn" aria-label="下一頁">
+      <i data-lucide="chevron-right" width="16" height="16"></i>
+    </button>
+  </div>
+
+</main>
+
+<!-- ===== ADD / EDIT MODAL ===== -->
+<div class="modal-backdrop" id="guitarModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">新增吉他</h2>
+      <button class="btn btn-ghost btn-icon" id="modalCloseBtn" aria-label="關閉">
+        <i data-lucide="x" width="18" height="18"></i>
+      </button>
+    </div>
+    <form id="guitarForm" novalidate>
+      <div class="modal-body">
+
+        <!-- 基本資料 -->
+        <div>
+          <div class="form-section-title">基本資料</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="f_brand">品牌 <span class="req">*</span></label>
+              <div style="display:flex;gap:var(--space-2)">
+                <select class="form-select" id="f_brand_select" style="flex:1">
+                  <option value="">-- 選擇或自定義 --</option>
+                  <option>Fender</option>
+                  <option>Gibson</option>
+                  <option>Ibanez</option>
+                  <option>ESP</option>
+                  <option>PRS</option>
+                  <option>Schecter</option>
+                  <option>Jackson</option>
+                  <option>Epiphone</option>
+                  <option>Squier</option>
+                  <option>Yamaha</option>
+                  <option>__custom__">自定義…</option>
+                </select>
+                <input class="form-input" id="f_brand_custom" placeholder="自定義品牌" style="display:none;flex:1">
+              </div>
+              <input type="hidden" id="f_brand">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_title">標題 <span class="req">*</span></label>
+              <input class="form-input" id="f_title" placeholder="例：Fender Strat American Pro II">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_color">顏色</label>
+              <input class="form-input" id="f_color" placeholder="例：Lake Placid Blue">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_series">系列</label>
+              <input class="form-input" id="f_series" placeholder="例：American Professional">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_model">型號</label>
+              <input class="form-input" id="f_model" placeholder="例：STRAT-AP2-LPB">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_shape">形狀</label>
+              <div style="display:flex;gap:var(--space-2)">
+                <select class="form-select" id="f_shape_select" style="flex:1">
+                  <option value="">-- 選擇 --</option>
+                  <option value="Strat">Strat</option>
+                  <option value="Tele">Tele</option>
+                  <option value="LP">Les Paul</option>
+                  <option value="SG">SG</option>
+                  <option value="Flying V">Flying V</option>
+                  <option value="Explorer">Explorer</option>
+                  <option value="Offset">Offset</option>
+                  <option value="__custom__">自定義…</option>
+                </select>
+                <input class="form-input" id="f_shape_custom" placeholder="自定義形狀" style="display:none;flex:1">
+              </div>
+              <input type="hidden" id="f_shape">
+            </div>
+          </div>
+        </div>
+
+        <!-- 價錢 -->
+        <div>
+          <div class="form-section-title">價錢</div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="f_price">價錢</label>
+              <input class="form-input" id="f_price" type="number" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_currency">貨幣</label>
+              <select class="form-select" id="f_currency">
+                <option value="CNY">人民幣 (CNY ¥)</option>
+                <option value="HKD">港元 (HKD $)</option>
+                <option value="USD">美元 (USD $)</option>
+                <option value="JPY">日元 (JPY ¥)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 規格 -->
+        <div>
+          <div class="form-section-title">其他規格</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="f_neck">琴頸 (Neck)</label>
+              <input class="form-input" id="f_neck" placeholder="例：Maple, C-shape">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_body">琴體 (Body)</label>
+              <input class="form-input" id="f_body" placeholder="例：Alder">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_fretboard">指板 (Fretboard)</label>
+              <input class="form-input" id="f_fretboard" placeholder="例：Rosewood, 22 frets">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_pickups">拾音器 (Pickups)</label>
+              <input class="form-input" id="f_pickups" placeholder="例：SSS, V-Mod II">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_scale">弦長 (Scale Length)</label>
+              <input class="form-input" id="f_scale" placeholder="例：25.5\" (648mm)">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f_radius">弧度 (Radius)</label>
+              <input class="form-input" id="f_radius" placeholder="例：9.5\" (241mm)">
+            </div>
+          </div>
+        </div>
+
+        <!-- 狀態 & 備註 -->
+        <div>
+          <div class="form-section-title">狀態 &amp; 備註</div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="f_status">狀態</label>
+              <select class="form-select" id="f_status">
+                <option value="上架">上架</option>
+                <option value="下架">下架</option>
+              </select>
+            </div>
+            <div></div>
+          </div>
+          <div class="form-group" style="margin-top:var(--space-4)">
+            <label class="form-label" for="f_notes">備註</label>
+            <textarea class="form-textarea" id="f_notes" placeholder="任何備註…" style="min-height:100px"></textarea>
+          </div>
+        </div>
+
+        <!-- 圖片 -->
+        <div>
+          <div class="form-section-title">圖片（最多 10 張，上載時自動壓縮）</div>
+          <div class="image-upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="點擊或拖放圖片">
+            <i data-lucide="image-plus" width="32" height="32" style="margin:0 auto var(--space-2)"></i>
+            <div>點擊或拖放圖片至此（最多 10 張）</div>
+            <div style="font-size:var(--text-xs);color:var(--color-text-faint);margin-top:var(--space-1)">支援 JPG、PNG、WEBP，上載時自動壓縮至 1200px / JPEG 80%</div>
+          </div>
+          <input type="file" id="imageFileInput" accept="image/*" multiple style="display:none">
+          <div class="image-preview-grid" id="imagePreviewGrid"></div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <span style="font-size:var(--text-xs);color:var(--color-text-faint)" id="formDateInfo"></span>
+        <div style="flex:1"></div>
+        <button type="button" class="btn btn-secondary" id="modalCancelBtn">取消</button>
+        <button type="submit" class="btn btn-primary" id="modalSaveBtn">
+          <i data-lucide="save" width="16" height="16"></i>儲存
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== DETAIL MODAL ===== -->
+<div class="modal-backdrop" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+  <div class="modal" id="detailContent">
+    <!-- filled dynamically -->
+  </div>
+</div>
+
+<!-- ===== LIGHTBOX ===== -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="圖片檢視">
+  <button class="btn btn-ghost btn-icon lightbox-close" id="lightboxClose" aria-label="關閉">
+    <i data-lucide="x" width="24" height="24" style="color:white"></i>
+  </button>
+  <img id="lightboxImg" src="" alt="吉他圖片" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:var(--radius-md)">
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+<!-- Hidden import input -->
+<input type="file" id="importFileInput" accept=".json" style="display:none">
+
+<script>
+// =============================================
+// THEME TOGGLE
+// =============================================
+(function(){
+  const t=document.querySelector('[data-theme-toggle]'),r=document.documentElement;
+  let d=r.getAttribute('data-theme')||( matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  r.setAttribute('data-theme',d);
+  if(t) t.addEventListener('click',()=>{
+    d=d==='dark'?'light':'dark';
+    r.setAttribute('data-theme',d);
+  });
+})();
+
+// =============================================
+// INDEXEDDB SETUP
+// =============================================
+const DB_NAME = 'ElectricGuitarDB';
+const DB_VERSION = 1;
+const STORE = 'guitars';
+let db = null;
+
+function openDB(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains(STORE)){
+        const store = d.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+        store.createIndex('brand', 'brand', { unique: false });
+        store.createIndex('status', 'status', { unique: false });
+        store.createIndex('dateAdded', 'dateAdded', { unique: false });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbGetAll(){
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbPut(record){
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).put(record);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbDelete(id){
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbClear(){
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).clear();
+    req.onsuccess = () => resolve();
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+// =============================================
+// STORAGE PERSISTENCE
+// =============================================
+async function requestPersistence(){
+  const dotP = document.getElementById('dotPersist');
+  const lblP = document.getElementById('lblPersist');
+  if(navigator.storage && navigator.storage.persist){
+    const persisted = await navigator.storage.persist();
+    dotP.className = 'status-dot ' + (persisted ? 'ok' : 'warn');
+    lblP.textContent = '持久化儲存：' + (persisted ? '已授權 ✓' : '未授權（瀏覽器可能清除資料）');
+  } else {
+    dotP.className = 'status-dot err';
+    lblP.textContent = '持久化儲存：不支援';
+  }
+}
+
+// =============================================
+// SERVICE WORKER (inline as blob for single-file)
+// =============================================
+const SW_CODE = `
+const CACHE = 'guitar-db-v1';
+const ASSETS = [self.location.href.replace('/sw-guitar.js','') || '/'];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  if(e.request.method !== 'GET') return;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if(cached) return cached;
+      return fetch(e.request).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return res;
+      }).catch(() => cached || new Response('Offline', {status: 503}));
+    })
+  );
+});
+`;
+
+async function registerSW(){
+  const dotSW = document.getElementById('dotSW');
+  const lblSW = document.getElementById('lblSW');
+  if('serviceWorker' in navigator){
+    try {
+      const blob = new Blob([SW_CODE], { type: 'application/javascript' });
+      const swURL = URL.createObjectURL(blob);
+      await navigator.serviceWorker.register(swURL, { scope: './' });
+      dotSW.className = 'status-dot ok';
+      lblSW.textContent = 'Service Worker：已啟動 ✓';
+    } catch(e){
+      dotSW.className = 'status-dot warn';
+      lblSW.textContent = 'Service Worker：' + e.message;
+    }
+  } else {
+    dotSW.className = 'status-dot err';
+    lblSW.textContent = 'Service Worker：不支援';
+  }
+}
+
+// =============================================
+// ONLINE STATUS
+// =============================================
+function updateOnlineStatus(){
+  const dot = document.getElementById('dotOnline');
+  const lbl = document.getElementById('lblOnline');
+  const online = navigator.onLine;
+  dot.className = 'status-dot ' + (online ? 'ok' : 'warn');
+  lbl.textContent = '網路：' + (online ? '已連線' : '離線模式');
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// =============================================
+// APP STATE
+// =============================================
+let allGuitars = [];
+let filteredGuitars = [];
+let editingId = null;
+let currentPage = 1;
+const PAGE_SIZE = 20;
+let pendingImages = []; // array of base64 strings
+
+// =============================================
+// TOAST
+// =============================================
+function showToast(msg, type = 'info', duration = 3000){
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  const icons = { success:'check-circle', error:'alert-circle', info:'info' };
+  toast.innerHTML = `<i data-lucide="${icons[type]||'info'}" width="16" height="16"></i><span>${msg}</span>`;
+  container.appendChild(toast);
+  lucide.createIcons({ nodes: [toast] });
+  setTimeout(() => { toast.style.opacity='0'; toast.style.transform='translateX(20px)'; toast.style.transition='all 200ms'; setTimeout(()=>toast.remove(), 200); }, duration);
+}
+
+// =============================================
+// CURRENCY
+// =============================================
+const CURRENCY_MAP = { CNY:'¥', HKD:'HK$', USD:'US$', JPY:'¥' };
+function formatPrice(price, currency){
+  if(!price && price !== 0) return '';
+  const sym = CURRENCY_MAP[currency] || currency;
+  const num = Number(price).toLocaleString('zh-HK');
+  return `${sym}${num}`;
+}
+
+// =============================================
+// IMAGE COMPRESSION
+// =============================================
+function compressImage(file){
+  return new Promise((resolve) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = e => {
+      img.src = e.target.result;
+      img.onload = () => {
+        const MAX = 1200;
+        let w = img.width, h = img.height;
+        if(w > MAX || h > MAX){
+          if(w > h){ h = Math.round(h * MAX / w); w = MAX; }
+          else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.80));
+      };
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// =============================================
+// LOAD & RENDER
+// =============================================
+async function loadGuitars(){
+  allGuitars = await dbGetAll();
+  allGuitars.sort((a,b) => new Date(b.dateUpdated||b.dateAdded) - new Date(a.dateUpdated||a.dateAdded));
+  populateBrandFilter();
+  applyFiltersAndRender();
+  updateIDBStatus();
+}
+
+function updateIDBStatus(){
+  const dot = document.getElementById('dotIDB');
+  const lbl = document.getElementById('lblIDB');
+  dot.className = 'status-dot ok';
+  lbl.textContent = `IndexedDB：已連接（${allGuitars.length} 筆記錄）`;
+}
+
+function populateBrandFilter(){
+  const sel = document.getElementById('filterBrand');
+  const current = sel.value;
+  const brands = [...new Set(allGuitars.map(g => g.brand).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">所有品牌</option>' + brands.map(b => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
+  sel.value = current;
+}
+
+function applyFiltersAndRender(){
+  const brand = document.getElementById('filterBrand').value;
+  const status = document.getElementById('filterStatus').value;
+  filteredGuitars = allGuitars.filter(g => {
+    if(brand && g.brand !== brand) return false;
+    if(status && g.status !== status) return false;
+    return true;
+  });
+  document.getElementById('totalCount').textContent = filteredGuitars.length;
+  currentPage = 1;
+  renderPage();
+}
+
+function renderPage(){
+  const grid = document.getElementById('guitarGrid');
+  const empty = document.getElementById('emptyState');
+  const paginationBar = document.getElementById('paginationBar');
+  const total = filteredGuitars.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if(currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const end = Math.min(start + PAGE_SIZE, total);
+  const page = filteredGuitars.slice(start, end);
+
+  if(total === 0){
+    grid.innerHTML = ''; empty.style.display = 'flex'; paginationBar.style.display = 'none'; return;
+  }
+  empty.style.display = 'none';
+  paginationBar.style.display = totalPages > 1 ? 'flex' : 'none';
+  document.getElementById('pageInfo').textContent = `第 ${currentPage} 頁 / 共 ${totalPages} 頁`;
+  document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+  document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+
+  grid.innerHTML = page.map(g => guitarCardHTML(g)).join('');
+  lucide.createIcons({ nodes: Array.from(grid.querySelectorAll('[data-lucide]')) });
+  // Attach events
+  grid.querySelectorAll('.guitar-card').forEach(card => {
+    const id = Number(card.dataset.id);
+    card.addEventListener('click', e => {
+      if(e.target.closest('.btn')) return;
+      openDetailModal(id);
+    });
+  });
+  grid.querySelectorAll('.btn-edit').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); openEditModal(Number(btn.dataset.id)); }));
+  grid.querySelectorAll('.btn-delete').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); deleteGuitar(Number(btn.dataset.id)); }));
+}
+
+function guitarCardHTML(g){
+  const thumb = g.images && g.images[0] ? `<img src="${g.images[0]}" alt="${esc(g.title)}" loading="lazy" width="300" height="225">` : `<div class="guitar-card-no-image"><i data-lucide="image-off" width="40" height="40"></i></div>`;
+  const statusBadge = `<span class="badge ${g.status==='上架'?'badge-active':'badge-inactive'}">${esc(g.status||'')}</span>`;
+  const priceStr = g.price ? `<span class="guitar-card-price currency-price">${formatPrice(g.price, g.currency)}</span>` : '';
+  return `<article class="guitar-card" data-id="${g.id}" role="listitem" tabindex="0" aria-label="${esc(g.title)} - ${esc(g.brand||'')}">
+    <div class="guitar-card-image">${thumb}</div>
+    <div class="guitar-card-body">
+      <div class="guitar-card-brand">${esc(g.brand||'—')}</div>
+      <div class="guitar-card-title">${esc(g.title||'無標題')}</div>
+      <div style="font-size:var(--text-xs);color:var(--color-text-muted)">${[g.shape,g.color].filter(Boolean).map(esc).join(' · ') || '&nbsp;'}</div>
+      <div class="guitar-card-meta">${statusBadge}${priceStr}</div>
+    </div>
+    <div class="guitar-card-actions">
+      <button class="btn btn-ghost btn-icon btn-sm btn-edit" data-id="${g.id}" aria-label="編輯 ${esc(g.title)}"><i data-lucide="pencil" width="14" height="14"></i></button>
+      <button class="btn btn-ghost btn-icon btn-sm btn-delete" data-id="${g.id}" aria-label="刪除 ${esc(g.title)}"><i data-lucide="trash-2" width="14" height="14"></i></button>
+    </div>
+  </article>`;
+}
+
+// =============================================
+// DETAIL MODAL
+// =============================================
+function openDetailModal(id){
+  const g = allGuitars.find(x => x.id === id);
+  if(!g) return;
+  const modal = document.getElementById('detailContent');
+  const sym = CURRENCY_MAP[g.currency] || g.currency || '';
+  const specs = [
+    { label:'琴頸', value:g.neck }, { label:'琴體', value:g.body },
+    { label:'指板', value:g.fretboard }, { label:'拾音器', value:g.pickups },
+    { label:'弦長', value:g.scale }, { label:'弧度', value:g.radius }
+  ].filter(s => s.value);
+  const gallery = g.images && g.images.length ? `<div class="detail-gallery">${g.images.map((src,i)=>`<img src="${src}" alt="圖片 ${i+1}" loading="lazy" data-src="${src}" class="lightbox-trigger">`).join('')}</div>` : '';
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div style="flex:1">
+        <div style="font-size:var(--text-xs);color:var(--color-text-muted)">${esc(g.brand||'')}</div>
+        <h2 class="modal-title" id="detailTitle">${esc(g.title||'無標題')}</h2>
+      </div>
+      <span class="badge ${g.status==='上架'?'badge-active':'badge-inactive'}">${esc(g.status||'')}</span>
+      <button class="btn btn-ghost btn-icon" id="detailCloseBtn" aria-label="關閉"><i data-lucide="x" width="18" height="18"></i></button>
+    </div>
+    <div class="modal-body">
+      ${gallery}
+      <div class="detail-specs">
+        ${g.color ? `<div class="spec-item"><div class="spec-label">顏色</div><div class="spec-value">${esc(g.color)}</div></div>` : ''}
+        ${g.shape ? `<div class="spec-item"><div class="spec-label">形狀</div><div class="spec-value">${esc(g.shape)}</div></div>` : ''}
+        ${g.series ? `<div class="spec-item"><div class="spec-label">系列</div><div class="spec-value">${esc(g.series)}</div></div>` : ''}
+        ${g.model ? `<div class="spec-item"><div class="spec-label">型號</div><div class="spec-value">${esc(g.model)}</div></div>` : ''}
+        ${g.price ? `<div class="spec-item"><div class="spec-label">價錢</div><div class="spec-value currency-price">${formatPrice(g.price, g.currency)}</div></div>` : ''}
+        ${specs.map(s=>`<div class="spec-item"><div class="spec-label">${esc(s.label)}</div><div class="spec-value">${esc(s.value)}</div></div>`).join('')}
+      </div>
+      ${g.notes ? `<div class="form-group"><div class="form-section-title">備註</div><div style="font-size:var(--text-sm);color:var(--color-text);line-height:1.7;white-space:pre-wrap">${esc(g.notes)}</div></div>` : ''}
+      <div style="font-size:var(--text-xs);color:var(--color-text-faint)">
+        輸入：${formatDate(g.dateAdded)} · 更新：${formatDate(g.dateUpdated||g.dateAdded)}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="detailEditBtn" data-id="${g.id}"><i data-lucide="pencil" width="14" height="14"></i>編輯</button>
+      <button class="btn btn-danger" id="detailDeleteBtn" data-id="${g.id}"><i data-lucide="trash-2" width="14" height="14"></i>刪除</button>
+    </div>`;
+  const backdrop = document.getElementById('detailModal');
+  backdrop.classList.add('open');
+  lucide.createIcons({ nodes: Array.from(modal.querySelectorAll('[data-lucide]')) });
+  modal.querySelector('#detailCloseBtn').addEventListener('click', () => backdrop.classList.remove('open'));
+  modal.querySelector('#detailEditBtn').addEventListener('click', () => { backdrop.classList.remove('open'); openEditModal(g.id); });
+  modal.querySelector('#detailDeleteBtn').addEventListener('click', () => { backdrop.classList.remove('open'); deleteGuitar(g.id); });
+  modal.querySelectorAll('.lightbox-trigger').forEach(img => img.addEventListener('click', () => openLightbox(img.dataset.src)));
+  backdrop.addEventListener('click', e => { if(e.target === backdrop) backdrop.classList.remove('open'); }, { once: true });
+}
+
+// =============================================
+// LIGHTBOX
+// =============================================
+function openLightbox(src){
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+document.getElementById('lightboxClose').addEventListener('click', () => document.getElementById('lightbox').classList.remove('open'));
+document.getElementById('lightbox').addEventListener('click', e => { if(e.target.id==='lightbox') document.getElementById('lightbox').classList.remove('open'); });
+
+// =============================================
+// ADD / EDIT MODAL
+// =============================================
+function openAddModal(){
+  editingId = null;
+  pendingImages = [];
+  document.getElementById('guitarForm').reset();
+  document.getElementById('f_brand').value = '';
+  document.getElementById('f_shape').value = '';
+  document.getElementById('f_brand_custom').style.display = 'none';
+  document.getElementById('f_shape_custom').style.display = 'none';
+  document.getElementById('imagePreviewGrid').innerHTML = '';
+  document.getElementById('modalTitle').textContent = '新增吉他';
+  document.getElementById('formDateInfo').textContent = '';
+  document.getElementById('guitarModal').classList.add('open');
+  document.getElementById('f_title').focus();
+}
+
+function openEditModal(id){
+  const g = allGuitars.find(x => x.id === id);
+  if(!g) return;
+  editingId = id;
+  pendingImages = g.images ? [...g.images] : [];
+  document.getElementById('modalTitle').textContent = '編輯吉他';
+  // Fill fields
+  setSelectOrCustom('f_brand', g.brand);
+  setSelectOrCustom('f_shape', g.shape);
+  document.getElementById('f_title').value = g.title || '';
+  document.getElementById('f_color').value = g.color || '';
+  document.getElementById('f_series').value = g.series || '';
+  document.getElementById('f_model').value = g.model || '';
+  document.getElementById('f_price').value = g.price || '';
+  document.getElementById('f_currency').value = g.currency || 'CNY';
+  document.getElementById('f_neck').value = g.neck || '';
+  document.getElementById('f_body').value = g.body || '';
+  document.getElementById('f_fretboard').value = g.fretboard || '';
+  document.getElementById('f_pickups').value = g.pickups || '';
+  document.getElementById('f_scale').value = g.scale || '';
+  document.getElementById('f_radius').value = g.radius || '';
+  document.getElementById('f_status').value = g.status || '上架';
+  document.getElementById('f_notes').value = g.notes || '';
+  document.getElementById('formDateInfo').textContent = `輸入：${formatDate(g.dateAdded)}`;
+  renderImagePreviews();
+  document.getElementById('guitarModal').classList.add('open');
+  document.getElementById('f_title').focus();
+}
+
+function setSelectOrCustom(fieldId, value){
+  const sel = document.getElementById(fieldId + '_select');
+  const custom = document.getElementById(fieldId + '_custom');
+  const hidden = document.getElementById(fieldId);
+  if(!value){ sel.value = ''; custom.style.display='none'; hidden.value=''; return; }
+  const opt = Array.from(sel.options).find(o => o.value === value);
+  if(opt){ sel.value = value; custom.style.display='none'; hidden.value=value; }
+  else { sel.value='__custom__'; custom.style.display=''; custom.value=value; hidden.value=value; }
+}
+
+// Brand select change
+document.getElementById('f_brand_select').addEventListener('change', function(){
+  const custom = document.getElementById('f_brand_custom');
+  const hidden = document.getElementById('f_brand');
+  if(this.value === '__custom__'){ custom.style.display=''; custom.focus(); hidden.value=''; }
+  else { custom.style.display='none'; hidden.value=this.value; }
+});
+document.getElementById('f_brand_custom').addEventListener('input', function(){ document.getElementById('f_brand').value=this.value.trim(); });
+
+// Shape select change
+document.getElementById('f_shape_select').addEventListener('change', function(){
+  const custom = document.getElementById('f_shape_custom');
+  const hidden = document.getElementById('f_shape');
+  if(this.value === '__custom__'){ custom.style.display=''; custom.focus(); hidden.value=''; }
+  else { custom.style.display='none'; hidden.value=this.value; }
+});
+document.getElementById('f_shape_custom').addEventListener('input', function(){ document.getElementById('f_shape').value=this.value.trim(); });
+
+// =============================================
+// IMAGE UPLOAD
+// =============================================
+const uploadZone = document.getElementById('uploadZone');
+const imageFileInput = document.getElementById('imageFileInput');
+
+uploadZone.addEventListener('click', () => imageFileInput.click());
+uploadZone.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') imageFileInput.click(); });
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  handleImageFiles(Array.from(e.dataTransfer.files));
+});
+imageFileInput.addEventListener('change', () => { handleImageFiles(Array.from(imageFileInput.files)); imageFileInput.value=''; });
+
+async function handleImageFiles(files){
+  const remaining = 10 - pendingImages.length;
+  if(remaining <= 0){ showToast('已達 10 張上限', 'error'); return; }
+  const toProcess = files.slice(0, remaining);
+  for(const f of toProcess){
+    if(!f.type.startsWith('image/')){ showToast(`${f.name} 非圖片格式`, 'error'); continue; }
+    const compressed = await compressImage(f);
+    pendingImages.push(compressed);
+  }
+  renderImagePreviews();
+  if(files.length > remaining) showToast(`已達 10 張上限，只處理前 ${remaining} 張`, 'info');
+}
+
+function renderImagePreviews(){
+  const grid = document.getElementById('imagePreviewGrid');
+  grid.innerHTML = pendingImages.map((src, i) =>
+    `<div class="image-preview-item">
+      <img src="${src}" alt="預覽 ${i+1}" loading="lazy">
+      <div class="image-preview-remove" data-idx="${i}" role="button" tabindex="0" aria-label="移除圖片 ${i+1}">×</div>
+    </div>`
+  ).join('');
+  grid.querySelectorAll('.image-preview-remove').forEach(btn => {
+    btn.addEventListener('click', () => { pendingImages.splice(Number(btn.dataset.idx),1); renderImagePreviews(); });
+    btn.addEventListener('keydown', e => { if(e.key==='Enter') btn.click(); });
+  });
+}
+
+// =============================================
+// FORM SUBMIT
+// =============================================
+document.getElementById('guitarForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const title = document.getElementById('f_title').value.trim();
+  const brand = document.getElementById('f_brand').value.trim();
+  if(!title){ showToast('請填寫標題', 'error'); document.getElementById('f_title').focus(); return; }
+  if(!brand){ showToast('請選擇或填寫品牌', 'error'); document.getElementById('f_brand_select').focus(); return; }
+  const now = new Date().toISOString();
+  const existing = editingId ? allGuitars.find(g=>g.id===editingId) : null;
+  const record = {
+    ...(editingId ? { id: editingId } : {}),
+    brand, title,
+    color: document.getElementById('f_color').value.trim(),
+    series: document.getElementById('f_series').value.trim(),
+    model: document.getElementById('f_model').value.trim(),
+    shape: document.getElementById('f_shape').value.trim(),
+    price: Number(document.getElementById('f_price').value) || null,
+    currency: document.getElementById('f_currency').value || 'CNY',
+    neck: document.getElementById('f_neck').value.trim(),
+    body: document.getElementById('f_body').value.trim(),
+    fretboard: document.getElementById('f_fretboard').value.trim(),
+    pickups: document.getElementById('f_pickups').value.trim(),
+    scale: document.getElementById('f_scale').value.trim(),
+    radius: document.getElementById('f_radius').value.trim(),
+    status: document.getElementById('f_status').value,
+    notes: document.getElementById('f_notes').value.trim(),
+    images: pendingImages,
+    dateAdded: existing ? existing.dateAdded : now,
+    dateUpdated: now,
+  };
+  try {
+    await dbPut(record);
+    document.getElementById('guitarModal').classList.remove('open');
+    showToast(editingId ? '已更新吉他資料' : '已新增吉他', 'success');
+    await loadGuitars();
+  } catch(err){
+    showToast('儲存失敗：' + err.message, 'error');
+  }
+});
+
+// =============================================
+// DELETE
+// =============================================
+async function deleteGuitar(id){
+  const g = allGuitars.find(x=>x.id===id);
+  if(!g) return;
+  if(!confirm(`確定刪除「${g.title}」？此操作無法還原。`)) return;
+  await dbDelete(id);
+  showToast('已刪除', 'success');
+  await loadGuitars();
+}
+
+// =============================================
+// MODAL CLOSE
+// =============================================
+document.getElementById('modalCloseBtn').addEventListener('click', () => document.getElementById('guitarModal').classList.remove('open'));
+document.getElementById('modalCancelBtn').addEventListener('click', () => document.getElementById('guitarModal').classList.remove('open'));
+document.getElementById('guitarModal').addEventListener('click', e => { if(e.target === document.getElementById('guitarModal')) document.getElementById('guitarModal').classList.remove('open'); });
+
+// =============================================
+// FILTER EVENTS
+// =============================================
+document.getElementById('filterBrand').addEventListener('change', applyFiltersAndRender);
+document.getElementById('filterStatus').addEventListener('change', applyFiltersAndRender);
+document.getElementById('clearFilterBtn').addEventListener('click', () => {
+  document.getElementById('filterBrand').value='';
+  document.getElementById('filterStatus').value='';
+  applyFiltersAndRender();
+});
+
+// =============================================
+// PAGINATION
+// =============================================
+document.getElementById('prevPageBtn').addEventListener('click', () => { if(currentPage>1){ currentPage--; renderPage(); window.scrollTo(0,0); } });
+document.getElementById('nextPageBtn').addEventListener('click', () => { currentPage++; renderPage(); window.scrollTo(0,0); });
+
+// =============================================
+// ADD BUTTON
+// =============================================
+document.getElementById('addGuitarBtn').addEventListener('click', openAddModal);
+
+// =============================================
+// EXPORT JSON
+// =============================================
+document.getElementById('exportBtn').addEventListener('click', async () => {
+  const data = await dbGetAll();
+  const json = JSON.stringify({ version: 1, exported: new Date().toISOString(), count: data.length, guitars: data }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `electric-guitars-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast(`已匯出 ${data.length} 筆資料`, 'success');
+});
+
+// =============================================
+// IMPORT JSON
+// =============================================
+document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFileInput').click());
+document.getElementById('importFileInput').addEventListener('change', async function(){
+  const f = this.files[0];
+  if(!f) return;
+  this.value = '';
+  try {
+    const text = await f.text();
+    const obj = JSON.parse(text);
+    let guitars = [];
+    if(Array.isArray(obj)) guitars = obj;
+    else if(obj.guitars && Array.isArray(obj.guitars)) guitars = obj.guitars;
+    else { showToast('JSON 格式不符', 'error'); return; }
+    const mode = confirm(`匯入 ${guitars.length} 筆資料。\n\n確認：覆蓋全部現有資料\n取消：合併（附加新資料）`);
+    if(mode) await dbClear();
+    for(const g of guitars){
+      const record = { ...g };
+      if(mode) delete record.id;
+      await dbPut(record);
+    }
+    showToast(`已匯入 ${guitars.length} 筆資料`, 'success');
+    await loadGuitars();
+  } catch(e){
+    showToast('匯入失敗：' + e.message, 'error');
+  }
+});
+
+// =============================================
+// ADD TO HOME SCREEN
+// =============================================
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('a2hsBanner').style.display = 'flex';
+  lucide.createIcons({ nodes: Array.from(document.getElementById('a2hsBanner').querySelectorAll('[data-lucide]')) });
+});
+document.getElementById('a2hsInstallBtn').addEventListener('click', async () => {
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('a2hsBanner').style.display = 'none';
+  showToast(outcome==='accepted' ? '已加入主畫面！' : '已取消安裝', outcome==='accepted'?'success':'info');
+});
+document.getElementById('a2hsDismissBtn').addEventListener('click', () => {
+  document.getElementById('a2hsBanner').style.display = 'none';
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('a2hsBanner').style.display = 'none';
+  showToast('應用程式已安裝！', 'success');
+});
+
+// =============================================
+// UTILITY
+// =============================================
+function esc(str){
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function formatDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('zh-HK', { year:'numeric', month:'2-digit', day:'2-digit' });
+}
+
+// =============================================
+// KEYBOARD SHORTCUTS
+// =============================================
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    document.getElementById('guitarModal').classList.remove('open');
+    document.getElementById('detailModal').classList.remove('open');
+    document.getElementById('lightbox').classList.remove('open');
+  }
+  if((e.ctrlKey||e.metaKey) && e.key==='n' && !e.shiftKey){
+    if(!document.getElementById('guitarModal').classList.contains('open')){
+      e.preventDefault(); openAddModal();
+    }
+  }
+});
+
+// =============================================
+// INIT
+// =============================================
+async function init(){
+  try {
+    await openDB();
+    document.getElementById('dotIDB').className='status-dot ok';
+    document.getElementById('lblIDB').textContent='IndexedDB：已連接';
+  } catch(e){
+    document.getElementById('dotIDB').className='status-dot err';
+    document.getElementById('lblIDB').textContent='IndexedDB：錯誤 - ' + e.message;
+    showToast('資料庫連接失敗', 'error');
+    return;
+  }
+  await Promise.all([requestPersistence(), registerSW()]);
+  updateOnlineStatus();
+  await loadGuitars();
+  lucide.createIcons();
+}
+
+init();
+</script>
+</body>
+</html>

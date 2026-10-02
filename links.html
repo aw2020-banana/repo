@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LinkVault 連結收藏</title>
+<meta name="theme-color" content="#2563eb">
+<meta name="description" content="靜態、響應式的網頁連結收藏工具,資料儲存於 IndexedDB。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="LinkVault">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="icon" id="favicon" href="data:,">
+<link rel="apple-touch-icon" id="touchicon" href="">
+<link rel="manifest" id="manifest" href="">
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--text:#1b2230;--muted:#6b7385;--pri:#2563eb;--pri-t:#fff;--bd:#dde2ec;--danger:#dc2626;--r:14px;--sab:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1420;--card:#192032;--text:#e8ecf5;--muted:#8d97ad;--bd:#2a3350;--pri:#4b83ff}}
+:root[data-theme=dark]{--bg:#0f1420;--card:#192032;--text:#e8ecf5;--muted:#8d97ad;--bd:#2a3350;--pri:#4b83ff}
+*{box-sizing:border-box}
+html{font-size:16px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","PingFang HK","Microsoft JhengHei","Noto Sans TC",sans-serif;line-height:1.5;padding-bottom:calc(88px + var(--sab))}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);font-size:16px}
+textarea{resize:vertical;min-height:64px}
+button{cursor:pointer;border:1px solid var(--bd);background:var(--card);border-radius:10px;padding:10px 14px;min-height:44px}
+button.pri{background:var(--pri);color:var(--pri-t);border-color:var(--pri)}
+button.danger{color:var(--danger)}
+button.ghost{background:transparent;border-color:transparent}
+button:disabled{opacity:.5}
+header{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--bd);padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.bar{max-width:1200px;margin:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.logo{font-weight:700;font-size:1.15rem;margin-right:auto}
+.bar .search{flex:1 1 220px;min-width:0}
+main{max-width:1200px;margin:auto;padding:12px;display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:900px){main{grid-template-columns:240px 1fr}}
+aside{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:12px;align-self:start}
+@media(max-width:899px){aside{display:none;position:fixed;inset:0;z-index:40;border-radius:0;overflow:auto;padding-top:calc(16px + env(safe-area-inset-top,0px))}aside.open{display:block}}
+aside h4{margin:12px 0 6px;color:var(--muted);font-size:.8rem;letter-spacing:.05em}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:99px;border:1px solid var(--bd);background:var(--bg);font-size:.85rem;margin:2px;cursor:pointer;min-height:32px}
+.chip.on{background:var(--pri);color:var(--pri-t);border-color:var(--pri)}
+.cat{display:flex;justify-content:space-between;padding:10px;border-radius:8px;cursor:pointer;min-height:44px;align-items:center}
+.cat.on{background:var(--pri);color:var(--pri-t)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.tools select{width:auto}
+.stats{color:var(--muted);font-size:.85rem;margin-left:auto}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.grid.list{grid-template-columns:1fr}
+.grid.compact{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.card.sel{outline:2px solid var(--pri)}
+.card .top{display:flex;gap:10px;align-items:flex-start}
+.card img.ico{width:32px;height:32px;border-radius:8px;flex:none;background:var(--bg);object-fit:contain}
+.card a.t{font-weight:600;color:var(--text);text-decoration:none;word-break:break-word;display:block}
+.card a.t:hover{color:var(--pri)}
+.card .u{color:var(--muted);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .d{font-size:.88rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.compact .d,.compact .note,.compact .thumb{display:none}
+.card .thumb{width:100%;height:120px;object-fit:cover;border-radius:10px;background:var(--bg)}
+.list .thumb{display:none}
+.card .acts{display:flex;gap:2px;margin-top:auto;flex-wrap:wrap}
+.card .acts button{padding:4px 10px;min-height:36px}
+.star{color:#f59e0b}
+.tag{font-size:.75rem;color:var(--pri);margin-right:6px}
+.empty{text-align:center;color:var(--muted);padding:40px 10px;grid-column:1/-1}
+.fab{position:fixed;right:16px;bottom:calc(16px + var(--sab));width:60px;height:60px;border-radius:50%;font-size:2rem;line-height:1;padding:0;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:30}
+.bulk{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);padding:10px 12px calc(10px + var(--sab));display:none;gap:8px;flex-wrap:wrap;z-index:35;align-items:center}
+.bulk.show{display:flex}
+dialog{border:1px solid var(--bd);border-radius:var(--r);background:var(--card);color:var(--text);width:min(560px,94vw);max-height:90vh;padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog.wide{width:min(820px,96vw)}
+label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.row>button{flex:none}
+.prev{display:flex;gap:10px;align-items:center;margin-top:8px;padding:8px;border:1px dashed var(--bd);border-radius:10px;font-size:.85rem;color:var(--muted)}
+.prev img{width:28px;height:28px;border-radius:6px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--sab));background:#111c;color:#fff;padding:10px 16px;border-radius:99px;z-index:100;max-width:90vw;display:none}
+.banner{background:var(--card);border:1px solid var(--bd);border-left:4px solid var(--pri);border-radius:10px;padding:10px 12px;margin:0 0 12px;display:none;gap:8px;align-items:center;flex-wrap:wrap}
+.banner.show{display:flex}
+.banner span{flex:1 1 200px;font-size:.9rem}
+.doc h3{margin:18px 0 6px}
+.doc code,.doc pre{background:var(--bg);border-radius:6px;font-size:.82rem}
+.doc code{padding:1px 5px}
+.doc table{border-collapse:collapse;width:100%;font-size:.85rem}
+.doc td,.doc th{border:1px solid var(--bd);padding:6px;text-align:left;vertical-align:top}
+.hide-md{display:none}
+@media(max-width:899px){.hide-md{display:inline-block}}
+</style>
+</head>
+<body>
+<header>
+ <div class="bar">
+  <button class="ghost hide-md" id="btnMenu" aria-label="分類">☰</button>
+  <div class="logo">🔖 LinkVault</div>
+  <input class="search" id="q" type="search" placeholder="搜尋標題、網址、標籤、備註…" aria-label="搜尋">
+  <button id="btnTheme" title="切換深色/淺色" aria-label="主題">🌓</button>
+  <button id="btnData">資料</button>
+  <button id="btnDoc">說明</button>
+ </div>
+</header>
+
+<main>
+ <aside id="side">
+  <button class="hide-md" id="btnCloseSide" style="width:100%">關閉 ✕</button>
+  <h4>分類</h4><div id="cats"></div>
+  <h4>標籤</h4><div id="tags"></div>
+  <h4>篩選</h4>
+  <label style="display:flex;gap:8px;align-items:center;margin:0"><input type="checkbox" id="onlyStar" style="width:auto"> 只看星號</label>
+ </aside>
+
+ <section>
+  <div class="banner" id="bnInstall"><span id="bnInstallTxt">📲 加到主畫面,像 App 一樣使用。</span><button class="pri" id="btnInstall">安裝</button><button id="btnInstallX">稍後</button></div>
+  <div class="banner" id="bnPersist"><span id="bnPersistTxt"></span><button id="btnBackup">立即備份 JSON</button><button id="btnPersistX">知道了</button></div>
+  <div class="tools">
+   <select id="sort" aria-label="排序">
+    <option value="new">最新加入</option><option value="old">最早加入</option>
+    <option value="title">名稱 A→Z</option><option value="hits">最常開啟</option><option value="star">星號優先</option>
+   </select>
+   <select id="view" aria-label="檢視">
+    <option value="card">卡片</option><option value="list">列表</option><option value="compact">緊湊</option>
+   </select>
+   <button id="btnSelMode">多選</button>
+   <span class="stats" id="stats"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div style="text-align:center;margin-top:14px"><button id="btnMore" style="display:none">載入更多</button></div>
+ </section>
+</main>
+
+<button class="pri fab" id="btnAdd" aria-label="新增連結">＋</button>
+
+<div class="bulk" id="bulk">
+ <strong id="bulkN">0</strong> 已選
+ <button id="bAll">全選</button>
+ <button id="bCat">改分類</button>
+ <button id="bTag">加標籤</button>
+ <button id="bStar">星號</button>
+ <button class="danger" id="bDel">刪除</button>
+ <button id="bDone">完成</button>
+</div>
+
+<dialog id="dlgEdit">
+ <form method="dialog" id="fEdit">
+  <h3 id="editTitle" style="margin-top:0">新增連結</h3>
+  <label for="fUrl">網址</label>
+  <div class="row"><input id="fUrl" type="url" inputmode="url" placeholder="https://example.com" required autocomplete="off"><button type="button" id="btnFetch">自動抓取</button></div>
+  <div class="prev" id="prev" style="display:none"><img id="prevImg" alt=""><span id="prevTxt"></span></div>
+  <label for="fTitle">標題</label><input id="fTitle" required>
+  <label for="fDesc">描述</label><textarea id="fDesc"></textarea>
+  <div class="row">
+   <div><label for="fCat">分類</label><input id="fCat" list="catList" placeholder="例如:工具"><datalist id="catList"></datalist></div>
+   <div><label for="fTags">標籤(逗號分隔)</label><input id="fTags" placeholder="css, 教學"></div>
+  </div>
+  <label for="fNote">備註</label><textarea id="fNote"></textarea>
+  <label for="fIcon">圖示網址(可留空自動)</label><input id="fIcon" type="url">
+  <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="fStar" style="width:auto"> ⭐ 星號</label>
+  <div class="row" style="margin-top:14px"><button type="button" id="eCancel">取消</button><button class="pri" type="submit" id="eSave">儲存</button></div>
+ </form>
+</dialog>
+
+<dialog id="dlgData">
+ <h3 style="margin-top:0">資料管理</h3>
+ <div id="storInfo" style="font-size:.88rem;color:var(--muted)"></div>
+ <h4>匯出</h4>
+ <div class="row"><button id="xJson" class="pri">匯出 JSON</button><button id="xCsv">匯出 CSV</button><button id="xHtml">匯出書籤 HTML</button></div>
+ <h4>匯入</h4>
+ <label for="impMode">匯入方式</label>
+ <select id="impMode"><option value="merge">合併(略過重複網址)</option><option value="replace">覆蓋(先清空現有資料)</option></select>
+ <label for="impFile">選擇檔案(.json 或瀏覽器書籤 .html)</label>
+ <input type="file" id="impFile" accept=".json,.html,.htm,application/json,text/html">
+ <h4>持久化儲存</h4>
+ <button id="btnPersist">申請持久化(navigator.storage.persist)</button>
+ <h4>書籤小工具</h4>
+ <p style="font-size:.85rem;color:var(--muted)">把下面按鈕拖到書籤列,在任何網頁點擊即可帶入網址加入收藏。(本頁需放在 HTTPS 網址。)</p>
+ <a id="bookmarklet" href="#" style="display:inline-block;padding:8px 14px;border:1px solid var(--bd);border-radius:10px;text-decoration:none">➕ 加入 LinkVault</a>
+ <h4>危險區</h4>
+ <button class="danger" id="btnWipe">清空所有資料</button>
+ <div style="text-align:right;margin-top:12px"><button id="dClose">關閉</button></div>
+</dialog>
+
+<dialog id="dlgDoc" class="wide"><div class="doc" id="docBody"></div><div style="text-align:right;margin-top:12px"><button id="docClose">關閉</button></div></dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',2800)}
+const LS={get:(k,d)=>{try{const v=localStorage.getItem('lv_'+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem('lv_'+k,JSON.stringify(v))}catch(e){}}};
+
+function normUrl(u){
+  try{
+    const x=new URL(String(u).trim());
+    if(x.protocol!=='http:'&&x.protocol!=='https:')return null;
+    ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid','igshid'].forEach(p=>x.searchParams.delete(p));
+    if(x.hash==='#')x.hash='';
+    return x.toString().replace(/\/$/,'');
+  }catch(e){return null}
+}
+const favGoogle=u=>{try{return 'https://www.google.com/s2/favicons?sz=64&domain='+new URL(u).hostname}catch(e){return ''}};
+const favDDG=u=>{try{return 'https://icons.duckduckgo.com/ip3/'+new URL(u).hostname+'.ico'}catch(e){return ''}};
+const host=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return u}};
+
+/* ===== IndexedDB ===== */
+const DB_NAME='linkvault',DB_VER=1,STORE='links';
+let db;
+function openDB(){return new Promise((res,rej)=>{
+  const r=indexedDB.open(DB_NAME,DB_VER);
+  r.onupgradeneeded=e=>{const d=e.target.result;
+    if(!d.objectStoreNames.contains(STORE)){const s=d.createObjectStore(STORE,{keyPath:'id'});
+      s.createIndex('url','url',{unique:false});s.createIndex('createdAt','createdAt');s.createIndex('category','category')}};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
+})}
+const reqP=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const tx=(mode,fn)=>new Promise((res,rej)=>{const t=db.transaction(STORE,mode);const s=t.objectStore(STORE);let out;
+  Promise.resolve(fn(s)).then(v=>out=v);t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)});
+const dbAll=()=>tx('readonly',s=>reqP(s.getAll()));
+const dbPut=o=>tx('readwrite',s=>{s.put(o)});
+const dbPutMany=a=>tx('readwrite',s=>{a.forEach(o=>s.put(o))});
+const dbDel=ids=>tx('readwrite',s=>{ids.forEach(i=>s.delete(i))});
+const dbClear=()=>tx('readwrite',s=>{s.clear()});
+
+let items=[],filterCat='',filterTags=new Set(),page=1;const PAGE=48;
+let selMode=false,sel=new Set();
+
+/* ===== 持久化儲存 ===== */
+async function storageInfo(){
+  let t='';
+  if(navigator.storage&&navigator.storage.persisted){
+    const p=await navigator.storage.persisted();
+    t+=p?'✅ 已啟用持久化儲存(瀏覽器不會自動清除)。':'⚠️ 尚未持久化,瀏覽器在空間不足時可能清除資料。';
+    if(navigator.storage.estimate){const e=await navigator.storage.estimate();
+      t+=` 已用 ${(e.usage/1048576).toFixed(2)} MB / 配額 ${(e.quota/1048576).toFixed(0)} MB。`}
+  }else t='此瀏覽器不支援 Storage API。';
+  $('#storInfo').textContent=t;return t;
+}
+async function requestPersist(manual){
+  if(!(navigator.storage&&navigator.storage.persist)){if(manual)toast('此瀏覽器不支援 persist()');return false}
+  let ok=await navigator.storage.persisted();
+  if(!ok)ok=await navigator.storage.persist();
+  if(manual)toast(ok?'已啟用持久化儲存':'瀏覽器未批准(Safari 通常要先加到主畫面;Chrome 依使用情況自動決定)');
+  storageInfo();return ok;
+}
+
+/* ===== 抓取標題 / 圖示 ===== */
+async function fetchT(url,ms=9000){
+  const c=new AbortController();const id=setTimeout(()=>c.abort(),ms);
+  try{return await fetch(url,{signal:c.signal})}finally{clearTimeout(id)}
+}
+async function fetchMeta(url){
+  const out={title:'',description:'',icon:'',image:''};
+  try{
+    const r=await fetchT('https://api.microlink.io/?url='+encodeURIComponent(url));
+    if(r.ok){const j=await r.json();if(j.status==='success'&&j.data){
+      out.title=j.data.title||'';out.description=j.data.description||'';
+      out.icon=(j.data.logo&&j.data.logo.url)||'';out.image=(j.data.image&&j.data.image.url)||'';}}
+  }catch(e){}
+  if(!out.title){
+    try{
+      const r=await fetchT('https://api.allorigins.win/get?url='+encodeURIComponent(url));
+      if(r.ok){const j=await r.json();const doc=new DOMParser().parseFromString(j.contents||'','text/html');
+        const m=sel=>{const e=doc.querySelector(sel);return e?(e.getAttribute('content')||e.getAttribute('href')||e.textContent||'').trim():''};
+        out.title=m('meta[property="og:title"]')||m('meta[name="twitter:title"]')||(doc.title||'').trim();
+        out.description=m('meta[property="og:description"]')||m('meta[name="description"]');
+        out.image=m('meta[property="og:image"]');
+        const ic=m('link[rel~="icon"]')||m('link[rel="apple-touch-icon"]');
+        if(ic){try{out.icon=new URL(ic,url).href}catch(e){}}
+        if(out.image){try{out.image=new URL(out.image,url).href}catch(e){}}
+      }
+    }catch(e){}
+  }
+  if(!out.icon)out.icon=favGoogle(url);
+  return out;
+}
+
+/* ===== 篩選 / 渲染 ===== */
+function getList(){
+  const q=$('#q').value.trim().toLowerCase();
+  const star=$('#onlyStar').checked;
+  let a=items.filter(it=>{
+    if(filterCat&&(it.category||'')!==(filterCat==='__none'?'':filterCat))return false;
+    if(star&&!it.star)return false;
+    for(const t of filterTags)if(!(it.tags||[]).includes(t))return false;
+    if(q){const h=(it.title+' '+it.url+' '+(it.description||'')+' '+(it.note||'')+' '+(it.tags||[]).join(' ')+' '+(it.category||'')).toLowerCase();
+      return q.split(/\s+/).every(w=>h.includes(w))}
+    return true;
+  });
+  const s=$('#sort').value;
+  a.sort((x,y)=>s==='new'?y.createdAt-x.createdAt:s==='old'?x.createdAt-y.createdAt:
+    s==='title'?(x.title||'').localeCompare(y.title||'','zh-HK'):
+    s==='hits'?(y.hits||0)-(x.hits||0):((y.star?1:0)-(x.star?1:0))||y.createdAt-x.createdAt);
+  return a;
+}
+function renderSide(){
+  const cc={};const tc={};let none=0;
+  items.forEach(i=>{if(i.category)cc[i.category]=(cc[i.category]||0)+1;else none++;(i.tags||[]).forEach(t=>tc[t]=(tc[t]||0)+1)});
+  let h=`<div class="cat ${filterCat===''?'on':''}" data-c="">全部<span>${items.length}</span></div>`;
+  Object.keys(cc).sort((a,b)=>a.localeCompare(b,'zh-HK')).forEach(c=>h+=`<div class="cat ${filterCat===c?'on':''}" data-c="${esc(c)}">${esc(c)}<span>${cc[c]}</span></div>`);
+  if(none)h+=`<div class="cat ${filterCat==='__none'?'on':''}" data-c="__none">未分類<span>${none}</span></div>`;
+  $('#cats').innerHTML=h;
+  $('#tags').innerHTML=Object.keys(tc).sort().map(t=>`<span class="chip ${filterTags.has(t)?'on':''}" data-t="${esc(t)}">#${esc(t)} ${tc[t]}</span>`).join('')||'<span style="color:var(--muted);font-size:.85rem">暫無標籤</span>';
+  $('#catList').innerHTML=Object.keys(cc).map(c=>`<option value="${esc(c)}">`).join('');
+}
+function render(){
+  renderSide();
+  const list=getList();const show=list.slice(0,page*PAGE);
+  const g=$('#grid');g.className='grid '+($('#view').value==='card'?'':$('#view').value);
+  if(!list.length){g.innerHTML=`<div class="empty">${items.length?'沒有符合的結果':'還沒有收藏,按右下角 ＋ 新增第一個連結'}</div>`}
+  else g.innerHTML=show.map(it=>{
+    const ic=it.icon||favGoogle(it.url);
+    return `<article class="card ${sel.has(it.id)?'sel':''}" data-id="${it.id}">
+     ${it.image?`<img class="thumb" loading="lazy" referrerpolicy="no-referrer" src="${esc(it.image)}" alt="" onerror="this.remove()">`:''}
+     <div class="top">
+      ${selMode?`<input type="checkbox" style="width:22px;height:22px;flex:none" data-sel="${it.id}" ${sel.has(it.id)?'checked':''}>`:''}
+      <img class="ico" loading="lazy" referrerpolicy="no-referrer" src="${esc(ic)}" alt="" data-fb="${esc(favDDG(it.url))}">
+      <div style="min-width:0;flex:1"><a class="t" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer" data-open="${it.id}">${it.star?'<span class="star">★</span> ':''}${esc(it.title||host(it.url))}</a>
+      <div class="u">${esc(host(it.url))}${it.hits?` · 開啟 ${it.hits} 次`:''}</div></div>
+     </div>
+     ${it.description?`<div class="d">${esc(it.description)}</div>`:''}
+     ${it.note?`<div class="d note">📝 ${esc(it.note)}</div>`:''}
+     <div>${it.category?`<span class="tag">📁 ${esc(it.category)}</span>`:''}${(it.tags||[]).map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</div>
+     <div class="acts"><button class="ghost" data-act="star" data-id="${it.id}">${it.star?'★':'☆'}</button><button class="ghost" data-act="edit" data-id="${it.id}">編輯</button><button class="ghost" data-act="copy" data-id="${it.id}">複製</button><button class="ghost danger" data-act="del" data-id="${it.id}">刪除</button></div>
+    </article>`}).join('');
+  $('#btnMore').style.display=list.length>show.length?'inline-block':'none';
+  $('#stats').textContent=`${list.length} / ${items.length} 個連結`;
+  $('#bulkN').textContent=sel.size;
+}
+document.addEventListener('error',e=>{const t=e.target;if(t.tagName==='IMG'&&t.dataset&&t.dataset.fb&&!t.dataset.tried){t.dataset.tried=1;t.src=t.dataset.fb}},true);
+
+/* ===== 新增 / 編輯 ===== */
+let editing=null,metaCache=null;
+function openEdit(it,pre){
+  editing=it||null;metaCache=null;
+  $('#editTitle').textContent=it?'編輯連結':'新增連結';
+  $('#fUrl').value=it?it.url:(pre&&pre.url)||'';
+  $('#fTitle').value=it?it.title:(pre&&pre.title)||'';
+  $('#fDesc').value=it?it.description||'':'';
+  $('#fCat').value=it?it.category||'':(filterCat&&filterCat!=='__none'?filterCat:'');
+  $('#fTags').value=it?(it.tags||[]).join(', '):'';
+  $('#fNote').value=it?it.note||'':'';
+  $('#fIcon').value=it?it.icon||'':'';
+  $('#fStar').checked=it?!!it.star:false;
+  $('#prev').style.display='none';
+  $('#dlgEdit').showModal();
+  if(!it&&$('#fUrl').value&&!$('#fTitle').value)doFetch();
+}
+async function doFetch(){
+  const u=normUrl($('#fUrl').value);if(!u){toast('請輸入有效的 http(s) 網址');return}
+  const b=$('#btnFetch');b.disabled=true;b.textContent='抓取中…';
+  const m=await fetchMeta(u);metaCache=m;
+  if(m.title&&!$('#fTitle').value.trim())$('#fTitle').value=m.title;
+  if(m.description&&!$('#fDesc').value.trim())$('#fDesc').value=m.description.slice(0,300);
+  if(m.icon&&!$('#fIcon').value.trim())$('#fIcon').value=m.icon;
+  $('#prev').style.display='flex';$('#prevImg').src=m.icon||favGoogle(u);
+  $('#prevTxt').textContent=m.title?('已取得:'+m.title):'未能取得標題(網站可能阻擋),已使用預設圖示,請手動輸入標題。';
+  if(!$('#fTitle').value.trim())$('#fTitle').value=host(u);
+  b.disabled=false;b.textContent='自動抓取';
+}
+async function saveEdit(ev){
+  ev.preventDefault();
+  const url=normUrl($('#fUrl').value);if(!url){toast('網址無效');return}
+  const dup=items.find(i=>normUrl(i.url)===url&&(!editing||i.id!==editing.id));
+  if(dup&&!confirm('此網址已存在:「'+dup.title+'」。仍要儲存嗎?'))return;
+  const tags=[...new Set($('#fTags').value.split(/[,,、]/).map(s=>s.trim().replace(/^#/,'')).filter(Boolean))];
+  const now=Date.now();
+  const o=Object.assign({hits:0,createdAt:now},editing||{},{
+    id:editing?editing.id:uid(),url,title:$('#fTitle').value.trim()||host(url),description:$('#fDesc').value.trim(),
+    category:$('#fCat').value.trim(),tags,note:$('#fNote').value.trim(),icon:$('#fIcon').value.trim(),
+    image:(metaCache&&metaCache.image)||(editing&&editing.image)||'',star:$('#fStar').checked,updatedAt:now});
+  await dbPut(o);
+  const i=items.findIndex(x=>x.id===o.id);if(i>=0)items[i]=o;else items.push(o);
+  $('#dlgEdit').close();render();toast('已儲存');
+  if(!LS.get('persistAsked',false)){LS.set('persistAsked',true);requestPersist(false).then(showPersistBanner)}
+  bumpBackupCounter();
+}
+
+/* ===== 動作 ===== */
+$('#grid').addEventListener('click',async e=>{
+  const o=e.target.closest('[data-open]');
+  if(o){const it=items.find(i=>i.id===o.dataset.open);if(it){it.hits=(it.hits||0)+1;dbPut(it)}return}
+  const s=e.target.closest('[data-sel]');
+  if(s){toggleSel(s.dataset.sel);return}
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const it=items.find(i=>i.id===b.dataset.id);if(!it)return;
+  if(b.dataset.act==='edit')openEdit(it);
+  else if(b.dataset.act==='star'){it.star=!it.star;await dbPut(it);render()}
+  else if(b.dataset.act==='copy'){try{await navigator.clipboard.writeText(it.url);toast('已複製網址')}catch(err){prompt('複製網址',it.url)}}
+  else if(b.dataset.act==='del'){if(confirm('刪除「'+it.title+'」?')){await dbDel([it.id]);items=items.filter(i=>i.id!==it.id);render();toast('已刪除')}}
+});
+function toggleSel(id){sel.has(id)?sel.delete(id):sel.add(id);render()}
+$('#btnSelMode').onclick=()=>{selMode=!selMode;sel.clear();$('#bulk').classList.toggle('show',selMode);$('#btnSelMode').textContent=selMode?'退出多選':'多選';render()};
+$('#bDone').onclick=()=>$('#btnSelMode').click();
+$('#bAll').onclick=()=>{getList().forEach(i=>sel.add(i.id));render()};
+async function bulk(fn){if(!sel.size)return toast('未選取項目');const arr=items.filter(i=>sel.has(i.id));arr.forEach(fn);await dbPutMany(arr);render()}
+$('#bCat').onclick=()=>{const c=prompt('新分類(留空=未分類):');if(c!==null)bulk(i=>i.category=c.trim())};
+$('#bTag').onclick=()=>{const t=prompt('要加入的標籤(逗號分隔):');if(t)bulk(i=>i.tags=[...new Set([...(i.tags||[]),...t.split(/[,,]/).map(s=>s.trim()).filter(Boolean)])])};
+$('#bStar').onclick=()=>bulk(i=>i.star=true);
+$('#bDel').onclick=async()=>{if(!sel.size)return;if(!confirm('刪除 '+sel.size+' 個連結?'))return;const ids=[...sel];await dbDel(ids);items=items.filter(i=>!sel.has(i.id));sel.clear();render();toast('已刪除')};
+
+$('#btnAdd').onclick=()=>openEdit();
+$('#btnFetch').onclick=doFetch;
+$('#fEdit').addEventListener('submit',saveEdit);
+$('#eCancel').onclick=()=>$('#dlgEdit').close();
+$('#fUrl').addEventListener('paste',()=>setTimeout(()=>{if(!$('#fTitle').value&&normUrl($('#fUrl').value))doFetch()},50));
+$('#q').addEventListener('input',()=>{page=1;render()});
+['sort','onlyStar'].forEach(i=>$('#'+i).addEventListener('change',()=>{page=1;LS.set('sort',$('#sort').value);render()}));
+$('#view').addEventListener('change',()=>{LS.set('view',$('#view').value);render()});
+$('#btnMore').onclick=()=>{page++;render()};
+$('#cats').addEventListener('click',e=>{const c=e.target.closest('.cat');if(!c)return;filterCat=c.dataset.c;page=1;$('#side').classList.remove('open');render()});
+$('#tags').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;const t=c.dataset.t;filterTags.has(t)?filterTags.delete(t):filterTags.add(t);page=1;render()});
+$('#btnMenu').onclick=()=>$('#side').classList.add('open');
+$('#btnCloseSide').onclick=()=>$('#side').classList.remove('open');
+$('#btnTheme').onclick=()=>{const cur=document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');const n=cur==='dark'?'light':'dark';document.documentElement.dataset.theme=n;LS.set('theme',n)};
+
+/* ===== 匯入 / 匯出 ===== */
+function download(name,text,type){const b=new Blob([text],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+const stamp=()=>new Date().toISOString().slice(0,10);
+function exportJSON(){
+  download(`linkvault-${stamp()}.json`,JSON.stringify({app:'LinkVault',version:1,exportedAt:new Date().toISOString(),count:items.length,links:items},null,2),'application/json');
+  LS.set('lastBackup',Date.now());LS.set('sinceBackup',0);toast('已匯出 JSON')
+}
+function exportCSV(){
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const rows=[['title','url','description','category','tags','note','star','hits','createdAt']];
+  items.forEach(i=>rows.push([i.title,i.url,i.description,i.category,(i.tags||[]).join(';'),i.note,i.star?1:0,i.hits||0,new Date(i.createdAt).toISOString()]));
+  download(`linkvault-${stamp()}.csv`,'\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv');
+}
+function exportHTML(){
+  const byCat={};items.forEach(i=>(byCat[i.category||'未分類']=byCat[i.category||'未分類']||[]).push(i));
+  let h='<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n<DL><p>\n';
+  for(const c in byCat){h+=`<DT><H3>${esc(c)}</H3>\n<DL><p>\n`;byCat[c].forEach(i=>h+=`<DT><A HREF="${esc(i.url)}" ADD_DATE="${Math.floor(i.createdAt/1000)}" TAGS="${esc((i.tags||[]).join(','))}">${esc(i.title)}</A>\n`);h+='</DL><p>\n'}
+  download(`bookmarks-${stamp()}.html`,h+'</DL><p>','text/html');
+}
+function sanitize(o){
+  const url=normUrl(o.url||o.href||'');if(!url)return null;
+  const now=Date.now();
+  return {id:typeof o.id==='string'&&o.id?o.id:uid(),url,title:String(o.title||host(url)).slice(0,300),description:String(o.description||''),
+    category:String(o.category||''),tags:Array.isArray(o.tags)?o.tags.map(String):(typeof o.tags==='string'?o.tags.split(/[,;]/).map(s=>s.trim()).filter(Boolean):[]),
+    note:String(o.note||''),icon:String(o.icon||''),image:String(o.image||''),star:!!o.star,hits:+o.hits||0,
+    createdAt:+o.createdAt||now,updatedAt:+o.updatedAt||now};
+}
+function parseBookmarkHTML(t){
+  const doc=new DOMParser().parseFromString(t,'text/html');const out=[];
+  doc.querySelectorAll('a[href]').forEach(a=>{
+    let cat='';const dl=a.closest('dl');
+    if(dl){const h=dl.previousElementSibling;if(h&&h.tagName==='H3')cat=h.textContent.trim();
+      else{const dt=dl.parentElement&&dl.parentElement.previousElementSibling;if(dt&&dt.tagName==='H3')cat=dt.textContent.trim()}}
+    out.push({url:a.getAttribute('href'),title:a.textContent.trim(),category:cat,tags:a.getAttribute('tags')||'',createdAt:(+a.getAttribute('add_date')||0)*1000||Date.now()});
+  });return out;
+}
+async function importFile(f){
+  if(!f)return;
+  try{
+    const txt=await f.text();let raw;
+    if(/\.json$/i.test(f.name)||txt.trim().startsWith('{')||txt.trim().startsWith('[')){
+      const j=JSON.parse(txt);raw=Array.isArray(j)?j:(j.links||j.items||j.bookmarks);
+      if(!Array.isArray(raw))throw new Error('找不到 links 陣列');
+    }else raw=parseBookmarkHTML(txt);
+    const list=raw.map(sanitize).filter(Boolean);
+    if(!list.length)return toast('沒有可匯入的有效連結');
+    const mode=$('#impMode').value;let added=0,skipped=0;
+    if(mode==='replace'){if(!confirm('將清空現有 '+items.length+' 筆資料並匯入 '+list.length+' 筆,確定?'))return;await dbClear();items=[];}
+    const seen=new Map(items.map(i=>[normUrl(i.url),i]));const ids=new Set(items.map(i=>i.id));const add=[];
+    for(const o of list){const k=normUrl(o.url);if(seen.has(k)){skipped++;continue}if(ids.has(o.id))o.id=uid();seen.set(k,o);ids.add(o.id);add.push(o);added++}
+    await dbPutMany(add);items=items.concat(add);render();
+    toast(`匯入完成:新增 ${added},略過重複 ${skipped}`);
+  }catch(e){alert('匯入失敗:'+e.message)}
+  $('#impFile').value='';
+}
+$('#btnData').onclick=()=>{storageInfo();$('#dlgData').showModal()};
+$('#dClose').onclick=()=>$('#dlgData').close();
+$('#xJson').onclick=exportJSON;$('#xCsv').onclick=exportCSV;$('#xHtml').onclick=exportHTML;$('#btnBackup').onclick=exportJSON;
+$('#impFile').onchange=e=>importFile(e.target.files[0]);
+$('#btnPersist').onclick=()=>requestPersist(true);
+$('#btnWipe').onclick=async()=>{if(confirm('確定清空全部資料?此動作無法復原,建議先匯出 JSON。')&&confirm('再確認一次:真的清空?')){await dbClear();items=[];render();toast('已清空')}};
+
+/* ===== 備份 / 持久化提示 ===== */
+function bumpBackupCounter(){LS.set('sinceBackup',LS.get('sinceBackup',0)+1);showPersistBanner()}
+async function showPersistBanner(){
+  let p=false;try{p=navigator.storage&&navigator.storage.persisted?await navigator.storage.persisted():false}catch(e){}
+  const since=LS.get('sinceBackup',0),last=LS.get('lastBackup',0);
+  const old=last&&Date.now()-last>30*864e5;
+  let msg='';
+  if(items.length&&!last&&since>=5)msg='你已新增多個連結但從未備份,建議匯出 JSON 作備份。';
+  else if(items.length&&(since>=20||old))msg='距離上次備份已有較多變動或超過 30 天,建議匯出 JSON。';
+  if(!p&&items.length&&!msg)msg='瀏覽器尚未批准持久化儲存,資料有被清除的風險,建議定期匯出 JSON。';
+  if(msg&&!sessionStorage.getItem('lv_pbx')){$('#bnPersistTxt').textContent='💾 '+msg;$('#bnPersist').classList.add('show')}
+}
+$('#btnPersistX').onclick=()=>{$('#bnPersist').classList.remove('show');sessionStorage.setItem('lv_pbx',1)};
+
+/* ===== Add to Home Screen ===== */
+let deferred=null;
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;if(!isStandalone()&&!LS.get('a2hsDismiss',0))$('#bnInstall').classList.add('show')});
+window.addEventListener('appinstalled',()=>{$('#bnInstall').classList.remove('show');toast('已安裝')});
+$('#btnInstall').onclick=async()=>{
+  if(deferred){deferred.prompt();await deferred.userChoice;deferred=null;$('#bnInstall').classList.remove('show')}
+  else alert('iPhone / iPad(Safari):按底部「分享」圖示 → 「加入主畫面」。\nAndroid(Chrome):右上角 ⋮ → 「安裝應用程式 / 加到主畫面」。')};
+$('#btnInstallX').onclick=()=>{LS.set('a2hsDismiss',Date.now());$('#bnInstall').classList.remove('show')};
+function initA2HS(){
+  if(isStandalone())return;
+  if(isIOS()&&!LS.get('a2hsDismiss',0)){
+    $('#bnInstallTxt').innerHTML='📲 在 Safari 按底部 <b>分享</b> 圖示,再選 <b>加入主畫面</b>,即可像 App 一樣使用。';
+    $('#btnInstall').textContent='怎麼做';$('#bnInstall').classList.add('show');
+  }
+}
+
+/* ===== 動態圖示 + manifest(無 Service Worker) ===== */
+function makeIcon(size){const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d');
+  x.fillStyle='#2563eb';x.beginPath();if(x.roundRect)x.roundRect(0,0,size,size,size*.22);else x.rect(0,0,size,size);x.fill();
+  x.fillStyle='#fff';x.beginPath();const w=size*.34,l=size*.33,t=size*.2,h=size*.6;x.moveTo(l,t);x.lineTo(l+w,t);x.lineTo(l+w,t+h);x.lineTo(l+w/2,t+h*.75);x.lineTo(l,t+h);x.closePath();x.fill();
+  return c.toDataURL('image/png')}
+function initPWA(){
+  const i192=makeIcon(192),i512=makeIcon(512);
+  $('#favicon').href=i192;$('#touchicon').href=makeIcon(180);
+  const base=location.href.split('#')[0].split('?')[0];
+  const man={name:'LinkVault 連結收藏',short_name:'LinkVault',start_url:base,scope:base.replace(/[^/]*$/,''),display:'standalone',background_color:'#f4f6fa',theme_color:'#2563eb',lang:'zh-HK',
+    icons:[{src:i192,sizes:'192x192',type:'image/png'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
+  $('#manifest').href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:'application/manifest+json'}));
+  $('#bookmarklet').href="javascript:(function(){window.open('"+base+"?add='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title))})()";
+}
+
+/* ===== 技術說明 ===== */
+$('#docBody').innerHTML=`
+<h2 style="margin-top:0">技術說明</h2>
+<h3>1. 架構</h3>
+<p>純靜態單檔:只有 <code>index.html</code>,沒有後端、沒有建置步驟、沒有第三方函式庫,可直接放 GitHub Pages。所有資料留在使用者自己的瀏覽器。</p>
+<h3>2. IndexedDB 結構</h3>
+<table><tr><th>項目</th><th>內容</th></tr>
+<tr><td>資料庫</td><td><code>linkvault</code>(版本 1)</td></tr>
+<tr><td>物件倉庫</td><td><code>links</code>,keyPath = <code>id</code>(UUID)</td></tr>
+<tr><td>索引</td><td><code>url</code>、<code>createdAt</code>、<code>category</code></td></tr>
+<tr><td>欄位</td><td>id, url, title, description, category, tags[], note, icon, image, star, hits, createdAt, updatedAt</td></tr></table>
+<p>啟動時以 <code>getAll()</code> 載入記憶體,搜尋、排序、篩選都在記憶體執行,數千筆仍流暢;畫面以「載入更多」分批渲染(每批 ${PAGE} 筆)。日後改結構時,提高 <code>DB_VER</code> 並在 <code>onupgradeneeded</code> 做遷移。</p>
+<h3>3. 持久化儲存</h3>
+<p>瀏覽器預設把 IndexedDB 視為「盡力而為」,空間不足時可能被清除。第一次儲存時呼叫 <code>navigator.storage.persist()</code>;「資料」面板可手動申請,並用 <code>storage.estimate()</code> 顯示用量。Chrome 依使用情況自動決定;Firefox 會彈出權限提示;Safari 對已加入主畫面的網站較寬鬆。即使獲批,<b>仍應定期匯出 JSON</b>,因為使用者手動清除網站資料時照樣會消失。</p>
+<h3>4. 自動抓取標題與圖示</h3>
+<p>純前端受 CORS 限制,不能直接讀取其他網站的 HTML。本頁依序嘗試:</p>
+<ol><li>Microlink API(免 Key,有免費額度)取得 title、description、logo、og:image。</li>
+<li>失敗時改用 <code>api.allorigins.win</code> CORS 代理取回 HTML,以 <code>DOMParser</code> 解析 <code>og:title</code>、<code>&lt;title&gt;</code>、<code>meta description</code>、<code>link[rel=icon]</code>。</li>
+<li>圖示最終回退至 Google favicon 服務,圖片載入失敗再退到 DuckDuckGo。</li></ol>
+<p>這些都是第三方免費服務,可能限流或停用;抓不到時可手動輸入。你收藏的網址會被送往這些服務。若要自控,可自行部署 Cloudflare Worker 作代理,並替換 <code>fetchMeta()</code> 內的網址。</p>
+<h3>5. 匯入 / 匯出</h3>
+<p>JSON 格式為 <code>{app, version, exportedAt, count, links:[…]}</code>,也接受純陣列。匯入時每筆經 <code>sanitize()</code> 驗證與正規化(只接受 http/https),以「去除 utm_*、fbclid、結尾斜線」後的網址去重;可選「合併」或「覆蓋」。另支援匯出 CSV(UTF-8 BOM,Excel 可正常開啟中文)與 Netscape 書籤 HTML,並可匯入 Chrome / Safari / Firefox 的書籤 HTML。</p>
+<h3>6. 響應式設計</h3>
+<p>Mobile First:CSS Grid <code>repeat(auto-fill,minmax(260px,1fr))</code> 自動排欄;寬度 ≥ 900px 才顯示左側欄,手機改為全螢幕抽屜;觸控目標 ≥ 44px;輸入框字級 16px(避免 iOS 自動放大);用 <code>env(safe-area-inset-*)</code> 避開 iPhone 瀏海與底部橫條;<code>prefers-color-scheme</code> 自動深色模式,也可手動切換。</p>
+<h3>7. Add to Home Screen</h3>
+<p>Manifest 與圖示由 JS 動態產生(canvas 畫出 PNG,Blob URL 作 manifest),所以單檔即可。Chrome / Edge / Android 會觸發 <code>beforeinstallprompt</code>,本頁攔截後顯示自訂「安裝」橫幅;iOS Safari 沒有此事件,故偵測後顯示手動教學(分享 → 加入主畫面)。已以獨立模式開啟時不再提示。</p>
+<h3>8. 離線說明</h3>
+<p>本頁刻意不使用 Service Worker,以維持單一檔案(Service Worker 必須是獨立的同源檔案,不能內嵌)。你的連結資料全在 IndexedDB,讀寫不需要網路;但「開啟頁面本身」需要網路或瀏覽器的 HTTP 快取,不保證完全離線。自動抓取標題/圖示則一定需要網路。</p>
+<h3>9. 安全</h3>
+<p>所有使用者內容以 <code>esc()</code> 轉義後才進入 innerHTML;外部連結一律 <code>rel="noopener noreferrer"</code>;匯入和新增只接受 http/https 網址,擋掉 <code>javascript:</code>。</p>
+<h3>10. GitHub Pages 部署</h3>
+<p>把 <code>index.html</code> 推上倉庫 → Settings → Pages → 選擇分支與根目錄。安裝提示與 persist() 需要 HTTPS,GitHub Pages 已提供。書籤小工具和新增網址參數(<code>?add=網址&amp;title=標題</code>)亦在此環境下可用。</p>
+<h3>11. 已知限制</h3>
+<p>資料只存在單一瀏覽器/裝置,不同步;Safari 對長期未互動的網站可能清除資料(約 7 天規則,已加入主畫面的 App 例外);失效連結檢查因 CORS 無法在純前端準確實現。</p>`;
+$('#btnDoc').onclick=()=>$('#dlgDoc').showModal();
+$('#docClose').onclick=()=>$('#dlgDoc').close();
+
+/* ===== 啟動 ===== */
+(async function init(){
+  const th=LS.get('theme',null);if(th)document.documentElement.dataset.theme=th;
+  $('#sort').value=LS.get('sort','new');$('#view').value=LS.get('view','card');
+  initPWA();initA2HS();
+  try{db=await openDB()}catch(e){document.body.insertAdjacentHTML('afterbegin','<p style="padding:20px;color:#dc2626">無法開啟 IndexedDB(私密瀏覽模式可能受限)。</p>');return}
+  items=await dbAll();render();
+  const p=new URLSearchParams(location.search);
+  if(p.get('add')){const u=normUrl(p.get('add'));history.replaceState(null,'',location.pathname);if(u)openEdit(null,{url:u,title:p.get('title')||''})}
+  if(items.length&&navigator.storage&&navigator.storage.persisted&&await navigator.storage.persisted()===false)requestPersist(false);
+  showPersistBanner();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<title>我的地圖 | 靜態響應式地圖</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a73e8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="我的地圖">
+<meta name="description" content="純前端地圖：Leaflet + OpenStreetMap + IndexedDB，可離線、可匯入匯出 JSON。">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#fff;--fg:#1f2328;--muted:#667085;--line:#e4e7ec;--pri:#1a73e8;--card:#f7f8fa;--danger:#d92d20}
+:root.dark{--bg:#14171c;--fg:#e6e8eb;--muted:#9aa4b2;--line:#2a2f37;--pri:#6ea8fe;--card:#1d222a}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang HK",sans-serif;background:var(--bg);color:var(--fg);display:flex;flex-direction:column;height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+header{display:flex;gap:8px;align-items:center;padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:1px solid var(--line);background:var(--bg);flex-wrap:wrap}
+header h1{font-size:17px;margin:0;white-space:nowrap}
+#q{flex:1;min-width:140px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);font-size:16px}
+button,.btn{min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+button.pri{background:var(--pri);color:#fff;border-color:var(--pri)}
+button.danger{color:var(--danger)}
+button.on{outline:2px solid var(--pri)}
+main{flex:1;display:flex;min-height:0;position:relative}
+#map{flex:1;min-width:0;z-index:0}
+#panel{width:340px;border-left:1px solid var(--line);background:var(--bg);display:flex;flex-direction:column;min-height:0}
+#panel .scroll{overflow:auto;padding:10px;flex:1}
+.handle{display:none}
+.sec{margin-bottom:14px}
+.sec h3{margin:0 0 6px;font-size:13px;color:var(--muted);text-transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:99px;background:var(--card);cursor:pointer;user-select:none;min-height:36px}
+.chip input{margin:0}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;border:2px solid #fff;box-shadow:0 0 0 1px #0004}
+.item{padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--card);cursor:pointer}
+.item b{display:block}
+.item small{color:var(--muted)}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.status{font-size:12px;color:var(--muted)}
+.banner{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:3000;background:var(--bg);border:1px solid var(--line);box-shadow:0 6px 24px #0004;border-radius:14px;padding:12px;display:none;gap:10px;align-items:center}
+.banner.show{display:flex}
+.banner p{margin:0;flex:1;font-size:14px}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--fg);width:min(440px,94vw);padding:16px}
+dialog::backdrop{background:#0006}
+label{display:block;font-size:13px;color:var(--muted);margin:8px 0 3px}
+input[type=text],input[type=number],select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);font-size:16px;font-family:inherit}
+details{border:1px solid var(--line);border-radius:10px;background:var(--card);margin-bottom:8px;padding:0 10px}
+details summary{cursor:pointer;padding:10px 0;font-weight:600;font-size:14px}
+details .body{padding-bottom:10px;font-size:13px;color:var(--muted)}
+details code,details pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;font-size:12px}
+details code{padding:1px 4px}
+details pre{padding:8px;overflow:auto}
+.legend{background:var(--bg);color:var(--fg);padding:8px 10px;border-radius:10px;box-shadow:0 1px 6px #0004;font-size:12px;line-height:1.8}
+.leaflet-container{font-family:inherit}
+.hint{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--pri);color:#fff;padding:8px 14px;border-radius:99px;display:none;font-size:14px}
+.hint.show{display:block}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:4000;background:#222;color:#fff;padding:8px 14px;border-radius:8px;font-size:14px;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:.95}
+@media (max-width:760px){
+ header h1{display:none}
+ #panel{position:absolute;left:0;right:0;bottom:0;width:auto;height:46%;border-left:0;border-top:1px solid var(--line);border-radius:16px 16px 0 0;z-index:1500;box-shadow:0 -4px 20px #0003;transition:height .2s}
+ #panel.collapsed{height:44px}
+ .handle{display:flex;justify-content:center;align-items:center;height:44px;flex:none;cursor:pointer;font-size:13px;color:var(--muted)}
+ .handle::before{content:"";width:40px;height:4px;border-radius:2px;background:var(--line);margin-right:10px}
+ .leaflet-bottom{margin-bottom:46px}
+}
+</style>
+</head>
+<body>
+<header>
+ <h1>🗺️ 我的地圖</h1>
+ <input id="q" type="search" placeholder="搜尋名稱 / 備註…" aria-label="搜尋">
+ <button id="btnAdd" class="pri" title="在地圖上點選位置新增">＋ 新增</button>
+ <button id="btnLoc" title="我的位置">📍</button>
+ <button id="btnTheme" title="深色模式">🌓</button>
+</header>
+<main>
+ <div id="map" role="application" aria-label="地圖"></div>
+ <div class="hint" id="hint">請點選地圖上要新增的位置</div>
+ <aside id="panel">
+  <div class="handle" id="handle">地點清單（點擊展開／收合）</div>
+  <div class="scroll">
+   <div class="sec">
+    <h3>底圖</h3>
+    <div class="chips" id="baseChips"></div>
+   </div>
+   <div class="sec">
+    <h3>分類篩選（圖層開關）</h3>
+    <div class="chips" id="catChips"></div>
+   </div>
+   <div class="sec">
+    <h3>地點 <span id="count" class="status"></span></h3>
+    <div id="list"></div>
+   </div>
+   <div class="sec">
+    <h3>資料</h3>
+    <div class="row">
+     <button id="btnExport">⬇ 匯出 JSON</button>
+     <button id="btnImport">⬆ 匯入 JSON</button>
+     <button id="btnCsv">匯出 CSV</button>
+     <button id="btnClear" class="danger">清空</button>
+    </div>
+    <input type="file" id="file" accept=".json,.geojson,application/json" hidden>
+    <p class="status" id="storageStatus">儲存狀態：檢查中…</p>
+    <div class="row"><button id="btnPersist">🔒 申請持久儲存</button><button id="btnInstall">📲 安裝到主畫面</button></div>
+   </div>
+   <div class="sec">
+    <h3>技術說明（按需展開）</h3>
+    <details><summary>整體架構</summary><div class="body">
+     單一 <code>index.html</code>，無後端、無建置步驟。地圖使用 Leaflet 1.9.4（CDN），底圖為 OpenStreetMap 等公開圖磚，不需要 API Key。使用者資料全部存在瀏覽器的 IndexedDB，頁面本身是靜態檔，可直接放在 GitHub Pages。
+    </div></details>
+    <details><summary>IndexedDB 資料結構</summary><div class="body">
+     資料庫 <code>static-map-db</code> v1，物件倉庫 <code>places</code>（<code>keyPath: id</code>，autoIncrement）。欄位：
+<pre>{ id, name, cat, note, lat, lng, created, updated }</pre>
+     另有 <code>settings</code> 倉庫以 key/value 存放底圖、深色模式、最後視圖。所有操作以 Promise 包裝 transaction，寫入在 <code>oncomplete</code> 後才算成功。
+    </div></details>
+    <details><summary>JSON 匯入／匯出格式</summary><div class="body">
+     匯出格式：
+<pre>{ "app":"static-map","version":1,
+  "exported":"ISO 時間",
+  "places":[{name,cat,note,lat,lng,...}] }</pre>
+     匯入同時接受：以上格式、純陣列、標準 GeoJSON <code>FeatureCollection</code>（只讀 Point）。匯入時會驗證經緯度範圍（lat ±90、lng ±180）、重新分配 id、未知分類歸入「其他」，並以合併方式加入，不會覆蓋現有資料。
+    </div></details>
+    <details><summary>持久化儲存 storage.persist()</summary><div class="body">
+     瀏覽器預設的儲存是「盡力而為」，空間不足時可能被清除。本頁在載入及第一次儲存時呼叫 <code>navigator.storage.persist()</code>。Chrome 按網站使用情況自動決定（例如已安裝為 PWA、已加書籤），不一定彈窗；Firefox 會彈出權限提示；Safari 對已加入主畫面的網站較不易被清除。結果以 <code>navigator.storage.persisted()</code> 顯示，並以 <code>estimate()</code> 顯示用量。即使有持久化，仍建議定期匯出 JSON 備份。
+    </div></details>
+    <details><summary>Add to Home Screen 提示</summary><div class="body">
+     Android / Chrome / Edge：監聽 <code>beforeinstallprompt</code>，攔截後在自訂橫幅按「安裝」時才呼叫 <code>prompt()</code>。iOS Safari 沒有此事件，所以偵測 iPhone/iPad 且非 standalone 時，顯示「分享 → 加入主畫面」的教學。已安裝（<code>display-mode: standalone</code>）或使用者按過「稍後」（記在 localStorage，7 天）則不再顯示。Manifest 與圖示由 JS 動態產生（Blob + canvas），以維持單檔。
+    </div></details>
+    <details><summary>離線與 Service Worker</summary><div class="body">
+     Service Worker 必須是獨立的 JS 檔，不能由 Blob 或 HTML 內嵌註冊，所以單一 HTML 無法自帶。本頁會嘗試註冊同目錄的 <code>sw.js</code>：有則啟用離線（快取頁面、Leaflet 及已瀏覽過的圖磚），沒有也不影響使用，資料仍存在 IndexedDB，只是斷網時載入不到頁面及圖磚。需要 HTTPS（GitHub Pages 符合）。
+    </div></details>
+    <details><summary>響應式設計</summary><div class="body">
+     <code>viewport</code> 設定、<code>100dvh</code>（避開手機網址列）、<code>env(safe-area-inset-*)</code>（瀏海安全區）。寬度 ≤760px 時，側欄變成底部抽屜，可收合；按鈕與勾選項目至少 44px 觸控大小；輸入欄字級 16px，避免 iOS 自動放大。
+    </div></details>
+    <details><summary>URL 分享與安全性</summary><div class="body">
+     地圖位置同步到 <code>#lat/lng/z</code>，複製網址即可分享視圖。所有用戶輸入顯示前都經過 HTML 跳脫，避免匯入的 JSON 造成 XSS。OSM 公共圖磚有<a href="https://operations.osmfoundation.org/policies/tiles/" target="_blank" rel="noopener">使用政策</a>，不適合大流量；如需，請改用自己的圖磚服務。
+    </div></details>
+   </div>
+  </div>
+ </aside>
+</main>
+
+<div class="banner" id="a2hs">
+ <p id="a2hsText">把本地圖加入主畫面，像 App 一樣使用。</p>
+ <button class="pri" id="a2hsYes">安裝</button>
+ <button id="a2hsNo">稍後</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<dialog id="dlg">
+ <form method="dialog" id="form">
+  <h3 id="dlgTitle" style="margin:0 0 6px">新增地點</h3>
+  <label>名稱 *</label><input type="text" id="fName" required maxlength="80">
+  <label>分類</label><select id="fCat"></select>
+  <label>備註</label><textarea id="fNote" rows="3" maxlength="500"></textarea>
+  <div class="row" style="margin-top:6px">
+   <div style="flex:1"><label>緯度</label><input type="number" id="fLat" step="any" min="-90" max="90" required></div>
+   <div style="flex:1"><label>經度</label><input type="number" id="fLng" step="any" min="-180" max="180" required></div>
+  </div>
+  <div class="row" style="margin-top:14px;justify-content:flex-end">
+   <button type="button" id="fCancel">取消</button>
+   <button type="submit" class="pri">儲存</button>
+  </div>
+ </form>
+</dialog>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var CATS={sight:{n:'景點',c:'#e74c3c'},food:{n:'餐飲',c:'#f39c12'},trans:{n:'交通',c:'#2980b9'},stay:{n:'住宿',c:'#8e44ad'},other:{n:'其他',c:'#16a085'}};
+var BASES={
+ osm:{n:'標準',u:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',a:'&copy; OpenStreetMap contributors',z:19},
+ topo:{n:'地形',u:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',a:'&copy; OpenStreetMap, SRTM | &copy; OpenTopoMap',z:17},
+ light:{n:'淺色',u:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',a:'&copy; OpenStreetMap, &copy; CARTO',z:20}
+};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show')},2400)}
+
+/* ---------- IndexedDB ---------- */
+var db;
+function openDB(){return new Promise(function(res,rej){
+ var r=indexedDB.open('static-map-db',1);
+ r.onupgradeneeded=function(){var d=r.result;
+  if(!d.objectStoreNames.contains('places'))d.createObjectStore('places',{keyPath:'id',autoIncrement:true});
+  if(!d.objectStoreNames.contains('settings'))d.createObjectStore('settings');};
+ r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)};})}
+function tx(store,mode,fn){return new Promise(function(res,rej){
+ var t=db.transaction(store,mode),s=t.objectStore(store),out=fn(s);
+ t.oncomplete=function(){res(out&&out.result!==undefined?out.result:undefined)};
+ t.onerror=t.onabort=function(){rej(t.error)};})}
+function allPlaces(){return tx('places','readonly',function(s){return s.getAll()})}
+function putPlace(p){return tx('places','readwrite',function(s){return s.put(p)})}
+function delPlace(id){return tx('places','readwrite',function(s){return s.delete(id)})}
+function clearPlaces(){return tx('places','readwrite',function(s){return s.clear()})}
+function getSet(k){return tx('settings','readonly',function(s){return s.get(k)})}
+function setSet(k,v){return tx('settings','readwrite',function(s){return s.put(v,k)})}
+
+/* ---------- state ---------- */
+var places=[],map,baseLayer,group,activeCats={},addMode=false,editing=null,settings={base:'osm',dark:false};
+Object.keys(CATS).forEach(function(k){activeCats[k]=true});
+
+/* ---------- map ---------- */
+function setBase(k){
+ if(baseLayer)map.removeLayer(baseLayer);
+ var b=BASES[k]||BASES.osm;
+ baseLayer=L.tileLayer(b.u,{attribution:b.a,maxZoom:b.z,subdomains:'abc'}).addTo(map);
+ settings.base=k;setSet('base',k);
+ document.querySelectorAll('#baseChips button').forEach(function(x){x.classList.toggle('on',x.dataset.k===k)});
+}
+function initMap(){
+ var v=parseHash()||{lat:22.3193,lng:114.1694,z:11};
+ map=L.map('map',{zoomControl:true}).setView([v.lat,v.lng],v.z);
+ L.control.scale({imperial:false}).addTo(map);
+ group=L.layerGroup().addTo(map);
+ var lg=L.control({position:'bottomleft'});
+ lg.onAdd=function(){var d=L.DomUtil.create('div','legend');
+  d.innerHTML=Object.keys(CATS).map(function(k){return '<div><span class="dot" style="background:'+CATS[k].c+'"></span> '+CATS[k].n+'</div>'}).join('');return d};
+ lg.addTo(map);
+ map.on('moveend',function(){var c=map.getCenter();
+  history.replaceState(null,'','#'+c.lat.toFixed(5)+'/'+c.lng.toFixed(5)+'/'+map.getZoom());});
+ map.on('click',function(e){if(addMode){setAdd(false);openForm(null,e.latlng.lat,e.latlng.lng)}});
+ map.on('popupopen',function(e){
+  var el=e.popup.getElement();if(!el)return;
+  el.querySelectorAll('[data-act]').forEach(function(b){b.onclick=function(){
+   var id=+b.dataset.id;map.closePopup();
+   if(b.dataset.act==='edit'){var p=places.find(function(x){return x.id===id});if(p)openForm(p)}
+   else if(b.dataset.act==='del'){if(confirm('刪除此地點？'))delPlace(id).then(refresh)}
+  }})});
+}
+function parseHash(){
+ var m=location.hash.replace('#','').split('/').map(Number);
+ if(m.length===3&&m.every(function(n){return isFinite(n)})&&Math.abs(m[0])<=90&&Math.abs(m[1])<=180)return {lat:m[0],lng:m[1],z:m[2]};
+ return null}
+
+/* ---------- render ---------- */
+function filtered(){
+ var q=$('q').value.trim().toLowerCase();
+ return places.filter(function(p){
+  if(!activeCats[p.cat])return false;
+  return !q||(p.name+' '+(p.note||'')).toLowerCase().indexOf(q)>=0;});}
+var markers={};
+function render(){
+ group.clearLayers();markers={};
+ var list=filtered();
+ list.forEach(function(p){
+  var c=(CATS[p.cat]||CATS.other).c;
+  var m=L.circleMarker([p.lat,p.lng],{radius:10,color:'#fff',weight:2,fillColor:c,fillOpacity:.95});
+  m.bindPopup('<b>'+esc(p.name)+'</b><br><small>'+esc((CATS[p.cat]||CATS.other).n)+'</small>'+
+   (p.note?'<p style="margin:6px 0">'+esc(p.note).replace(/\n/g,'<br>')+'</p>':'')+
+   '<div class="row"><button data-act="edit" data-id="'+p.id+'">編輯</button><button class="danger" data-act="del" data-id="'+p.id+'">刪除</button></div>');
+  m.addTo(group);markers[p.id]=m;});
+ $('count').textContent='（'+list.length+' / '+places.length+'）';
+ $('list').innerHTML=list.length?'':'<p class="status">沒有符合的地點。按「＋ 新增」後點選地圖即可加入。</p>';
+ list.forEach(function(p){
+  var d=document.createElement('div');d.className='item';
+  d.innerHTML='<b><span class="dot" style="background:'+(CATS[p.cat]||CATS.other).c+'"></span> '+esc(p.name)+'</b><small>'+esc((CATS[p.cat]||CATS.other).n)+' · '+p.lat.toFixed(4)+', '+p.lng.toFixed(4)+'</small>';
+  d.onclick=function(){map.flyTo([p.lat,p.lng],Math.max(map.getZoom(),15));setTimeout(function(){markers[p.id]&&markers[p.id].openPopup()},600);
+   if(innerWidth<=760)$('panel').classList.add('collapsed');setTimeout(function(){map.invalidateSize()},250)};
+  $('list').appendChild(d);});
+}
+function refresh(){return allPlaces().then(function(r){places=r;render()})}
+
+/* ---------- UI ---------- */
+function buildChips(){
+ $('baseChips').innerHTML='';
+ Object.keys(BASES).forEach(function(k){var b=document.createElement('button');b.textContent=BASES[k].n;b.dataset.k=k;b.onclick=function(){setBase(k)};$('baseChips').appendChild(b)});
+ $('catChips').innerHTML='';
+ Object.keys(CATS).forEach(function(k){
+  var l=document.createElement('label');l.className='chip';l.style.margin=0;l.style.color='var(--fg)';
+  l.innerHTML='<input type="checkbox" checked><span class="dot" style="background:'+CATS[k].c+'"></span>'+CATS[k].n;
+  l.querySelector('input').onchange=function(e){activeCats[k]=e.target.checked;render()};
+  $('catChips').appendChild(l);});
+ $('fCat').innerHTML=Object.keys(CATS).map(function(k){return '<option value="'+k+'">'+CATS[k].n+'</option>'}).join('');
+}
+function setAdd(on){addMode=on;$('btnAdd').classList.toggle('on',on);$('hint').classList.toggle('show',on);
+ map.getContainer().style.cursor=on?'crosshair':'';
+ if(on&&innerWidth<=760)$('panel').classList.add('collapsed')}
+function openForm(p,lat,lng){
+ editing=p;$('dlgTitle').textContent=p?'編輯地點':'新增地點';
+ $('fName').value=p?p.name:'';$('fCat').value=p?p.cat:'sight';$('fNote').value=p?p.note||'':'';
+ $('fLat').value=p?p.lat:(+lat).toFixed(6);$('fLng').value=p?p.lng:(+lng).toFixed(6);
+ $('dlg').showModal();}
+$('fCancel').onclick=function(){$('dlg').close()};
+$('form').onsubmit=function(e){
+ e.preventDefault();
+ var lat=parseFloat($('fLat').value),lng=parseFloat($('fLng').value),name=$('fName').value.trim();
+ if(!name||!(Math.abs(lat)<=90)||!(Math.abs(lng)<=180)){toast('資料不正確');return}
+ var now=new Date().toISOString();
+ var p=editing?Object.assign({},editing):{created:now};
+ p.name=name;p.cat=$('fCat').value;p.note=$('fNote').value.trim();p.lat=lat;p.lng=lng;p.updated=now;
+ putPlace(p).then(function(){$('dlg').close();toast('已儲存');requestPersist(true);return refresh()}).catch(function(){toast('儲存失敗')});
+};
+$('btnAdd').onclick=function(){setAdd(!addMode)};
+$('btnLoc').onclick=function(){
+ if(!navigator.geolocation){toast('瀏覽器不支援定位');return}
+ navigator.geolocation.getCurrentPosition(function(pos){
+  var ll=[pos.coords.latitude,pos.coords.longitude];map.flyTo(ll,16);
+  L.circle(ll,{radius:pos.coords.accuracy,color:'#1a73e8',weight:1,fillOpacity:.1}).addTo(map);
+ },function(){toast('無法取得位置（請允許定位權限）')},{enableHighAccuracy:true,timeout:10000});};
+$('btnTheme').onclick=function(){settings.dark=!settings.dark;applyTheme();setSet('dark',settings.dark)};
+function applyTheme(){document.documentElement.classList.toggle('dark',!!settings.dark)}
+$('q').oninput=render;
+$('handle').onclick=function(){$('panel').classList.toggle('collapsed');setTimeout(function(){map.invalidateSize()},250)};
+
+/* ---------- import / export ---------- */
+function download(name,text,type){
+ var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:type}));a.download=name;
+ document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
+$('btnExport').onclick=function(){
+ var out={app:'static-map',version:1,exported:new Date().toISOString(),places:places.map(function(p){return {name:p.name,cat:p.cat,note:p.note,lat:p.lat,lng:p.lng,created:p.created,updated:p.updated}})};
+ download('my-map-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(out,null,2),'application/json');toast('已匯出 '+places.length+' 筆')};
+$('btnCsv').onclick=function(){
+ var q=function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'};
+ var rows=[['name','category','note','lat','lng']].concat(places.map(function(p){return [p.name,(CATS[p.cat]||CATS.other).n,p.note,p.lat,p.lng]}));
+ download('my-map.csv','\ufeff'+rows.map(function(r){return r.map(q).join(',')}).join('\r\n'),'text/csv')};
+$('btnImport').onclick=function(){$('file').click()};
+$('file').onchange=function(e){
+ var f=e.target.files[0];if(!f)return;
+ var r=new FileReader();
+ r.onload=function(){
+  try{
+   var d=JSON.parse(r.result),arr=[];
+   if(Array.isArray(d))arr=d;
+   else if(d&&Array.isArray(d.places))arr=d.places;
+   else if(d&&d.type==='FeatureCollection')arr=d.features.filter(function(x){return x.geometry&&x.geometry.type==='Point'}).map(function(x){
+     var pr=x.properties||{};return {name:pr.name||pr.title||'未命名',cat:pr.cat||pr.category,note:pr.note||pr.description,lat:x.geometry.coordinates[1],lng:x.geometry.coordinates[0]}});
+   else throw new Error('格式不支援');
+   var now=new Date().toISOString(),ok=[],skip=0;
+   arr.forEach(function(x){
+    var lat=parseFloat(x.lat),lng=parseFloat(x.lng!==undefined?x.lng:x.lon);
+    if(!(Math.abs(lat)<=90)||!(Math.abs(lng)<=180)||!x.name){skip++;return}
+    ok.push({name:String(x.name).slice(0,80),cat:CATS[x.cat]?x.cat:'other',note:String(x.note||'').slice(0,500),lat:lat,lng:lng,created:x.created||now,updated:now})});
+   if(!ok.length)throw new Error('沒有有效資料');
+   tx('places','readwrite',function(s){ok.forEach(function(p){s.add(p)})}).then(function(){
+    toast('匯入 '+ok.length+' 筆'+(skip?'，略過 '+skip+' 筆':''));requestPersist(true);return refresh()
+   }).then(function(){var b=L.latLngBounds(ok.map(function(p){return [p.lat,p.lng]}));map.fitBounds(b,{maxZoom:15,padding:[30,30]})});
+  }catch(err){alert('匯入失敗：'+err.message)}
+  $('file').value='';};
+ r.readAsText(f);};
+$('btnClear').onclick=function(){if(confirm('確定清空所有地點？建議先匯出備份。'))clearPlaces().then(refresh)};
+
+/* ---------- persistent storage ---------- */
+function updateStorage(){
+ if(!navigator.storage){$('storageStatus').textContent='儲存狀態：此瀏覽器不支援 Storage API';return}
+ Promise.all([navigator.storage.persisted?navigator.storage.persisted():false,navigator.storage.estimate?navigator.storage.estimate():{}]).then(function(a){
+  var u=a[1]&&a[1].usage!=null?(a[1].usage/1048576).toFixed(2)+' MB':'未知';
+  $('storageStatus').textContent='儲存狀態：'+(a[0]?'✅ 已持久化':'⚠️ 未持久化（可能被瀏覽器清除）')+' · 已用 '+u;});}
+function requestPersist(silent){
+ if(!navigator.storage||!navigator.storage.persist){updateStorage();return}
+ navigator.storage.persisted().then(function(p){
+  if(p){updateStorage();return}
+  return navigator.storage.persist().then(function(g){if(!silent)toast(g?'已啟用持久儲存':'瀏覽器未批准（可先加入主畫面再試）');updateStorage()})});}
+$('btnPersist').onclick=function(){requestPersist(false)};
+
+/* ---------- PWA: manifest, icons, A2HS ---------- */
+function makeIcon(sz){
+ var c=document.createElement('canvas');c.width=c.height=sz;var g=c.getContext('2d');
+ g.fillStyle='#1a73e8';g.fillRect(0,0,sz,sz);
+ g.fillStyle='#fff';g.beginPath();g.arc(sz/2,sz*.42,sz*.2,0,7);g.fill();
+ g.beginPath();g.moveTo(sz*.34,sz*.52);g.lineTo(sz/2,sz*.8);g.lineTo(sz*.66,sz*.52);g.fill();
+ g.fillStyle='#1a73e8';g.beginPath();g.arc(sz/2,sz*.42,sz*.08,0,7);g.fill();
+ return c.toDataURL('image/png')}
+function setupManifest(){
+ try{
+  var i180=makeIcon(180),i192=makeIcon(192),i512=makeIcon(512);
+  var l=document.createElement('link');l.rel='apple-touch-icon';l.href=i180;document.head.appendChild(l);
+  var base=location.href.split('#')[0];
+  var mf={name:'我的地圖',short_name:'我的地圖',start_url:base,scope:base.replace(/[^\/]*$/,''),display:'standalone',background_color:'#ffffff',theme_color:'#1a73e8',
+   icons:[{src:i192,sizes:'192x192',type:'image/png'},{src:i512,sizes:'512x512',type:'image/png'}]};
+  var m=document.createElement('link');m.rel='manifest';m.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}));document.head.appendChild(m);
+ }catch(e){}}
+var deferred=null;
+function isStandalone(){return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}
+function dismissed(){var t=+localStorage.getItem('a2hsDismiss')||0;return Date.now()-t<7*864e5}
+function showBanner(txt,canInstall){$('a2hsText').textContent=txt;$('a2hsYes').style.display=canInstall?'':'none';$('a2hs').classList.add('show')}
+window.addEventListener('beforeinstallprompt',function(e){
+ e.preventDefault();deferred=e;
+ if(!isStandalone()&&!dismissed())showBanner('把本地圖加入主畫面，像 App 一樣使用，也更不易被清除資料。',true)});
+window.addEventListener('appinstalled',function(){deferred=null;$('a2hs').classList.remove('show');toast('已安裝');requestPersist(true)});
+$('a2hsYes').onclick=function(){if(!deferred)return;deferred.prompt();deferred.userChoice.then(function(){deferred=null;$('a2hs').classList.remove('show')})};
+$('a2hsNo').onclick=function(){localStorage.setItem('a2hsDismiss',Date.now());$('a2hs').classList.remove('show')};
+$('btnInstall').onclick=function(){
+ if(isStandalone()){toast('已在主畫面模式');return}
+ if(deferred){deferred.prompt();return}
+ if(/iphone|ipad|ipod/i.test(navigator.userAgent))showBanner('iPhone / iPad：點 Safari 底部「分享」按鈕 → 選「加入主畫面」。',false);
+ else showBanner('請用瀏覽器選單的「安裝應用程式 / 加入主畫面」。',false)};
+function setupA2HS(){
+ if(isStandalone()||dismissed())return;
+ if(/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream)
+  setTimeout(function(){showBanner('iPhone / iPad：點 Safari 底部「分享」按鈕 → 選「加入主畫面」。',false)},2500);}
+
+/* ---------- Service Worker (optional sw.js) ---------- */
+function setupSW(){
+ if(!('serviceWorker' in navigator)||location.protocol==='file:')return;
+ fetch('sw.js',{method:'HEAD'}).then(function(r){if(r.ok)return navigator.serviceWorker.register('sw.js')}).catch(function(){});}
+
+/* ---------- seed ---------- */
+var SEED=[
+ {name:'香港太平山頂',cat:'sight',note:'凌霄閣及山頂纜車',lat:22.2759,lng:114.1455},
+ {name:'尖沙咀海旁',cat:'sight',note:'星光大道、維港夜景',lat:22.2933,lng:114.1744},
+ {name:'香港站',cat:'trans',note:'機場快線 / 東涌綫',lat:22.2849,lng:114.1581},
+ {name:'旺角',cat:'food',note:'街頭小食及茶餐廳',lat:22.3193,lng:114.1694},
+ {name:'深圳灣口岸',cat:'trans',note:'香港 ↔ 深圳 過境',lat:22.5069,lng:113.9459}];
+
+/* ---------- boot ---------- */
+openDB().then(function(d){
+ db=d;
+ return Promise.all([getSet('base'),getSet('dark'),getSet('seeded')]);
+}).then(function(a){
+ settings.base=a[0]||(window.matchMedia&&0?'osm':'osm');
+ settings.dark=a[1]===undefined?(matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches):a[1];
+ applyTheme();buildChips();initMap();setBase(settings.base);
+ setupManifest();setupA2HS();setupSW();
+ if(innerWidth<=760)$('panel').classList.add('collapsed');
+ if(!a[2]){var now=new Date().toISOString();
+  return tx('places','readwrite',function(s){SEED.forEach(function(p){s.add(Object.assign({created:now,updated:now},p))})}).then(function(){return setSet('seeded',true)})}
+}).then(refresh).then(function(){requestPersist(true);updateStorage();setTimeout(function(){map.invalidateSize()},300)})
+.catch(function(e){document.body.insertAdjacentHTML('afterbegin','<p style="padding:12px;color:#d92d20">初始化失敗：'+esc(e&&e.message||e)+'（私隱模式可能停用 IndexedDB）</p>')});
+window.addEventListener('resize',function(){map&&map.invalidateSize()});
+})();
+</script>
+</body>
+</html>

@@ -142,7 +142,7 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;padding:20px 0 40px}
 
 object store "categories" (keyPath: name)
 { name }</pre>
-  <p>影片以「分類名稱」關聯。改名時會在同一個 transaction 內同步更新所屬影片；刪除分類時，影片會變成「未分類」，不會被刪除。分類以 <code>localeCompare(…, 'zh-Hant')</code> 按名稱排序。</p>
+  <p>影片以「分類名稱」關聯。改名時會在同一個 transaction 內同步更新所屬影片；刪除分類時，影片會變成「未分類」，不會被刪除。分類以 <code>Intl.Collator('zh-Hant')</code> 按名稱排序。新增影片時，分類以下拉選單選擇；選「＋ 新增分類…」才會出現輸入框，儲存時自動建立該分類。</p>
   <h4>自動擷取資料</h4>
   <p>純前端會受 CORS 限制，所以依序嘗試以下免 API Key 的公開服務，取得第一個有標題的結果：</p>
   <pre>1. YouTube oEmbed   (youtube.com/oembed)
@@ -190,7 +190,8 @@ self.addEventListener('fetch',e=>{
   <img id="fPrev" class="prev" alt="" hidden referrerpolicy="no-referrer">
   <label for="fTitle">標題</label><input id="fTitle" type="text">
   <label for="fPlatform">平台</label><input id="fPlatform" type="text">
-  <label for="fCategory">分類（可輸入新分類）</label><input id="fCategory" list="catList" type="text" placeholder="未分類"><datalist id="catList"></datalist>
+  <label for="fCategory">分類（可選擇，或選「＋ 新增分類」）</label><select id="fCategory"></select>
+  <input id="fCategoryNew" type="text" placeholder="輸入新分類名稱" style="margin-top:6px" hidden>
   <label for="fTags">標籤（以逗號分隔）</label><input id="fTags" type="text">
   <label for="fThumb">縮圖網址（可留空）</label><input id="fThumb" type="url">
   <label for="fNote">備註</label><textarea id="fNote"></textarea>
@@ -302,8 +303,7 @@ function fillFilters(){
  plats.forEach(p=>h+='<option value="'+esc(p)+'">'+esc(p)+' ('+pc[p]+')</option>');
  $('#fPlat').innerHTML=h;
  if(st.plat!=='__all__'&&!plats.includes(st.plat))st.plat='__all__';
- $('#fPlat').value=st.plat;
- $('#catList').innerHTML=cats.map(c=>'<option value="'+esc(c)+'">').join('');}
+ $('#fPlat').value=st.plat;}
 
 function render(){
  fillFilters();
@@ -345,18 +345,24 @@ function renderPager(pages){
  el.innerHTML=h;}
 
 /* ---------- 新增 / 編輯 ---------- */
-let curThumb='';
 function setAuto(el,val){el.value=val;el.dataset.auto='1'}
 ['fTitle','fPlatform','fThumb'].forEach(id=>$('#'+id).addEventListener('input',e=>{e.target.dataset.auto='';if(id==='fThumb')showPrev(e.target.value)}));
 function showPrev(u){const i=$('#fPrev');if(u){i.src=u;i.hidden=false}else{i.hidden=true;i.removeAttribute('src')}}
 $('#fPrev').addEventListener('error',e=>e.target.hidden=true);
+
+function fillCatSelect(sel){
+ const list=sel&&!cats.includes(sel)?[...cats,sel].sort(cmp):cats;
+ $('#fCategory').innerHTML='<option value="">未分類</option>'+list.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('')+'<option value="__new__">＋ 新增分類…</option>';
+ $('#fCategory').value=sel||'';
+ $('#fCategoryNew').value='';$('#fCategoryNew').hidden=true;}
+$('#fCategory').addEventListener('change',e=>{const n=e.target.value==='__new__';$('#fCategoryNew').hidden=!n;if(n)$('#fCategoryNew').focus()});
 
 function openForm(v){
  editId=v?v.id:null;
  $('#formTitle').textContent=v?'編輯影片':'新增影片';
  $('#fUrl').value=v?v.url:'';
  $('#fTitle').value=v?v.title:'';$('#fPlatform').value=v?v.platform:'';
- $('#fCategory').value=v?v.category:(st.cat!=='__all__'&&st.cat!=='__none__'?st.cat:'');
+ fillCatSelect(v?v.category:(st.cat!=='__all__'&&st.cat!=='__none__'?st.cat:''));
  $('#fTags').value=v?(v.tags||[]).join(', '):'';
  $('#fThumb').value=v?v.thumb:'';$('#fNote').value=v?v.note:'';
  ['fTitle','fPlatform','fThumb'].forEach(i=>$('#'+i).dataset.auto='');
@@ -387,7 +393,8 @@ async function saveVideo(){
  const dup=videos.find(v=>v.url===url&&v.id!==editId);
  if(dup&&!confirm('此連結已存在：\n'+dup.title+'\n仍要儲存嗎？'))return;
  const old=editId?videos.find(v=>v.id===editId):null;
- const cat=$('#fCategory').value.trim();
+ let cat=$('#fCategory').value;
+ if(cat==='__new__'){cat=$('#fCategoryNew').value.trim();if(!cat){toast('請輸入新分類名稱');$('#fCategoryNew').focus();return}}
  const rec={url,
   title:$('#fTitle').value.trim()||fallbackTitle(url),
   platform:$('#fPlatform').value.trim()||getPlatform(url),

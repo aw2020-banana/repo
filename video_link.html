@@ -16,6 +16,7 @@
 [data-theme=dark]{--bg:#0b1220;--card:#141c2e;--text:#e5e7eb;--muted:#94a3b8;--line:#243049;--pri:#3b82f6;--shadow:0 1px 3px rgba(0,0,0,.6)}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1220;--card:#141c2e;--text:#e5e7eb;--muted:#94a3b8;--line:#243049;--pri:#3b82f6;--shadow:0 1px 3px rgba(0,0,0,.6)}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI","Noto Sans TC","PingFang HK","Microsoft JhengHei",sans-serif;padding-bottom:env(safe-area-inset-bottom)}
 header.top{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line);padding:calc(8px + env(safe-area-inset-top)) 12px 8px}
@@ -42,10 +43,10 @@ label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
 .card.seen{opacity:.65}
 .thumb{position:relative;aspect-ratio:16/9;background:#1e293b;cursor:pointer;overflow:hidden}
-.thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.thumb .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:#94a3b8;background:linear-gradient(135deg,#1e293b,#334155)}
-.thumb .play{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:999px;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
-.thumb .badge{position:absolute;left:8px;top:8px;max-width:75%;background:rgba(0,0,0,.65);color:#fff;font-size:.75rem;padding:2px 8px;border-radius:999px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.thumb img{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;display:block}
+.thumb .ph{position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:#94a3b8;background:linear-gradient(135deg,#1e293b,#334155)}
+.thumb .play{position:absolute;z-index:2;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:999px;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.thumb .badge{position:absolute;z-index:2;left:8px;top:8px;max-width:75%;background:rgba(0,0,0,.65);color:#fff;font-size:.75rem;padding:2px 8px;border-radius:999px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .body{padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
 .t{margin:0;font-size:1rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
 .meta{font-size:.8rem;color:var(--muted)}
@@ -150,6 +151,8 @@ object store "categories" (keyPath: name)
 3. noembed.com      (涵蓋多個平台)
 4. microlink.io     (通用 Open Graph，有免費額度)</pre>
   <p>YouTube 縮圖可直接由影片 ID 組成 <code>img.youtube.com/vi/ID/hqdefault.jpg</code>。全部失敗時：標題 = URL 以「/」分隔的最後一段（不含 # 之後內容），平台 = <code>https://</code> 後以「/」分隔的第一段（即網域）。第三方服務可能改版、限流或失效，屆時請手動輸入。</p>
+  <h4>縮圖顯示</h4>
+  <p>卡片縮圖採「底層佔位字母 + 上層圖片」的疊放結構（z-index），圖片載入成功就蓋住佔位；載入失敗時移除圖片並顯示佔位。全站加入 <code>[hidden]{display:none!important}</code>，避免 <code>hidden</code> 屬性被 CSS 的 <code>display</code> 覆蓋而遮住縮圖。</p>
   <h4>播放</h4>
   <p>YouTube（youtube-nocookie）、Vimeo、Bilibili（BV 號）會在彈窗內嵌入播放；其他平台只開新分頁。部分影片擁有者會禁止嵌入，此時請用「開啟」按鈕。</p>
   <h4>持久化儲存</h4>
@@ -317,11 +320,11 @@ function render(){
 
 function card(v){
  const can=!!embedUrl(v.url);
- const img=v.thumb?'<img src="'+esc(v.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'';
+ const img=v.thumb?'<img src="'+esc(v.thumb)+'" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">':'';
  const tags=(v.tags||[]).map(t=>'<span class="tag" data-act="tag" data-tag="'+esc(t)+'">#'+esc(t)+'</span>').join('');
  return '<article class="card'+(v.watched?' seen':'')+'" data-id="'+v.id+'">'+
- '<div class="thumb" data-act="play" role="button" tabindex="0" aria-label="播放">'+img+
- '<div class="ph" '+(v.thumb?'hidden':'')+'>'+esc((v.platform||'?').replace(/^www\./,'').charAt(0).toUpperCase())+'</div>'+
+ '<div class="thumb" data-act="play" role="button" tabindex="0" aria-label="播放">'+
+ '<div class="ph">'+esc((v.platform||'?').replace(/^www\./,'').charAt(0).toUpperCase())+'</div>'+img+
  '<span class="badge">'+esc(v.platform)+'</span><span class="play">'+(can?'▶':'↗')+'</span></div>'+
  '<div class="body"><h3 class="t">'+esc(v.title)+'</h3>'+
  '<div class="meta">'+esc(v.category||'未分類')+' · '+new Date(v.createdAt).toLocaleDateString('zh-HK')+'</div>'+
@@ -436,7 +439,7 @@ $('#grid').addEventListener('click',async e=>{
  else if(a==='del'&&confirm('刪除「'+v.title+'」？')){
   await run('videos','readwrite',t=>t.objectStore('videos').delete(id));await loadAll();render();toast('已刪除')}});
 $('#grid').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.thumb')){e.preventDefault();e.target.click()}});
-$('#grid').addEventListener('error',e=>{if(e.target.tagName==='IMG'){const ph=e.target.parentNode.querySelector('.ph');e.target.remove();if(ph)ph.hidden=false}},true);
+$('#grid').addEventListener('error',e=>{if(e.target.tagName==='IMG')e.target.remove()},true);
 
 /* ---------- 分類管理 ---------- */
 function renderCats(){

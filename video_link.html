@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>影片連結收藏</title>
+<meta name="description" content="靜態、響應式的影片連結收藏頁，資料儲存在瀏覽器 IndexedDB。">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="影片收藏">
+<meta property="og:title" content="影片連結收藏">
+<meta property="og:description" content="靜態、響應式的影片連結收藏頁">
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--pri:#2563eb;--pri-t:#fff;--danger:#dc2626;--ok:#16a34a;--shadow:0 1px 3px rgba(0,0,0,.12)}
+[data-theme=dark]{--bg:#0b1220;--card:#141c2e;--text:#e5e7eb;--muted:#94a3b8;--line:#243049;--pri:#3b82f6;--shadow:0 1px 3px rgba(0,0,0,.6)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1220;--card:#141c2e;--text:#e5e7eb;--muted:#94a3b8;--line:#243049;--pri:#3b82f6;--shadow:0 1px 3px rgba(0,0,0,.6)}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI","Noto Sans TC","PingFang HK","Microsoft JhengHei",sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+header.top{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line);padding:calc(8px + env(safe-area-inset-top)) 12px 8px}
+.wrap{max-width:1200px;margin:0 auto;padding:0 12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+h1{font-size:1.15rem;margin:0;flex:1 1 auto;white-space:nowrap}
+button,.btn,select,input,textarea{font:inherit;color:inherit}
+button,.btn{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+button:hover,.btn:hover{border-color:var(--pri)}
+button.pri{background:var(--pri);border-color:var(--pri);color:var(--pri-t)}
+button.danger{color:var(--danger)}
+button.sm{min-height:36px;min-width:36px;padding:0 8px}
+button:disabled{opacity:.4;cursor:default}
+input,select,textarea{min-height:44px;width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+textarea{min-height:70px;resize:vertical}
+label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0}
+.filters .chk{display:flex;align-items:center;gap:8px;min-height:44px}
+.filters .chk input{width:20px;min-height:20px;height:20px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.tools select{width:auto}
+.info{color:var(--muted);font-size:.9rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.card.seen{opacity:.65}
+.thumb{position:relative;aspect-ratio:16/9;background:#1e293b;cursor:pointer;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:#94a3b8;background:linear-gradient(135deg,#1e293b,#334155)}
+.thumb .play{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:999px;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.thumb .badge{position:absolute;left:8px;top:8px;max-width:75%;background:rgba(0,0,0,.65);color:#fff;font-size:.75rem;padding:2px 8px;border-radius:999px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.body{padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.t{margin:0;font-size:1rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.meta{font-size:.8rem;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:.75rem;padding:1px 8px;border-radius:999px;background:var(--bg);border:1px solid var(--line);cursor:pointer}
+.note{margin:0;font-size:.85rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.acts{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto;padding-top:6px}
+.acts .on{color:#f59e0b;border-color:#f59e0b}
+.acts .on.ok{color:var(--ok);border-color:var(--ok)}
+.pager{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:18px 0}
+.pager button{min-width:44px}
+.pager button.cur{background:var(--pri);color:var(--pri-t);border-color:var(--pri)}
+.empty{text-align:center;color:var(--muted);padding:50px 10px}
+dialog{border:none;border-radius:16px;padding:0;width:min(560px,94vw);max-height:92vh;background:var(--card);color:var(--text);box-shadow:0 10px 40px rgba(0,0,0,.4)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog.wide{width:min(900px,96vw)}
+.dh{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+.dh h2{margin:0;font-size:1.05rem}
+.db{padding:6px 16px 16px;overflow:auto;max-height:calc(92vh - 70px)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.row>*{flex:1 1 auto}
+.stat{font-size:.8rem;margin-top:4px;color:var(--muted)}
+.prev{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin-top:10px;background:#1e293b}
+.ratio{position:relative;width:100%;aspect-ratio:16/9;background:#000}
+.ratio iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.catrow{display:flex;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.catrow .n{flex:1;word-break:break-all}
+.banner{display:none;position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:50;background:var(--pri);color:#fff;border-radius:14px;padding:12px;box-shadow:0 6px 20px rgba(0,0,0,.4);gap:10px;align-items:center;flex-wrap:wrap}
+.banner.show{display:flex}
+.banner span{flex:1 1 200px}
+.banner button{background:#fff;color:#111;border-color:#fff}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 16px;border-radius:999px;z-index:99;opacity:0;pointer-events:none;transition:opacity .25s;max-width:92vw;text-align:center}
+#toast.show{opacity:1}
+details.tech{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:10px 0;padding:0 14px}
+details.tech summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600}
+details.tech .in{padding-bottom:12px;font-size:.9rem}
+details.tech pre{background:var(--bg);padding:10px;border-radius:8px;overflow:auto;font-size:.8rem}
+details.tech code{background:var(--bg);padding:1px 5px;border-radius:4px}
+details.tech h4{margin:12px 0 4px}
+footer{color:var(--muted);font-size:.8rem;text-align:center;padding:20px 0 40px}
+@media(max-width:520px){h1{font-size:1rem}.grid{grid-template-columns:1fr}.hide-sm{display:none}}
+</style>
+</head>
+<body>
+<header class="top">
+ <div class="wrap">
+  <div class="bar">
+   <h1>🎬 影片連結收藏</h1>
+   <button class="pri" id="btnAdd">＋ 新增</button>
+   <button id="btnCats">🗂 分類</button>
+   <button id="btnExport">⬇ 匯出</button>
+   <button id="btnImport">⬆ 匯入</button>
+   <select id="importMode" style="width:auto" title="匯入模式"><option value="merge">匯入：合併</option><option value="replace">匯入：覆蓋</option></select>
+   <button id="btnA2HS" class="hide-sm">📲 加到主畫面</button>
+   <button id="btnTheme" title="切換深色模式">🌓</button>
+   <input type="file" id="file" accept="application/json,.json" hidden>
+  </div>
+ </div>
+</header>
+
+<main class="wrap">
+ <div class="filters">
+  <input id="q" type="search" placeholder="🔍 搜尋標題 / 標籤 / 備註…">
+  <select id="fCat" aria-label="分類篩選"></select>
+  <select id="fPlat" aria-label="平台篩選"></select>
+  <label class="chk"><input type="checkbox" id="fFav"> 只看最愛</label>
+ </div>
+ <div class="tools">
+  <select id="sort" aria-label="排序">
+   <option value="added_desc">排序：最新加入</option>
+   <option value="added_asc">排序：最早加入</option>
+   <option value="title_asc">排序：標題 A→Z</option>
+   <option value="title_desc">排序：標題 Z→A</option>
+   <option value="platform_asc">排序：平台</option>
+   <option value="category_asc">排序：分類</option>
+   <option value="fav_first">排序：最愛優先</option>
+  </select>
+  <select id="pageSize" aria-label="每頁數量"><option>12</option><option>24</option><option>48</option><option>96</option></select>
+  <span class="info" id="count"></span>
+  <button class="sm" id="btnReset">重設篩選</button>
+ </div>
+
+ <div id="grid" class="grid"></div>
+ <div id="empty" class="empty" hidden>還沒有符合的影片。按「＋ 新增」貼上連結開始收藏。</div>
+ <nav class="pager" id="pager" aria-label="分頁"></nav>
+
+ <details class="tech"><summary>🔧 技術說明（點擊展開）</summary><div class="in">
+  <h4>整體架構</h4>
+  <p>單一 HTML 檔，沒有後端、沒有建置步驟。HTML + CSS + 原生 JavaScript，資料全部存在瀏覽器的 IndexedDB（資料庫 <code>videoLinksDB</code>，版本 1）。可直接放上 GitHub Pages。</p>
+  <h4>資料結構</h4>
+  <pre>object store "videos"  (keyPath: id, autoIncrement)
+{ id, url, title, platform, category, tags[], note,
+  thumb, favorite, watched, createdAt, updatedAt }
+
+object store "categories" (keyPath: name)
+{ name }</pre>
+  <p>影片以「分類名稱」關聯。改名時會在同一個 transaction 內同步更新所屬影片；刪除分類時，影片會變成「未分類」，不會被刪除。分類以 <code>localeCompare(…, 'zh-Hant')</code> 按名稱排序。</p>
+  <h4>自動擷取資料</h4>
+  <p>純前端會受 CORS 限制，所以依序嘗試以下免 API Key 的公開服務，取得第一個有標題的結果：</p>
+  <pre>1. YouTube oEmbed   (youtube.com/oembed)
+2. Vimeo oEmbed     (vimeo.com/api/oembed.json)
+3. noembed.com      (涵蓋多個平台)
+4. microlink.io     (通用 Open Graph，有免費額度)</pre>
+  <p>YouTube 縮圖可直接由影片 ID 組成 <code>img.youtube.com/vi/ID/hqdefault.jpg</code>。全部失敗時：標題 = URL 以「/」分隔的最後一段（不含 # 之後內容），平台 = <code>https://</code> 後以「/」分隔的第一段（即網域）。第三方服務可能改版、限流或失效，屆時請手動輸入。</p>
+  <h4>播放</h4>
+  <p>YouTube（youtube-nocookie）、Vimeo、Bilibili（BV 號）會在彈窗內嵌入播放；其他平台只開新分頁。部分影片擁有者會禁止嵌入，此時請用「開啟」按鈕。</p>
+  <h4>持久化儲存</h4>
+  <p>啟動時呼叫 <code>navigator.storage.persist()</code>，避免瀏覽器在空間不足時自動清除資料。Chrome 會依使用情況／是否已安裝為 PWA 自動決定，Firefox 會彈出詢問，Safari 的支援有限。不論結果如何，建議定期使用「匯出」備份 JSON。清除網站資料會一併刪除 IndexedDB。</p>
+  <h4>加到主畫面</h4>
+  <p>Chrome／Edge／Android：監聽 <code>beforeinstallprompt</code> 後顯示安裝按鈕。iOS Safari 沒有此事件，改為顯示「分享 → 加入主畫面」的說明。Manifest 與圖示由 JavaScript 即時產生（Blob URL + canvas），方便維持單檔；若要最穩定的 PWA 安裝，可另放 <code>manifest.json</code> 與 <code>sw.js</code>，頁面偵測到 <code>sw.js</code> 存在時會自動註冊。</p>
+  <pre>// sw.js（可選，離線開啟頁面）
+const C='vlinks-v1';
+self.addEventListener('install',e=>{
+  e.waitUntil(caches.open(C).then(c=>c.addAll(['./'])));
+  self.skipWaiting();
+});
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET')return;
+  e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)
+    .then(r=>r||caches.match('./'))));
+});</pre>
+  <h4>匯入／匯出格式</h4>
+  <pre>{ "app":"video-links","version":1,"exportedAt":"ISO 時間",
+  "categories":["分類A","分類B"],
+  "videos":[ { "url":"https://…","title":"…","platform":"…",
+               "category":"分類A","tags":["a","b"],"note":"",
+               "thumb":"","favorite":false,"watched":false,
+               "createdAt":1700000000000 } ] }</pre>
+  <p>「合併」會略過 URL 已存在的影片；「覆蓋」會先清空現有資料。匯入時 id 會重新產生。</p>
+  <h4>響應式設計</h4>
+  <p>Mobile-first；卡片使用 <code>grid-template-columns: repeat(auto-fill, minmax(250px,1fr))</code>，手機單欄；縮圖與播放器用 <code>aspect-ratio:16/9</code>；按鈕最小高度 44px；支援 safe-area 與深色模式。</p>
+ </div></details>
+</main>
+<footer>資料只儲存在你的瀏覽器 · <span id="storInfo">儲存狀態檢查中…</span></footer>
+
+<dialog id="dlgForm"><div class="dh"><h2 id="formTitle">新增影片</h2><button class="sm" data-close>✕</button></div>
+ <div class="db">
+  <label for="fUrl">影片連結（貼上後自動擷取）</label>
+  <input id="fUrl" type="url" inputmode="url" placeholder="https://…" autocomplete="off">
+  <div class="row"><button id="btnFetch" type="button">🔄 重新擷取</button></div>
+  <div class="stat" id="fetchStat"></div>
+  <img id="fPrev" class="prev" alt="" hidden referrerpolicy="no-referrer">
+  <label for="fTitle">標題</label><input id="fTitle" type="text">
+  <label for="fPlatform">平台</label><input id="fPlatform" type="text">
+  <label for="fCategory">分類（可輸入新分類）</label><input id="fCategory" list="catList" type="text" placeholder="未分類"><datalist id="catList"></datalist>
+  <label for="fTags">標籤（以逗號分隔）</label><input id="fTags" type="text">
+  <label for="fThumb">縮圖網址（可留空）</label><input id="fThumb" type="url">
+  <label for="fNote">備註</label><textarea id="fNote"></textarea>
+  <div class="row"><button class="pri" id="btnSave" type="button">儲存</button><button type="button" data-close>取消</button></div>
+ </div></dialog>
+
+<dialog id="dlgCats"><div class="dh"><h2>管理分類（按名稱排序）</h2><button class="sm" data-close>✕</button></div>
+ <div class="db">
+  <div class="row" style="margin-top:10px"><input id="newCat" placeholder="新分類名稱" style="flex:3 1 160px"><button class="pri" id="btnNewCat" style="flex:1 1 80px">新增</button></div>
+  <div id="catList2"></div>
+ </div></dialog>
+
+<dialog id="dlgPlay" class="wide"><div class="dh"><h2 id="playTitle" style="font-size:.95rem;word-break:break-word"></h2><button class="sm" data-close>✕</button></div>
+ <div class="ratio" id="playBox"></div></dialog>
+
+<div class="banner" id="banner"><span id="bannerText"></span><button id="bannerOk">安裝</button><button id="bannerNo">稍後</button></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const collator=new Intl.Collator('zh-Hant',{numeric:true,sensitivity:'base'});
+const cmp=(a,b)=>collator.compare(a||'',b||'');
+let db,videos=[],cats=[],page=1,editId=null,deferredPrompt=null;
+const st={q:'',cat:'__all__',plat:'__all__',fav:false,sort:'added_desc',size:12};
+
+/* ---------- IndexedDB ---------- */
+function openDB(){return new Promise((res,rej)=>{
+ const r=indexedDB.open('videoLinksDB',1);
+ r.onupgradeneeded=()=>{const d=r.result;
+  if(!d.objectStoreNames.contains('videos')){d.createObjectStore('videos',{keyPath:'id',autoIncrement:true}).createIndex('url','url')}
+  if(!d.objectStoreNames.contains('categories'))d.createObjectStore('categories',{keyPath:'name'});};
+ r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+function run(stores,mode,fn){return new Promise((res,rej)=>{
+ const t=db.transaction(stores,mode);let out;
+ try{out=fn(t)}catch(e){try{t.abort()}catch(_){}rej(e);return}
+ t.oncomplete=()=>res(out&&'result' in out?out.result:out);
+ t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error||new Error('交易中止'));});}
+const getAll=s=>new Promise((res,rej)=>{const r=db.transaction(s).objectStore(s).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+async function loadAll(){
+ videos=await getAll('videos');
+ const names=(await getAll('categories')).map(c=>c.name);
+ cats=[...new Set(names)].sort(cmp);}
+
+/* ---------- 工具 ---------- */
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600)}
+function normUrl(s){s=(s||'').trim();if(!s)return'';if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(s))s='https://'+s;
+ try{const u=new URL(s);if(!/^https?:$/.test(u.protocol))return'';return u.href}catch(e){return''}}
+function getPlatform(url){const m=String(url).match(/^https?:\/\/([^\/?#]+)/i);return m?m[1]:''}
+function fallbackTitle(url){let s=String(url).replace(/#.*$/,'').replace(/\/+$/,'');const p=s.split('/');let last=p[p.length-1]||s;
+ try{last=decodeURIComponent(last)}catch(e){}return last||url}
+function ytId(url){try{const u=new URL(url),h=u.hostname.replace(/^www\.|^m\./,'');
+ if(h==='youtu.be')return u.pathname.slice(1).split('/')[0]||'';
+ if(h.endsWith('youtube.com')||h.endsWith('youtube-nocookie.com')){
+  if(u.searchParams.get('v'))return u.searchParams.get('v');
+  const m=u.pathname.match(/^\/(shorts|embed|live|v)\/([\w-]{6,})/);if(m)return m[2]}}catch(e){}return''}
+function embedUrl(url){const y=ytId(url);if(y)return'https://www.youtube-nocookie.com/embed/'+y+'?autoplay=1&rel=0';
+ try{const u=new URL(url),h=u.hostname.replace(/^www\./,'');
+  if(h==='vimeo.com'){const m=u.pathname.match(/\/(\d+)/);if(m)return'https://player.vimeo.com/video/'+m[1]+'?autoplay=1'}
+  if(h.endsWith('bilibili.com')){const m=u.pathname.match(/\/(BV\w+)/i);if(m)return'https://player.bilibili.com/player.html?bvid='+m[1]+'&autoplay=1&high_quality=1'}}catch(e){}return''}
+async function getJSON(u,ms=8000){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);
+ try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.json()}finally{clearTimeout(t)}}
+async function fetchMeta(url){
+ const out={title:'',thumb:'',platform:getPlatform(url),via:''};
+ const y=ytId(url);if(y)out.thumb='https://img.youtube.com/vi/'+y+'/hqdefault.jpg';
+ const enc=encodeURIComponent(url),host=out.platform.replace(/^www\.|^m\./,'');
+ const tries=[];
+ if(y)tries.push(['YouTube oEmbed','https://www.youtube.com/oembed?format=json&url='+enc,d=>({title:d.title,thumb:d.thumbnail_url})]);
+ if(host==='vimeo.com')tries.push(['Vimeo oEmbed','https://vimeo.com/api/oembed.json?url='+enc,d=>({title:d.title,thumb:d.thumbnail_url})]);
+ tries.push(['noembed','https://noembed.com/embed?url='+enc,d=>d.error?{}:({title:d.title,thumb:d.thumbnail_url})]);
+ tries.push(['microlink','https://api.microlink.io/?url='+enc,d=>d.status==='success'&&d.data?({title:d.data.title,thumb:d.data.image&&d.data.image.url}):{}]);
+ for(const [name,u,map] of tries){
+  try{const r=map(await getJSON(u));
+   if(r.title&&!out.title){out.title=String(r.title).trim();out.via=name}
+   if(r.thumb&&!out.thumb)out.thumb=r.thumb;
+   if(out.title&&out.thumb)break;}catch(e){}}
+ return out;}
+
+/* ---------- 篩選 / 排序 / 分頁 ---------- */
+function filtered(){const q=st.q.trim().toLowerCase();
+ const list=videos.filter(v=>
+  (st.cat==='__all__'||(st.cat==='__none__'?!v.category:v.category===st.cat))&&
+  (st.plat==='__all__'||v.platform===st.plat)&&(!st.fav||v.favorite)&&
+  (!q||[v.title,v.url,v.platform,v.category,v.note,(v.tags||[]).join(' ')].join(' ').toLowerCase().includes(q)));
+ const s=st.sort;
+ list.sort((a,b)=>{switch(s){
+  case'added_asc':return a.createdAt-b.createdAt;
+  case'title_asc':return cmp(a.title,b.title);
+  case'title_desc':return cmp(b.title,a.title);
+  case'platform_asc':return cmp(a.platform,b.platform)||cmp(a.title,b.title);
+  case'category_asc':return (a.category?0:1)-(b.category?0:1)||cmp(a.category,b.category)||cmp(a.title,b.title);
+  case'fav_first':return (b.favorite?1:0)-(a.favorite?1:0)||b.createdAt-a.createdAt;
+  default:return b.createdAt-a.createdAt}});
+ return list;}
+
+function fillFilters(){
+ const cc={},pc={};let none=0;
+ videos.forEach(v=>{pc[v.platform]=(pc[v.platform]||0)+1;if(v.category)cc[v.category]=(cc[v.category]||0)+1;else none++});
+ const catNames=[...new Set([...cats,...Object.keys(cc)])].sort(cmp);
+ let h='<option value="__all__">全部分類 ('+videos.length+')</option>';
+ catNames.forEach(c=>h+='<option value="'+esc(c)+'">'+esc(c)+' ('+(cc[c]||0)+')</option>');
+ h+='<option value="__none__">未分類 ('+none+')</option>';
+ $('#fCat').innerHTML=h;
+ if(st.cat!=='__all__'&&st.cat!=='__none__'&&!catNames.includes(st.cat))st.cat='__all__';
+ $('#fCat').value=st.cat;
+ const plats=Object.keys(pc).sort(cmp);
+ h='<option value="__all__">全部平台 ('+plats.length+')</option>';
+ plats.forEach(p=>h+='<option value="'+esc(p)+'">'+esc(p)+' ('+pc[p]+')</option>');
+ $('#fPlat').innerHTML=h;
+ if(st.plat!=='__all__'&&!plats.includes(st.plat))st.plat='__all__';
+ $('#fPlat').value=st.plat;
+ $('#catList').innerHTML=cats.map(c=>'<option value="'+esc(c)+'">').join('');}
+
+function render(){
+ fillFilters();
+ const list=filtered(),total=list.length,pages=Math.max(1,Math.ceil(total/st.size));
+ if(page>pages)page=pages;if(page<1)page=1;
+ const slice=list.slice((page-1)*st.size,page*st.size);
+ $('#count').textContent='共 '+total+' 筆 · 第 '+page+'/'+pages+' 頁';
+ $('#empty').hidden=total>0;
+ $('#grid').innerHTML=slice.map(card).join('');
+ renderPager(pages);}
+
+function card(v){
+ const can=!!embedUrl(v.url);
+ const img=v.thumb?'<img src="'+esc(v.thumb)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'';
+ const tags=(v.tags||[]).map(t=>'<span class="tag" data-act="tag" data-tag="'+esc(t)+'">#'+esc(t)+'</span>').join('');
+ return '<article class="card'+(v.watched?' seen':'')+'" data-id="'+v.id+'">'+
+ '<div class="thumb" data-act="play" role="button" tabindex="0" aria-label="播放">'+img+
+ '<div class="ph" '+(v.thumb?'hidden':'')+'>'+esc((v.platform||'?').replace(/^www\./,'').charAt(0).toUpperCase())+'</div>'+
+ '<span class="badge">'+esc(v.platform)+'</span><span class="play">'+(can?'▶':'↗')+'</span></div>'+
+ '<div class="body"><h3 class="t">'+esc(v.title)+'</h3>'+
+ '<div class="meta">'+esc(v.category||'未分類')+' · '+new Date(v.createdAt).toLocaleDateString('zh-HK')+'</div>'+
+ (tags?'<div class="tags">'+tags+'</div>':'')+(v.note?'<p class="note">'+esc(v.note)+'</p>':'')+
+ '<div class="acts">'+
+ '<button class="sm'+(v.favorite?' on':'')+'" data-act="fav" title="最愛">'+(v.favorite?'★':'☆')+'</button>'+
+ '<button class="sm'+(v.watched?' on ok':'')+'" data-act="seen" title="已看">✓</button>'+
+ '<a class="btn sm" href="'+esc(v.url)+'" target="_blank" rel="noopener noreferrer" data-act="open" style="min-height:36px">開啟</a>'+
+ '<button class="sm" data-act="edit">編輯</button>'+
+ '<button class="sm danger" data-act="del">刪除</button></div></div></article>';}
+
+function renderPager(pages){
+ const el=$('#pager');if(pages<=1){el.innerHTML='';return}
+ const b=(p,l,dis,cur)=>'<button data-page="'+p+'"'+(dis?' disabled':'')+(cur?' class="cur"':'')+'>'+l+'</button>';
+ let h=b(1,'«',page===1)+b(page-1,'‹',page===1);
+ const s=Math.max(1,page-2),e=Math.min(pages,page+2);
+ if(s>1)h+='<span class="info">…</span>';
+ for(let i=s;i<=e;i++)h+=b(i,i,false,i===page);
+ if(e<pages)h+='<span class="info">…</span>';
+ h+=b(page+1,'›',page===pages)+b(pages,'»',page===pages);
+ el.innerHTML=h;}
+
+/* ---------- 新增 / 編輯 ---------- */
+let curThumb='';
+function setAuto(el,val){el.value=val;el.dataset.auto='1'}
+['fTitle','fPlatform','fThumb'].forEach(id=>$('#'+id).addEventListener('input',e=>{e.target.dataset.auto='';if(id==='fThumb')showPrev(e.target.value)}));
+function showPrev(u){const i=$('#fPrev');if(u){i.src=u;i.hidden=false}else{i.hidden=true;i.removeAttribute('src')}}
+$('#fPrev').addEventListener('error',e=>e.target.hidden=true);
+
+function openForm(v){
+ editId=v?v.id:null;
+ $('#formTitle').textContent=v?'編輯影片':'新增影片';
+ $('#fUrl').value=v?v.url:'';
+ $('#fTitle').value=v?v.title:'';$('#fPlatform').value=v?v.platform:'';
+ $('#fCategory').value=v?v.category:(st.cat!=='__all__'&&st.cat!=='__none__'?st.cat:'');
+ $('#fTags').value=v?(v.tags||[]).join(', '):'';
+ $('#fThumb').value=v?v.thumb:'';$('#fNote').value=v?v.note:'';
+ ['fTitle','fPlatform','fThumb'].forEach(i=>$('#'+i).dataset.auto='');
+ showPrev(v?v.thumb:'');$('#fetchStat').textContent='';
+ $('#dlgForm').showModal();
+ if(!v)setTimeout(()=>$('#fUrl').focus(),50);}
+
+async function doFetch(){
+ const url=normUrl($('#fUrl').value);
+ if(!url){$('#fetchStat').textContent='請輸入有效的 http(s) 連結';return}
+ $('#fUrl').value=url;
+ const T=$('#fTitle'),P=$('#fPlatform'),H=$('#fThumb');
+ if(!P.value||P.dataset.auto)setAuto(P,getPlatform(url));
+ $('#fetchStat').textContent='⏳ 擷取中…';
+ const m=await fetchMeta(url);
+ if(normUrl($('#fUrl').value)!==url)return;
+ if(!T.value||T.dataset.auto){if(m.title)setAuto(T,m.title);else setAuto(T,fallbackTitle(url))}
+ if(!H.value||H.dataset.auto){if(m.thumb){setAuto(H,m.thumb);showPrev(m.thumb)}}
+ $('#fetchStat').textContent=m.title?'✅ 已由 '+m.via+' 取得標題':'⚠ 無法取得標題，已用網址最後一段作標題（可自行修改）';}
+
+$('#fUrl').addEventListener('paste',()=>setTimeout(doFetch,60));
+$('#fUrl').addEventListener('change',()=>{if(!editId)doFetch()});
+$('#btnFetch').onclick=doFetch;
+
+async function saveVideo(){
+ const url=normUrl($('#fUrl').value);
+ if(!url){toast('請輸入有效的 http(s) 連結');return}
+ const dup=videos.find(v=>v.url===url&&v.id!==editId);
+ if(dup&&!confirm('此連結已存在：\n'+dup.title+'\n仍要儲存嗎？'))return;
+ const old=editId?videos.find(v=>v.id===editId):null;
+ const cat=$('#fCategory').value.trim();
+ const rec={url,
+  title:$('#fTitle').value.trim()||fallbackTitle(url),
+  platform:$('#fPlatform').value.trim()||getPlatform(url),
+  category:cat,
+  tags:$('#fTags').value.split(/[,，、]/).map(s=>s.trim()).filter(Boolean),
+  note:$('#fNote').value.trim(),thumb:$('#fThumb').value.trim(),
+  favorite:old?!!old.favorite:false,watched:old?!!old.watched:false,
+  createdAt:old?old.createdAt:Date.now(),updatedAt:Date.now()};
+ if(old)rec.id=old.id;
+ try{
+  await run(['videos','categories'],'readwrite',t=>{
+   if(cat&&!cats.includes(cat))t.objectStore('categories').put({name:cat});
+   t.objectStore('videos').put(rec)});
+  await loadAll();$('#dlgForm').close();render();toast('已儲存');
+ }catch(e){toast('儲存失敗：'+(e.message||e))}}
+$('#btnSave').onclick=saveVideo;
+$('#btnAdd').onclick=()=>openForm(null);
+
+/* ---------- 卡片操作 ---------- */
+async function patch(id,p){const v=videos.find(x=>x.id===id);if(!v)return;Object.assign(v,p,{updatedAt:Date.now()});
+ await run('videos','readwrite',t=>t.objectStore('videos').put(v));render();}
+function openPlayer(v){const e=embedUrl(v.url);
+ if(!e){window.open(v.url,'_blank','noopener,noreferrer');patch(v.id,{watched:true});return}
+ $('#playTitle').textContent=v.title;
+ $('#playBox').innerHTML='<iframe src="'+esc(e)+'" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+ $('#dlgPlay').showModal();patch(v.id,{watched:true});}
+$('#dlgPlay').addEventListener('close',()=>$('#playBox').innerHTML='');
+
+$('#grid').addEventListener('click',async e=>{
+ const el=e.target.closest('[data-act]');if(!el)return;
+ const c=el.closest('.card');const id=c&&+c.dataset.id;const v=videos.find(x=>x.id===id);const a=el.dataset.act;
+ if(a==='open')return;
+ if(a==='tag'){st.q=el.dataset.tag;$('#q').value=st.q;page=1;render();return}
+ if(!v)return;
+ if(a==='play')openPlayer(v);
+ else if(a==='fav')patch(id,{favorite:!v.favorite});
+ else if(a==='seen')patch(id,{watched:!v.watched});
+ else if(a==='edit')openForm(v);
+ else if(a==='del'&&confirm('刪除「'+v.title+'」？')){
+  await run('videos','readwrite',t=>t.objectStore('videos').delete(id));await loadAll();render();toast('已刪除')}});
+$('#grid').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.thumb')){e.preventDefault();e.target.click()}});
+$('#grid').addEventListener('error',e=>{if(e.target.tagName==='IMG'){const ph=e.target.parentNode.querySelector('.ph');e.target.remove();if(ph)ph.hidden=false}},true);
+
+/* ---------- 分類管理 ---------- */
+function renderCats(){
+ const cnt={};videos.forEach(v=>{if(v.category)cnt[v.category]=(cnt[v.category]||0)+1});
+ $('#catList2').innerHTML=cats.length?cats.map(c=>'<div class="catrow"><span class="n">'+esc(c)+' <span class="info">('+(cnt[c]||0)+')</span></span>'+
+  '<button class="sm" data-ren="'+esc(c)+'">改名</button><button class="sm danger" data-delc="'+esc(c)+'">刪除</button></div>').join(''):'<p class="info">尚未建立分類。</p>';}
+$('#btnCats').onclick=()=>{renderCats();$('#dlgCats').showModal()};
+$('#btnNewCat').onclick=async()=>{const n=$('#newCat').value.trim();if(!n)return;
+ if(cats.includes(n)){toast('分類已存在');return}
+ await run('categories','readwrite',t=>t.objectStore('categories').put({name:n}));
+ $('#newCat').value='';await loadAll();renderCats();render();};
+$('#newCat').addEventListener('keydown',e=>{if(e.key==='Enter')$('#btnNewCat').click()});
+$('#catList2').addEventListener('click',async e=>{
+ const r=e.target.dataset.ren,d=e.target.dataset.delc;
+ if(r){const n=(prompt('新名稱',r)||'').trim();if(!n||n===r)return;
+  if(cats.includes(n)){toast('已有同名分類');return}
+  await run(['videos','categories'],'readwrite',t=>{
+   t.objectStore('categories').delete(r);t.objectStore('categories').put({name:n});
+   const vs=t.objectStore('videos');videos.filter(v=>v.category===r).forEach(v=>vs.put({...v,category:n,updatedAt:Date.now()}))});
+  await loadAll();renderCats();render();toast('已改名')}
+ if(d&&confirm('刪除分類「'+d+'」？\n其影片會變成「未分類」，不會被刪除。')){
+  await run(['videos','categories'],'readwrite',t=>{
+   t.objectStore('categories').delete(d);
+   const vs=t.objectStore('videos');videos.filter(v=>v.category===d).forEach(v=>vs.put({...v,category:'',updatedAt:Date.now()}))});
+  await loadAll();renderCats();render();toast('已刪除分類')}});
+
+/* ---------- 匯入 / 匯出 ---------- */
+$('#btnExport').onclick=()=>{
+ const data={app:'video-links',version:1,exportedAt:new Date().toISOString(),categories:cats,
+  videos:videos.map(({id,...r})=>r)};
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+ a.download='video-links-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.json';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+ toast('已匯出 '+videos.length+' 筆');};
+$('#btnImport').onclick=()=>$('#file').click();
+$('#file').addEventListener('change',async e=>{
+ const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{
+  const d=JSON.parse(await f.text());
+  const arr=Array.isArray(d)?d:d.videos;
+  if(!Array.isArray(arr))throw new Error('找不到 videos 陣列');
+  const mode=$('#importMode').value;
+  if(mode==='replace'&&!confirm('覆蓋模式會先清除現有 '+videos.length+' 筆資料，確定嗎？'))return;
+  const known=new Set(mode==='replace'?[]:videos.map(v=>v.url));
+  const newCats=new Set(mode==='replace'?[]:cats);
+  (d.categories||[]).forEach(c=>{if(typeof c==='string'&&c.trim())newCats.add(c.trim())});
+  const add=[];let skip=0;
+  for(const r of arr){
+   const url=normUrl(r&&r.url);if(!url||known.has(url)){skip++;continue}
+   known.add(url);
+   const cat=String(r.category||'').trim();if(cat)newCats.add(cat);
+   add.push({url,title:String(r.title||'').trim()||fallbackTitle(url),platform:String(r.platform||'').trim()||getPlatform(url),
+    category:cat,tags:Array.isArray(r.tags)?r.tags.map(String):[],note:String(r.note||''),thumb:String(r.thumb||''),
+    favorite:!!r.favorite,watched:!!r.watched,createdAt:+r.createdAt||Date.now(),updatedAt:Date.now()});}
+  await run(['videos','categories'],'readwrite',t=>{
+   const vs=t.objectStore('videos'),cs=t.objectStore('categories');
+   if(mode==='replace'){vs.clear();cs.clear()}
+   newCats.forEach(n=>cs.put({name:n}));add.forEach(r=>vs.add(r))});
+  await loadAll();page=1;render();toast('匯入 '+add.length+' 筆，略過 '+skip+' 筆');
+ }catch(err){toast('匯入失敗：'+(err.message||err))}});
+
+/* ---------- 控制項 ---------- */
+$('#q').addEventListener('input',e=>{st.q=e.target.value;page=1;render()});
+$('#fCat').onchange=e=>{st.cat=e.target.value;page=1;render()};
+$('#fPlat').onchange=e=>{st.plat=e.target.value;page=1;render()};
+$('#fFav').onchange=e=>{st.fav=e.target.checked;page=1;render()};
+$('#sort').onchange=e=>{st.sort=e.target.value;page=1;render();localStorage.setItem('vl_sort',st.sort)};
+$('#pageSize').onchange=e=>{st.size=+e.target.value;page=1;render();localStorage.setItem('vl_size',st.size)};
+$('#btnReset').onclick=()=>{Object.assign(st,{q:'',cat:'__all__',plat:'__all__',fav:false});$('#q').value='';$('#fFav').checked=false;page=1;render()};
+$('#pager').addEventListener('click',e=>{const b=e.target.closest('[data-page]');if(!b||b.disabled)return;page=+b.dataset.page;render();window.scrollTo({top:0,behavior:'smooth'})});
+document.addEventListener('click',e=>{if(e.target.closest('[data-close]'))e.target.closest('dialog').close();
+ if(e.target.tagName==='DIALOG')e.target.close()});
+
+/* ---------- 深色模式 ---------- */
+function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem('vl_theme',t)}
+$('#btnTheme').onclick=()=>{const cur=document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');setTheme(cur==='dark'?'light':'dark')};
+if(localStorage.getItem('vl_theme'))document.documentElement.dataset.theme=localStorage.getItem('vl_theme');
+
+/* ---------- 持久化儲存 ---------- */
+async function initStorage(){
+ const el=$('#storInfo');
+ if(!navigator.storage){el.textContent='此瀏覽器不支援儲存管理 API';return}
+ let persisted=false;
+ try{persisted=await navigator.storage.persisted();if(!persisted&&navigator.storage.persist)persisted=await navigator.storage.persist()}catch(e){}
+ let usage='';
+ try{const est=await navigator.storage.estimate();usage=' · 已用 '+(est.usage/1048576).toFixed(2)+' MB / '+(est.quota/1048576).toFixed(0)+' MB'}catch(e){}
+ el.textContent=(persisted?'🔒 已啟用持久化儲存':'⚠ 持久化未獲批准（請定期匯出備份）')+usage;}
+
+/* ---------- Add to Home Screen ---------- */
+const isStandalone=()=>matchMedia('(display-mode:standalone)').matches||navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function banner(text,okLabel){$('#bannerText').textContent=text;$('#bannerOk').textContent=okLabel;$('#bannerOk').hidden=!okLabel;$('#banner').classList.add('show')}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;
+ if(!localStorage.getItem('vl_a2hs_no'))banner('把「影片連結收藏」加到主畫面，像 App 一樣開啟','安裝')});
+window.addEventListener('appinstalled',()=>{deferredPrompt=null;$('#banner').classList.remove('show');toast('已加到主畫面')});
+$('#bannerOk').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}$('#banner').classList.remove('show')};
+$('#bannerNo').onclick=()=>{localStorage.setItem('vl_a2hs_no','1');$('#banner').classList.remove('show')};
+$('#btnA2HS').onclick=()=>{
+ if(isStandalone()){toast('已在主畫面模式執行');return}
+ if(deferredPrompt)banner('把「影片連結收藏」加到主畫面','安裝');
+ else if(isIOS)banner('iPhone／iPad：點 Safari 底部的「分享」圖示 ⎙，再選「加入主畫面」',null);
+ else banner('請使用瀏覽器選單（⋮ 或 ⋯）中的「安裝應用程式／加到主畫面」',null);};
+function setupManifest(){
+ if(!/^https?:$/.test(location.protocol)||document.querySelector('link[rel=manifest]'))return;
+ try{
+  const mk=n=>{const c=document.createElement('canvas');c.width=c.height=n;const g=c.getContext('2d');
+   g.fillStyle='#0f172a';g.fillRect(0,0,n,n);g.fillStyle='#3b82f6';g.beginPath();g.arc(n/2,n/2,n*.36,0,7);g.fill();
+   g.fillStyle='#fff';g.beginPath();g.moveTo(n*.43,n*.35);g.lineTo(n*.43,n*.65);g.lineTo(n*.67,n*.5);g.closePath();g.fill();return c.toDataURL('image/png')};
+  const i192=mk(192),i512=mk(512);
+  const man={name:'影片連結收藏',short_name:'影片收藏',start_url:location.href.split('#')[0],scope:location.href.replace(/[^\/]*$/,''),
+   display:'standalone',background_color:'#0f172a',theme_color:'#0f172a',
+   icons:[{src:i192,sizes:'192x192',type:'image/png'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any'}]};
+  const l=document.createElement('link');l.rel='manifest';
+  l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:'application/manifest+json'}));document.head.appendChild(l);
+  const a=document.createElement('link');a.rel='apple-touch-icon';a.href=mk(180);document.head.appendChild(a);
+ }catch(e){}}
+function setupSW(){
+ if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;
+ fetch('sw.js',{method:'HEAD'}).then(r=>{if(r.ok)navigator.serviceWorker.register('sw.js')}).catch(()=>{});}
+
+/* ---------- 啟動 ---------- */
+(async()=>{
+ st.sort=localStorage.getItem('vl_sort')||st.sort;st.size=+localStorage.getItem('vl_size')||st.size;
+ $('#sort').value=st.sort;$('#pageSize').value=String(st.size);
+ if(isStandalone())$('#btnA2HS').hidden=true;
+ setupManifest();setupSW();
+ if(isIOS&&!isStandalone()&&!localStorage.getItem('vl_a2hs_no'))banner('iPhone／iPad：點 Safari 底部的「分享」⎙，再選「加入主畫面」',null);
+ try{db=await openDB();await loadAll();render()}
+ catch(e){$('#empty').hidden=false;$('#empty').textContent='無法開啟 IndexedDB：'+(e.message||e)+'（私密瀏覽模式可能不支援）'}
+ initStorage();
+})();
+</script>
+</body>
+</html>

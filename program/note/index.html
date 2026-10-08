@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我的筆記</title>
+<meta name="description" content="離線可用的靜態響應式筆記 PWA，資料存於 IndexedDB">
+<meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="筆記">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--accent:#2563eb;--accent-t:#fff;--hover:#eef2ff;--danger:#dc2626;--code:#f3f4f6;--fs:16px}
+:root[data-theme=dark]{--bg:#0f1115;--panel:#181b21;--text:#e5e7eb;--muted:#9ca3af;--line:#2a2f38;--accent:#60a5fa;--accent-t:#0b1220;--hover:#1e293b;--danger:#f87171;--code:#222730}
+@media(prefers-color-scheme:dark){:root[data-theme=auto]{--bg:#0f1115;--panel:#181b21;--text:#e5e7eb;--muted:#9ca3af;--line:#2a2f38;--accent:#60a5fa;--accent-t:#0b1220;--hover:#1e293b;--danger:#f87171;--code:#222730}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:var(--fs)/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang HK","Noto Sans TC","Microsoft JhengHei",sans-serif;overflow:hidden;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-height:40px;cursor:pointer}
+button:hover{background:var(--hover)}
+button.primary{background:var(--accent);color:var(--accent-t);border-color:var(--accent)}
+button.danger{color:var(--danger)}
+button.ghost{border-color:transparent;background:transparent}
+input,select,textarea{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:40px;width:100%}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.app{display:grid;height:100dvh;grid-template-columns:240px 330px 1fr;padding-bottom:env(safe-area-inset-bottom)}
+.side,.list,.editor{background:var(--panel);min-height:0;display:flex;flex-direction:column}
+.side{border-right:1px solid var(--line);padding:12px;overflow:auto}
+.list{border-right:1px solid var(--line)}
+.brand{font-weight:700;font-size:1.15em;margin:4px 0 12px}
+.side h4{margin:16px 0 6px;color:var(--muted);font-size:.8em;letter-spacing:.05em}
+.nav{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;border:0;background:transparent;border-radius:8px;padding:8px 10px;min-height:38px}
+.nav.active{background:var(--hover);color:var(--accent);font-weight:600}
+.nav span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav small{color:var(--muted)}
+.lhead{padding:10px;border-bottom:1px solid var(--line);display:grid;gap:8px}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}.row>.fix{flex:none}
+.items{overflow:auto;flex:1;-webkit-overflow-scrolling:touch}
+.item{padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+.item:hover{background:var(--hover)}
+.item.active{background:var(--hover);border-left:3px solid var(--accent)}
+.item b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item p{margin:2px 0;color:var(--muted);font-size:.85em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.item small{color:var(--muted);font-size:.75em}
+.tag{display:inline-block;background:var(--code);border-radius:99px;padding:0 8px;font-size:.75em;margin-right:4px;color:var(--muted)}
+.empty{padding:30px 16px;text-align:center;color:var(--muted)}
+.ehead{padding:10px;border-bottom:1px solid var(--line);display:grid;gap:8px}
+.ebody{flex:1;min-height:0;display:grid;grid-template-columns:1fr;position:relative}
+.ebody textarea{border:0;border-radius:0;resize:none;height:100%;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.95em;line-height:1.7}
+.preview{overflow:auto;padding:14px 18px;max-width:100%}
+.preview .md{max-width:75ch;margin:0 auto}
+.ebody[data-mode=edit] .preview{display:none}
+.ebody[data-mode=preview] textarea{display:none}
+@media(min-width:1100px){.ebody[data-mode=split]{grid-template-columns:1fr 1fr}.ebody[data-mode=split] textarea{border-right:1px solid var(--line)}}
+@media(max-width:1099px){.ebody[data-mode=split] .preview{display:none}}
+.status{font-size:.8em;color:var(--muted);padding:6px 10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.md h1,.md h2,.md h3,.md h4{line-height:1.3;margin:1.2em 0 .5em}
+.md p{margin:.6em 0}.md pre{background:var(--code);padding:12px;border-radius:8px;overflow:auto}
+.md code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}
+.md pre code{padding:0;background:none}
+.md blockquote{margin:.6em 0;padding:2px 14px;border-left:4px solid var(--accent);color:var(--muted)}
+.md a{color:var(--accent);word-break:break-all}.md hr{border:0;border-top:1px solid var(--line)}
+.md ul.task{list-style:none;padding-left:4px}
+.fab{display:none;position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;font-size:28px;line-height:1;padding:0;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:20}
+.back,.menu{display:none}
+.backdrop{display:none}
+.hide-empty{display:none!important}
+.noteplaceholder{flex:1;display:grid;place-items:center;color:var(--muted);padding:20px;text-align:center}
+.banner{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:40;background:var(--panel);border:1px solid var(--accent);border-radius:12px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:none;gap:10px;align-items:center;max-width:560px;margin:auto}
+.banner.show{display:flex}.banner div{flex:1;font-size:.9em}.banner button{flex:none}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--text);width:min(640px,94vw);max-height:90dvh;padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h3{margin-top:0}
+details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:10px 0}
+details summary{cursor:pointer;font-weight:600}
+details .md{font-size:.92em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kv{font-size:.88em;color:var(--muted)}
+.toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 16px;border-radius:99px;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+.toast.show{opacity:1}
+@media(max-width:1099px){
+ .app{grid-template-columns:320px 1fr}
+ .side{position:fixed;left:0;top:0;bottom:0;width:270px;z-index:50;transform:translateX(-100%);transition:transform .2s;box-shadow:4px 0 20px rgba(0,0,0,.3)}
+ .side.open{transform:none}
+ .backdrop.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+ .menu{display:inline-block}
+}
+@media(max-width:699px){
+ .app{grid-template-columns:1fr}
+ .app[data-view=list] .editor{display:none}
+ .app[data-view=edit] .list{display:none}
+ .back{display:inline-block}
+ .fab{display:block}
+ .app[data-view=edit]~.fab{display:none}
+ .list{border-right:0}
+ .grid2{grid-template-columns:1fr}
+ .item{padding:14px 12px}
+}
+@media print{.side,.list,.ehead,.status,.fab{display:none}.app{display:block}body{overflow:visible}}
+</style>
+</head>
+<body>
+<div class="app" id="app" data-view="list">
+ <aside class="side" id="side" aria-label="分類">
+  <div class="brand">📝 我的筆記</div>
+  <button class="nav" data-f="all"><span>全部筆記</span><small id="cAll">0</small></button>
+  <button class="nav" data-f="pin"><span>📌 已釘選</span><small id="cPin">0</small></button>
+  <h4>資料夾</h4><div id="folders"></div>
+  <h4>標籤</h4><div id="tags"></div>
+  <h4>工具</h4>
+  <button class="nav" id="btnSettings"><span>⚙ 設定 / 匯入匯出 / 說明</span></button>
+ </aside>
+ <div class="backdrop" id="backdrop"></div>
+
+ <section class="list" aria-label="筆記列表">
+  <div class="lhead">
+   <div class="row">
+    <button class="menu fix" id="btnMenu" aria-label="選單">☰</button>
+    <input type="search" id="q" placeholder="搜尋標題 / 內容 / 標籤 (Ctrl+K)" aria-label="搜尋">
+    <button class="primary fix" id="btnNew" title="新增 (Alt+N)">＋ 新增</button>
+   </div>
+   <div class="row">
+    <select id="sort" aria-label="排序">
+     <option value="updated">最近修改</option><option value="created">建立時間</option><option value="title">標題 A–Z</option>
+    </select>
+    <span class="kv fix" id="countInfo"></span>
+   </div>
+  </div>
+  <div class="items" id="items"></div>
+ </section>
+
+ <main class="editor" id="editor">
+  <div class="noteplaceholder" id="placeholder">選擇一則筆記，或按「＋ 新增」開始</div>
+  <div id="editPane" class="hide-empty" style="display:none;flex-direction:column;flex:1;min-height:0">
+   <div class="ehead">
+    <div class="row">
+     <button class="back fix" id="btnBack">← 返回</button>
+     <input id="title" placeholder="標題" maxlength="200" aria-label="標題" style="font-weight:600">
+     <button class="fix" id="btnPin" title="釘選">📌</button>
+    </div>
+    <div class="row">
+     <input id="folder" list="folderList" placeholder="資料夾" aria-label="資料夾"><datalist id="folderList"></datalist>
+     <input id="tagsIn" placeholder="標籤 (以逗號分隔)" aria-label="標籤">
+    </div>
+    <div class="row">
+     <button data-mode="edit">編輯</button><button data-mode="preview">預覽</button><button data-mode="split">並排</button>
+     <button class="fix" id="btnMd" title="匯出此筆記為 .md">⬇ .md</button>
+     <button class="fix danger" id="btnDel">🗑</button>
+    </div>
+   </div>
+   <div class="ebody" id="ebody" data-mode="edit">
+    <textarea id="body" placeholder="用 Markdown 書寫…" spellcheck="false" aria-label="內容"></textarea>
+    <div class="preview"><div class="md" id="preview"></div></div>
+   </div>
+   <div class="status"><span id="saveState">—</span><span id="meta"></span></div>
+  </div>
+ </main>
+</div>
+<button class="primary fab" id="fab" aria-label="新增筆記">＋</button>
+
+<div class="banner" id="a2hs" role="dialog" aria-label="加入主畫面">
+ <div id="a2hsText">把「我的筆記」加入主畫面，像 App 一樣離線使用。</div>
+ <button class="primary" id="a2hsInstall">安裝</button>
+ <button class="ghost" id="a2hsClose" aria-label="關閉">✕</button>
+</div>
+
+<dialog id="dlgSettings">
+ <h3>設定與說明</h3>
+ <div class="grid2">
+  <label>主題<select id="setTheme"><option value="auto">跟隨系統</option><option value="light">淺色</option><option value="dark">深色</option></select></label>
+  <label>字體大小<select id="setFs"><option value="14">小</option><option value="16">中</option><option value="18">大</option><option value="20">特大</option></select></label>
+ </div>
+ <h4>資料備份</h4>
+ <div class="row" style="flex-wrap:wrap">
+  <button id="btnExport">⬇ 匯出 JSON</button>
+  <button id="btnImport">⬆ 匯入 JSON</button>
+  <button id="btnCsv">⬇ 匯出 CSV</button>
+  <input type="file" id="file" accept="application/json,.json" style="display:none">
+ </div>
+ <h4>儲存空間</h4>
+ <div class="kv" id="storageInfo">檢查中…</div>
+ <div class="row" style="margin-top:8px"><button id="btnPersist">申請持久化儲存</button><button id="btnInstall2">加入主畫面</button></div>
+
+ <details><summary>技術說明：資料如何儲存 (IndexedDB)</summary><div class="md">
+  <p>筆記存在瀏覽器的 IndexedDB，資料庫 <code>notes-db</code>、物件庫 <code>notes</code>，主鍵為 <code>id</code>，並建立 <code>updated</code> 索引。設定 (主題、字體) 則存在 LocalStorage。</p>
+  <pre><code>{ id, title, body, folder, tags: [], pinned, created, updated }</code></pre>
+  <p>輸入後約 500ms 自動儲存 (debounce)；離開頁面或切換筆記時會即時寫入。資料只在本機，不會上傳。</p>
+ </div></details>
+ <details><summary>技術說明：持久化 navigator.storage.persist()</summary><div class="md">
+  <p>瀏覽器在空間不足時可能清除「盡力而為」(best-effort) 的站點資料。呼叫 <code>navigator.storage.persist()</code> 可申請「持久化」，被批准後不會被自動清除，只有使用者手動清除才會刪除。</p>
+  <p>Chrome 會依互動程度、是否已安裝 PWA 等自動決定，不一定彈出提示；Firefox 會詢問使用者；Safari 對已加入主畫面的網站較寬鬆。即使批准，仍建議定期匯出 JSON 備份。</p>
+ </div></details>
+ <details><summary>技術說明：JSON 匯入 / 匯出</summary><div class="md">
+  <p>匯出格式為 <code>{ app, version, exportedAt, notes: [...] }</code>。匯入時可選「合併」(相同 id 以較新的 <code>updated</code> 為準) 或「取代全部」。匯入時會驗證欄位類型，並移除不合法的資料。亦接受純陣列格式。</p>
+ </div></details>
+ <details><summary>技術說明：Service Worker 與離線</summary><div class="md">
+  <p><code>sw.js</code> 在安裝時預先快取 <code>index.html</code>、<code>manifest.json</code> 與圖示。之後網頁請求採用「快取優先、背景更新」策略，因此第二次開啟起即使完全離線也能使用。</p>
+  <p>更新網站時，請修改 <code>sw.js</code> 內的 <code>CACHE</code> 版本號，舊快取便會在啟動時被清除。Service Worker 需要 HTTPS (或 localhost)；GitHub Pages 已符合。</p>
+ </div></details>
+ <details><summary>技術說明：PWA 與 manifest.json</summary><div class="md">
+  <p>可安裝的 PWA 需要：HTTPS、<code>manifest.json</code> (含 name、start_url、display、192/512 圖示)、並註冊 Service Worker。本專案使用相對路徑 (<code>./</code>)，所以放在 GitHub Pages 的子路徑 (如 <code>/repo/</code>) 也能正常運作。</p>
+  <p>Chrome / Edge 會觸發 <code>beforeinstallprompt</code> 事件，本頁攔截後以自訂橫幅提示；iOS Safari 沒有此事件，需手動：分享 → 加入主畫面。</p>
+ </div></details>
+ <details><summary>技術說明：響應式設計與 Markdown</summary><div class="md">
+  <p>採 CSS Grid：≥1100px 三欄 (側欄 / 列表 / 編輯器，可並排預覽)；700–1099px 兩欄，側欄變抽屜；&lt;700px 單欄，列表與編輯器切換，並有浮動新增按鈕。</p>
+  <p>內建小型 Markdown 解析器 (無外部依賴)：先轉義所有 HTML 再套用格式，連結只允許 http(s)/mailto，以避免 XSS。支援標題、粗體、斜體、行內/區塊程式碼、引用、清單、核取清單、連結、分隔線。</p>
+  <p>快捷鍵：Ctrl/⌘+S 立即儲存、Ctrl/⌘+K 搜尋、Alt+N 新增。</p>
+ </div></details>
+ <div class="row" style="margin-top:12px"><button class="primary" id="btnCloseSet">關閉</button></div>
+</dialog>
+
+<dialog id="dlgImport">
+ <h3>匯入 JSON</h3>
+ <p id="impInfo"></p>
+ <div class="row" style="flex-wrap:wrap">
+  <button class="primary" id="impMerge">合併</button>
+  <button class="danger" id="impReplace">取代全部</button>
+  <button id="impCancel">取消</button>
+ </div>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const APP='notes-pwa', PAGE=30;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,9));
+const fmt=t=>new Date(t).toLocaleString('zh-HK',{hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+let toastT;const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)};
+
+/* ---------- IndexedDB ---------- */
+let db;
+const openDB=()=>new Promise((res,rej)=>{
+ const r=indexedDB.open('notes-db',1);
+ r.onupgradeneeded=()=>{const s=r.result.createObjectStore('notes',{keyPath:'id'});s.createIndex('updated','updated')};
+ r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
+});
+const store=m=>db.transaction('notes',m).objectStore('notes');
+const wrap=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const dbAll=()=>wrap(store('readonly').getAll());
+const dbPut=n=>wrap(store('readwrite').put(n));
+const dbDel=id=>wrap(store('readwrite').delete(id));
+const dbClear=()=>wrap(store('readwrite').clear());
+const dbBulk=list=>new Promise((res,rej)=>{const tx=db.transaction('notes','readwrite');const s=tx.objectStore('notes');list.forEach(n=>s.put(n));tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});
+
+/* ---------- 狀態 ---------- */
+let notes=[],cur=null,filter={t:'all',v:''},page=1,saveT=null,dirty=false;
+const S={get:(k,d)=>{try{return localStorage.getItem(APP+'.'+k)??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(APP+'.'+k,v)}catch(e){}}};
+
+/* ---------- Markdown ---------- */
+function md(src){
+ const blocks=[];
+ src=String(src).replace(/\r/g,'').replace(/```[^\n]*\n([\s\S]*?)```/g,(m,c)=>{blocks.push('<pre><code>'+esc(c.replace(/\n$/,''))+'</code></pre>');return '\u0000'+(blocks.length-1)+'\u0000'});
+ const inl=t=>{t=esc(t);
+  t=t.replace(/`([^`]+)`/g,'<code>$1</code>');
+  t=t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\s][^*]*)\*/g,'$1<em>$2</em>').replace(/~~([^~]+)~~/g,'<del>$1</del>');
+  t=t.replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:)[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  return t};
+ const L=src.split('\n');let out='',i=0,m;
+ while(i<L.length){
+  const l=L[i];
+  if((m=l.match(/^\u0000(\d+)\u0000$/))){out+=blocks[+m[1]];i++;continue}
+  if(!l.trim()){i++;continue}
+  if((m=l.match(/^(#{1,4})\s+(.*)$/))){out+=`<h${m[1].length}>${inl(m[2])}</h${m[1].length}>`;i++;continue}
+  if(/^\s*([-*_])(\s*\1){2,}\s*$/.test(l)){out+='<hr>';i++;continue}
+  if(/^>\s?/.test(l)){let b=[];while(i<L.length&&/^>\s?/.test(L[i])){b.push(L[i].replace(/^>\s?/,''));i++}out+='<blockquote>'+inl(b.join('<br>')).replace(/&lt;br&gt;/g,'<br>')+'</blockquote>';continue}
+  if(/^\s*([-*+]|\d+\.)\s+/.test(l)){
+   const ord=/^\s*\d+\./.test(l);let items=[],task=false;
+   while(i<L.length&&(m=L[i].match(/^\s*(?:[-*+]|\d+\.)\s+(.*)$/))){
+    let x=m[1],tm=x.match(/^\[( |x|X)\]\s+(.*)$/);
+    if(tm){task=true;items.push(`<li><input type="checkbox" disabled ${tm[1]!==' '?'checked':''} style="width:auto;min-height:0"> ${inl(tm[2])}</li>`)}else items.push('<li>'+inl(x)+'</li>');i++}
+   const tag=ord?'ol':'ul';out+=`<${tag}${task?' class="task"':''}>${items.join('')}</${tag}>`;continue}
+  let p=[];
+  while(i<L.length&&L[i].trim()&&!/^(#{1,4}\s|>|\s*([-*+]|\d+\.)\s|\u0000\d+\u0000$)/.test(L[i])){p.push(L[i]);i++}
+  if(!p.length){p.push(L[i]);i++}
+  out+='<p>'+p.map(inl).join('<br>')+'</p>';
+ }
+ return out;
+}
+
+/* ---------- 篩選 / 排序 ---------- */
+function visible(){
+ const q=$('#q').value.trim().toLowerCase(),sort=$('#sort').value;
+ let r=notes.filter(n=>{
+  if(filter.t==='pin'&&!n.pinned)return false;
+  if(filter.t==='folder'&&(n.folder||'')!==filter.v)return false;
+  if(filter.t==='tag'&&!n.tags.includes(filter.v))return false;
+  if(q){const h=(n.title+'\n'+n.body+'\n'+n.folder+'\n'+n.tags.join(' ')).toLowerCase();return q.split(/\s+/).every(w=>h.includes(w))}
+  return true});
+ r.sort((a,b)=>(b.pinned-a.pinned)||(sort==='title'?(a.title||'').localeCompare(b.title||'','zh-HK'):(b[sort]-a[sort])));
+ return r;
+}
+function renderSide(){
+ $('#cAll').textContent=notes.length;$('#cPin').textContent=notes.filter(n=>n.pinned).length;
+ const fm={},tm={};notes.forEach(n=>{if(n.folder)fm[n.folder]=(fm[n.folder]||0)+1;n.tags.forEach(t=>tm[t]=(tm[t]||0)+1)});
+ const mk=(o,t)=>Object.keys(o).sort((a,b)=>a.localeCompare(b,'zh-HK')).map(k=>`<button class="nav" data-f="${t}" data-v="${esc(k)}"><span>${t==='tag'?'#':'📁 '}${esc(k)}</span><small>${o[k]}</small></button>`).join('')||'<div class="kv" style="padding:4px 10px">（無）</div>';
+ $('#folders').innerHTML=mk(fm,'folder');$('#tags').innerHTML=mk(tm,'tag');
+ $('#folderList').innerHTML=Object.keys(fm).map(f=>`<option value="${esc(f)}">`).join('');
+ $$('.nav[data-f]').forEach(b=>b.classList.toggle('active',b.dataset.f===filter.t&&(b.dataset.v||'')===filter.v));
+}
+function renderList(){
+ const r=visible(),shown=r.slice(0,page*PAGE);
+ $('#countInfo').textContent=r.length+' 則';
+ let h=shown.map(n=>{
+  const pv=n.body.replace(/[#>*`\-\[\]]/g,'').replace(/\s+/g,' ').slice(0,120);
+  return `<div class="item${n.id===cur?' active':''}" data-id="${n.id}" tabindex="0"><b>${n.pinned?'📌 ':''}${esc(n.title||'（無標題）')}</b><p>${esc(pv)||'&nbsp;'}</p><small>${fmt(n.updated)}</small> ${n.tags.slice(0,3).map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</div>`}).join('');
+ if(!r.length)h='<div class="empty">沒有符合的筆記</div>';
+ if(r.length>shown.length)h+=`<div class="empty"><button id="more">載入更多 (${r.length-shown.length})</button></div>`;
+ $('#items').innerHTML=h;
+}
+const renderAll=()=>{renderSide();renderList()};
+
+/* ---------- 編輯 ---------- */
+const curNote=()=>notes.find(n=>n.id===cur);
+function showEditor(on){$('#placeholder').style.display=on?'none':'grid';const p=$('#editPane');p.style.display=on?'flex':'none'}
+function setView(v){$('#app').dataset.view=v}
+async function select(id,openView=true){
+ await flush();
+ const old=curNote();
+ if(old&&old.id!==id&&!old.title&&!old.body&&!old.tags.length){notes=notes.filter(n=>n!==old);await dbDel(old.id)}
+ cur=id;const n=curNote();
+ if(!n){showEditor(false);renderAll();return}
+ showEditor(true);
+ $('#title').value=n.title;$('#folder').value=n.folder;$('#tagsIn').value=n.tags.join(', ');$('#body').value=n.body;
+ $('#btnPin').style.background=n.pinned?'var(--hover)':'';
+ refreshPreview();updMeta();$('#saveState').textContent='已載入';
+ if(openView)setView('edit');renderAll();
+}
+async function newNote(){
+ const t=Date.now(),n={id:uid(),title:'',body:'',folder:filter.t==='folder'?filter.v:'',tags:filter.t==='tag'?[filter.v]:[],pinned:false,created:t,updated:t};
+ notes.unshift(n);await dbPut(n);await select(n.id);$('#title').focus();
+}
+function readForm(){
+ const n=curNote();if(!n)return null;
+ n.title=$('#title').value.trim();n.body=$('#body').value;n.folder=$('#folder').value.trim();
+ n.tags=[...new Set($('#tagsIn').value.split(/[,，]/).map(s=>s.trim().replace(/^#/,'')).filter(Boolean))];
+ n.updated=Date.now();return n;
+}
+function queueSave(){dirty=true;$('#saveState').textContent='編輯中…';clearTimeout(saveT);saveT=setTimeout(flush,500);refreshPreview()}
+async function flush(){
+ clearTimeout(saveT);if(!dirty)return;dirty=false;
+ const n=readForm();if(!n)return;
+ try{await dbPut(n);$('#saveState').textContent='已儲存 '+new Date().toLocaleTimeString('zh-HK',{hour12:false});updMeta();renderAll()}
+ catch(e){$('#saveState').textContent='儲存失敗：'+e.message;toast('儲存失敗')}
+}
+function updMeta(){const n=curNote();if(n)$('#meta').textContent=`${n.body.length} 字 · 建立 ${fmt(n.created)}`}
+function refreshPreview(){const m=$('#ebody').dataset.mode;if(m!=='edit')$('#preview').innerHTML=md($('#body').value)}
+function setMode(m){$('#ebody').dataset.mode=m;S.set('mode',m);$$('[data-mode]').forEach(b=>{if(b.tagName==='BUTTON')b.classList.toggle('primary',b.dataset.mode===m)});refreshPreview()}
+async function delNote(){
+ const n=curNote();if(!n||!confirm('確定刪除「'+(n.title||'無標題')+'」？此操作無法復原。'))return;
+ dirty=false;clearTimeout(saveT);notes=notes.filter(x=>x!==n);await dbDel(n.id);cur=null;showEditor(false);setView('list');renderAll();toast('已刪除');
+}
+function download(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+
+/* ---------- 匯入 / 匯出 ---------- */
+const stamp=()=>new Date().toISOString().slice(0,10);
+async function exportJSON(){await flush();download(`notes-${stamp()}.json`,JSON.stringify({app:APP,version:1,exportedAt:new Date().toISOString(),notes},null,2),'application/json');toast('已匯出 '+notes.length+' 則')}
+function exportCSV(){
+ const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+ const rows=[['id','title','folder','tags','pinned','created','updated','body'],...notes.map(n=>[n.id,n.title,n.folder,n.tags.join(';'),n.pinned,new Date(n.created).toISOString(),new Date(n.updated).toISOString(),n.body])];
+ download(`notes-${stamp()}.csv`,'\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv;charset=utf-8');
+}
+function clean(x){
+ if(!x||typeof x!=='object')return null;
+ const t=Date.now(),num=v=>Number.isFinite(+v)&&+v>0?+v:t;
+ return{id:typeof x.id==='string'&&x.id?x.id:uid(),title:String(x.title??'').slice(0,200),body:String(x.body??''),folder:String(x.folder??'').slice(0,100),
+  tags:Array.isArray(x.tags)?[...new Set(x.tags.map(s=>String(s).trim()).filter(Boolean))]:[],pinned:!!x.pinned,created:num(x.created),updated:num(x.updated)};
+}
+let pending=null;
+$('#file').addEventListener('change',async e=>{
+ const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{
+  const j=JSON.parse(await f.text());const arr=Array.isArray(j)?j:j.notes;
+  if(!Array.isArray(arr))throw new Error('找不到 notes 陣列');
+  pending=arr.map(clean).filter(Boolean);
+  $('#impInfo').textContent=`檔案「${f.name}」含 ${pending.length} 則有效筆記；目前有 ${notes.length} 則。`;
+  $('#dlgImport').showModal();
+ }catch(err){toast('匯入失敗：'+err.message)}
+});
+$('#impMerge').onclick=async()=>{
+ const map=new Map(notes.map(n=>[n.id,n]));let add=0,upd=0;
+ pending.forEach(n=>{const o=map.get(n.id);if(!o){add++;map.set(n.id,n)}else if(n.updated>o.updated){upd++;map.set(n.id,n)}});
+ await dbBulk([...map.values()]);notes=[...map.values()];$('#dlgImport').close();await afterImport(`合併完成：新增 ${add}、更新 ${upd}`);
+};
+$('#impReplace').onclick=async()=>{
+ if(!confirm('這會刪除目前所有筆記，確定？'))return;
+ await dbClear();await dbBulk(pending);notes=[...pending];$('#dlgImport').close();await afterImport(`已取代，共 ${notes.length} 則`);
+};
+$('#impCancel').onclick=()=>{pending=null;$('#dlgImport').close()};
+async function afterImport(msg){cur=null;showEditor(false);setView('list');renderAll();toast(msg)}
+
+/* ---------- 持久化儲存 ---------- */
+async function storageInfo(){
+ const el=$('#storageInfo');
+ if(!navigator.storage){el.textContent='此瀏覽器不支援 Storage API';return}
+ let p='未知',est='';
+ try{if(navigator.storage.persisted)p=(await navigator.storage.persisted())?'✅ 已持久化 (不會被自動清除)':'⚠ 尚未持久化 (空間不足時可能被清除)'}catch(e){}
+ try{if(navigator.storage.estimate){const e=await navigator.storage.estimate();est=` · 已用 ${(e.usage/1048576).toFixed(2)} MB / 配額約 ${(e.quota/1048576).toFixed(0)} MB`}}catch(e){}
+ el.textContent=p+est;
+}
+async function askPersist(manual){
+ if(!(navigator.storage&&navigator.storage.persist)){if(manual)toast('瀏覽器不支援 persist()');return}
+ try{
+  if(await navigator.storage.persisted()){if(manual)toast('已是持久化狀態');}
+  else{const ok=await navigator.storage.persist();if(manual)toast(ok?'已批准持久化':'瀏覽器未批准 (可先加入主畫面再試)')}
+ }catch(e){if(manual)toast('申請失敗')}
+ storageInfo();
+}
+
+/* ---------- Add to Home Screen ---------- */
+let deferred=null;
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function showBanner(txt,canInstall){
+ if(standalone()||S.get('a2hsDismiss','')===String(new Date().getMonth()+'/'+new Date().getFullYear()))return;
+ $('#a2hsText').innerHTML=txt;$('#a2hsInstall').style.display=canInstall?'':'none';$('#a2hs').classList.add('show');
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;showBanner('把「我的筆記」加入主畫面，像 App 一樣離線使用。',true)});
+window.addEventListener('appinstalled',()=>{deferred=null;$('#a2hs').classList.remove('show');toast('已安裝');askPersist(false)});
+async function doInstall(){
+ if(deferred){deferred.prompt();await deferred.userChoice;deferred=null;$('#a2hs').classList.remove('show')}
+ else if(isIOS())alert('iOS：點 Safari 底部「分享」按鈕 → 選「加入主畫面」。');
+ else if(standalone())toast('已在 App 模式運行');
+ else alert('請使用瀏覽器選單中的「安裝應用程式 / 加入主畫面」。(Chrome/Edge 需符合 PWA 條件後才會顯示)');
+}
+$('#a2hsInstall').onclick=doInstall;$('#btnInstall2').onclick=doInstall;
+$('#a2hsClose').onclick=()=>{$('#a2hs').classList.remove('show');S.set('a2hsDismiss',new Date().getMonth()+'/'+new Date().getFullYear())};
+if(isIOS()&&!standalone())setTimeout(()=>showBanner('iOS：點底部 <b>分享</b> 圖示 → <b>加入主畫面</b>。',false),2500);
+
+/* ---------- 設定 ---------- */
+function applyPrefs(){document.documentElement.dataset.theme=S.get('theme','auto');document.documentElement.style.setProperty('--fs',S.get('fs','16')+'px');
+ const dark=document.documentElement.dataset.theme==='dark'||(document.documentElement.dataset.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);
+ document.querySelector('meta[name=theme-color]').content=dark?'#0f1115':'#2563eb'}
+$('#setTheme').onchange=e=>{S.set('theme',e.target.value);applyPrefs()};
+$('#setFs').onchange=e=>{S.set('fs',e.target.value);applyPrefs()};
+$('#btnSettings').onclick=()=>{$('#setTheme').value=S.get('theme','auto');$('#setFs').value=S.get('fs','16');storageInfo();closeSide();$('#dlgSettings').showModal()};
+$('#btnCloseSet').onclick=()=>$('#dlgSettings').close();
+$('#btnExport').onclick=exportJSON;$('#btnCsv').onclick=exportCSV;$('#btnImport').onclick=()=>$('#file').click();
+$('#btnPersist').onclick=()=>askPersist(true);
+
+/* ---------- 事件 ---------- */
+const closeSide=()=>{$('#side').classList.remove('open');$('#backdrop').classList.remove('show')};
+$('#btnMenu').onclick=()=>{$('#side').classList.add('open');$('#backdrop').classList.add('show')};
+$('#backdrop').onclick=closeSide;
+$('#side').addEventListener('click',e=>{const b=e.target.closest('.nav[data-f]');if(!b)return;filter={t:b.dataset.f,v:b.dataset.v||''};page=1;renderAll();closeSide();setView('list')});
+$('#items').addEventListener('click',e=>{if(e.target.id==='more'){page++;renderList();return}const it=e.target.closest('.item');if(it)select(it.dataset.id)});
+$('#items').addEventListener('keydown',e=>{if(e.key==='Enter'){const it=e.target.closest('.item');if(it)select(it.dataset.id)}});
+$('#q').addEventListener('input',()=>{page=1;renderList()});
+$('#sort').addEventListener('change',()=>{S.set('sort',$('#sort').value);page=1;renderList()});
+$('#btnNew').onclick=newNote;$('#fab').onclick=newNote;
+$('#btnBack').onclick=async()=>{await flush();const n=curNote();if(n&&!n.title&&!n.body&&!n.tags.length){notes=notes.filter(x=>x!==n);await dbDel(n.id);cur=null;showEditor(false);renderAll()}setView('list')};
+['#title','#folder','#tagsIn','#body'].forEach(s=>$(s).addEventListener('input',queueSave));
+$('#btnPin').onclick=async()=>{const n=curNote();if(!n)return;n.pinned=!n.pinned;n.updated=Date.now();await dbPut(n);$('#btnPin').style.background=n.pinned?'var(--hover)':'';renderAll()};
+$('#btnDel').onclick=delNote;
+$('#btnMd').onclick=async()=>{await flush();const n=curNote();if(!n)return;download((n.title||'note').replace(/[\\/:*?"<>|]/g,'_')+'.md',(n.title?'# '+n.title+'\n\n':'')+n.body,'text/markdown')};
+$$('button[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+document.addEventListener('keydown',e=>{
+ const mod=e.ctrlKey||e.metaKey;
+ if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();flush().then(()=>toast('已儲存'))}
+ else if(mod&&e.key.toLowerCase()==='k'){e.preventDefault();setView('list');$('#q').focus()}
+ else if(e.altKey&&e.key.toLowerCase()==='n'){e.preventDefault();newNote()}
+ else if(e.key==='Escape')closeSide();
+});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});
+window.addEventListener('pagehide',flush);
+window.addEventListener('online',()=>toast('已連線'));window.addEventListener('offline',()=>toast('離線中，仍可使用'));
+
+/* ---------- 啟動 ---------- */
+(async function init(){
+ applyPrefs();$('#sort').value=S.get('sort','updated');setMode(S.get('mode','edit'));
+ try{db=await openDB();notes=(await dbAll()).map(clean)}catch(e){toast('無法開啟 IndexedDB：'+e.message);notes=[]}
+ if(!notes.length){
+  const t=Date.now();const w={id:uid(),title:'歡迎使用',folder:'說明',tags:['入門'],pinned:true,created:t,updated:t,
+   body:'# 歡迎\n\n這是一個**離線可用**的 Markdown 筆記 PWA。\n\n- 資料存在本機 IndexedDB\n- 支援標籤、資料夾、釘選、搜尋\n- 設定中可匯入 / 匯出 JSON\n\n- [x] 試試新增筆記\n- [ ] 加入主畫面\n\n> 記得定期匯出備份。\n\n```\nCtrl+S 儲存 · Ctrl+K 搜尋 · Alt+N 新增\n```'};
+  notes=[w];await dbPut(w);
+ }
+ renderAll();showEditor(false);
+ askPersist(false);
+ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){
+  navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW 註冊失敗',e));
+ }
+})();
+})();
+</script>
+</body>
+</html>

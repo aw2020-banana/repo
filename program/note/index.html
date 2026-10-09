@@ -22,10 +22,11 @@ html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--text);font:var(--fs)/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang HK","Noto Sans TC","Microsoft JhengHei",sans-serif;overflow:hidden;-webkit-text-size-adjust:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 button{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-height:40px;cursor:pointer}
-button:hover{background:var(--hover)}
+@media(hover:hover){button:hover{background:var(--hover)}}
 button.primary{background:var(--accent);color:var(--accent-t);border-color:var(--accent)}
 button.danger{color:var(--danger)}
 button.ghost{border-color:transparent;background:transparent}
+button.on{background:var(--accent);color:var(--accent-t);border-color:var(--accent)}
 input,select,textarea{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:40px;width:100%}
 input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .app{display:grid;height:100vh;height:100dvh;grid-template-columns:240px 330px minmax(0,1fr);grid-template-rows:minmax(0,1fr);padding-bottom:env(safe-area-inset-bottom)}
@@ -40,10 +41,11 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .nav small{color:var(--muted)}
 .lhead{padding:10px;border-bottom:1px solid var(--line);display:grid;gap:8px}
 .row{display:flex;gap:8px;align-items:center}
+.row.wrap{flex-wrap:wrap}
 .row>*{flex:1;min-width:0}.row>.fix{flex:none}
 .items{overflow:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
 .item{padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer}
-.item:hover{background:var(--hover)}
+@media(hover:hover){.item:hover{background:var(--hover)}}
 .item.active{background:var(--hover);border-left:3px solid var(--accent)}
 .item b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .item p{margin:2px 0;color:var(--muted);font-size:.85em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -142,16 +144,17 @@ details .md{font-size:.92em}
     <div class="row">
      <button class="back fix" id="btnBack">← 返回</button>
      <input id="title" placeholder="標題" maxlength="200" aria-label="標題" style="font-weight:600">
-     <button class="fix" id="btnPin" title="釘選">📌</button>
+     <button class="fix" id="btnPin" type="button" aria-pressed="false" title="釘選 / 取消釘選">📌 釘選</button>
     </div>
     <div class="row">
      <input id="folder" list="folderList" placeholder="資料夾" aria-label="資料夾"><datalist id="folderList"></datalist>
      <input id="tagsIn" placeholder="標籤 (以逗號分隔)" aria-label="標籤">
     </div>
-    <div class="row">
+    <div class="row wrap">
      <button data-mode="edit">編輯</button><button data-mode="preview">預覽</button><button data-mode="split">並排</button>
+     <button class="fix primary" id="btnSave" type="button" title="立即儲存 (Ctrl+S)">💾 儲存</button>
      <button class="fix" id="btnMd" title="匯出此筆記為 .md">⬇ .md</button>
-     <button class="fix danger" id="btnDel">🗑</button>
+     <button class="fix danger" id="btnDel" aria-label="刪除">🗑</button>
     </div>
    </div>
    <div class="ebody" id="ebody" data-mode="edit">
@@ -177,7 +180,7 @@ details .md{font-size:.92em}
   <label>字體大小<select id="setFs"><option value="14">小</option><option value="16">中</option><option value="18">大</option><option value="20">特大</option></select></label>
  </div>
  <h4>資料備份</h4>
- <div class="row" style="flex-wrap:wrap">
+ <div class="row wrap">
   <button id="btnExport">⬇ 匯出 JSON</button>
   <button id="btnImport">⬆ 匯入 JSON</button>
   <button id="btnCsv">⬇ 匯出 CSV</button>
@@ -190,7 +193,7 @@ details .md{font-size:.92em}
  <details><summary>技術說明：資料如何儲存 (IndexedDB)</summary><div class="md">
   <p>筆記存在瀏覽器的 IndexedDB，資料庫 <code>notes-db</code>、物件庫 <code>notes</code>，主鍵為 <code>id</code>，並建立 <code>updated</code> 索引。設定 (主題、字體) 則存在 LocalStorage。</p>
   <pre><code>{ id, title, body, folder, tags: [], pinned, created, updated }</code></pre>
-  <p>輸入後約 500ms 自動儲存 (debounce)；離開頁面或切換筆記時會即時寫入。資料只在本機，不會上傳。</p>
+  <p>輸入後約 500ms 自動儲存 (debounce)；也可按「💾 儲存」或 Ctrl/⌘+S 立即寫入。離開頁面或切換筆記時同樣會即時寫入。資料只在本機，不會上傳。</p>
  </div></details>
  <details><summary>技術說明：持久化 navigator.storage.persist()</summary><div class="md">
   <p>瀏覽器在空間不足時可能清除「盡力而為」(best-effort) 的站點資料。呼叫 <code>navigator.storage.persist()</code> 可申請「持久化」，被批准後不會被自動清除，只有使用者手動清除才會刪除。</p>
@@ -218,7 +221,7 @@ details .md{font-size:.92em}
 <dialog id="dlgImport">
  <h3>匯入 JSON</h3>
  <p id="impInfo"></p>
- <div class="row" style="flex-wrap:wrap">
+ <div class="row wrap">
   <button class="primary" id="impMerge">合併</button>
   <button class="danger" id="impReplace">取代全部</button>
   <button id="impCancel">取消</button>
@@ -291,7 +294,7 @@ function visible(){
   if(filter.t==='tag'&&!n.tags.includes(filter.v))return false;
   if(q){const h=(n.title+'\n'+n.body+'\n'+n.folder+'\n'+n.tags.join(' ')).toLowerCase();return q.split(/\s+/).every(w=>h.includes(w))}
   return true});
- r.sort((a,b)=>(b.pinned-a.pinned)||(sort==='title'?(a.title||'').localeCompare(b.title||'','zh-HK'):(b[sort]-a[sort])));
+ r.sort((a,b)=>(Number(b.pinned)-Number(a.pinned))||(sort==='title'?(a.title||'').localeCompare(b.title||'','zh-HK'):(b[sort]-a[sort])));
  return r;
 }
 function renderSide(){
@@ -315,6 +318,7 @@ function renderList(){
 const renderAll=()=>{renderSide();renderList()};
 
 const curNote=()=>notes.find(n=>n.id===cur);
+function updPin(n){const b=$('#btnPin');b.classList.toggle('on',!!n.pinned);b.setAttribute('aria-pressed',n.pinned?'true':'false');b.textContent=n.pinned?'📌 已釘選':'📌 釘選'}
 function showEditor(on){$('#placeholder').style.display=on?'none':'grid';$('#editPane').style.display=on?'flex':'none'}
 function setView(v){$('#app').dataset.view=v}
 async function select(id,openView=true){
@@ -325,12 +329,11 @@ async function select(id,openView=true){
  if(!n){showEditor(false);renderAll();return}
  showEditor(true);
  $('#title').value=n.title;$('#folder').value=n.folder;$('#tagsIn').value=n.tags.join(', ');$('#body').value=n.body;
- $('#btnPin').style.background=n.pinned?'var(--hover)':'';
- refreshPreview();updMeta();$('#saveState').textContent='已載入';
+ updPin(n);refreshPreview();updMeta();$('#saveState').textContent='已載入';
  if(openView)setView('edit');renderAll();
 }
 async function newNote(){
- const t=Date.now(),n={id:uid(),title:'',body:'',folder:filter.t==='folder'?filter.v:'',tags:filter.t==='tag'?[filter.v]:[],pinned:false,created:t,updated:t};
+ const t=Date.now(),n={id:uid(),title:'',body:'',folder:filter.t==='folder'?filter.v:'',tags:filter.t==='tag'?[filter.v]:[],pinned:filter.t==='pin',created:t,updated:t};
  notes.unshift(n);await dbPut(n);await select(n.id);$('#title').focus();
 }
 function readForm(){
@@ -339,12 +342,18 @@ function readForm(){
  n.tags=[...new Set($('#tagsIn').value.split(/[,，]/).map(s=>s.trim().replace(/^#/,'')).filter(Boolean))];
  n.updated=Date.now();return n;
 }
-function queueSave(){dirty=true;$('#saveState').textContent='編輯中…';clearTimeout(saveT);saveT=setTimeout(flush,500);refreshPreview()}
-async function flush(){
- clearTimeout(saveT);if(!dirty)return;dirty=false;
- const n=readForm();if(!n)return;
- try{await dbPut(n);$('#saveState').textContent='已儲存 '+new Date().toLocaleTimeString('zh-HK',{hour12:false});updMeta();renderAll()}
- catch(e){$('#saveState').textContent='儲存失敗：'+e.message;toast('儲存失敗')}
+function queueSave(){dirty=true;$('#saveState').textContent='編輯中…（尚未儲存）';clearTimeout(saveT);saveT=setTimeout(()=>flush(),500);refreshPreview()}
+async function flush(force=false){
+ clearTimeout(saveT);if(!dirty&&!force)return true;dirty=false;
+ const n=readForm();if(!n)return false;
+ try{await dbPut(n);$('#saveState').textContent='已儲存 '+new Date().toLocaleTimeString('zh-HK',{hour12:false});updMeta();renderAll();return true}
+ catch(e){dirty=true;$('#saveState').textContent='儲存失敗：'+e.message;toast('儲存失敗');return false}
+}
+async function manualSave(){
+ if(!curNote()){toast('沒有開啟的筆記');return}
+ const btn=$('#btnSave');btn.disabled=true;
+ const ok=await flush(true);btn.disabled=false;
+ if(ok)toast('✅ 已儲存');
 }
 function updMeta(){const n=curNote();if(n)$('#meta').textContent=`${n.body.length} 字 · 建立 ${fmt(n.created)}`}
 function refreshPreview(){const m=$('#ebody').dataset.mode;if(m!=='edit')$('#preview').innerHTML=md($('#body').value)}
@@ -352,6 +361,15 @@ function setMode(m){$('#ebody').dataset.mode=m;S.set('mode',m);$$('button[data-m
 async function delNote(){
  const n=curNote();if(!n||!confirm('確定刪除「'+(n.title||'無標題')+'」？此操作無法復原。'))return;
  dirty=false;clearTimeout(saveT);notes=notes.filter(x=>x!==n);await dbDel(n.id);cur=null;showEditor(false);setView('list');renderAll();toast('已刪除');
+}
+async function togglePin(){
+ const n=curNote();if(!n)return;
+ readForm();
+ n.pinned=!n.pinned;dirty=false;clearTimeout(saveT);
+ updPin(n);
+ try{await dbPut(n);toast(n.pinned?'已釘選':'已取消釘選');$('#saveState').textContent='已儲存 '+new Date().toLocaleTimeString('zh-HK',{hour12:false})}
+ catch(e){n.pinned=!n.pinned;updPin(n);toast('操作失敗')}
+ renderAll();$('#btnPin').blur();
 }
 function download(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 
@@ -366,7 +384,7 @@ function clean(x){
  if(!x||typeof x!=='object')return null;
  const t=Date.now(),num=v=>Number.isFinite(+v)&&+v>0?+v:t;
  return{id:typeof x.id==='string'&&x.id?x.id:uid(),title:String(x.title??'').slice(0,200),body:String(x.body??''),folder:String(x.folder??'').slice(0,100),
-  tags:Array.isArray(x.tags)?[...new Set(x.tags.map(s=>String(s).trim()).filter(Boolean))]:[],pinned:!!x.pinned,created:num(x.created),updated:num(x.updated)};
+  tags:Array.isArray(x.tags)?[...new Set(x.tags.map(s=>String(s).trim()).filter(Boolean))]:[],pinned:x.pinned===true||x.pinned==='true',created:num(x.created),updated:num(x.updated)};
 }
 let pending=null;
 $('#file').addEventListener('change',async e=>{
@@ -380,13 +398,14 @@ $('#file').addEventListener('change',async e=>{
  }catch(err){toast('匯入失敗：'+err.message)}
 });
 $('#impMerge').onclick=async()=>{
+ await flush();
  const map=new Map(notes.map(n=>[n.id,n]));let add=0,upd=0;
  pending.forEach(n=>{const o=map.get(n.id);if(!o){add++;map.set(n.id,n)}else if(n.updated>o.updated){upd++;map.set(n.id,n)}});
  await dbBulk([...map.values()]);notes=[...map.values()];$('#dlgImport').close();await afterImport(`合併完成：新增 ${add}、更新 ${upd}`);
 };
 $('#impReplace').onclick=async()=>{
  if(!confirm('這會刪除目前所有筆記，確定？'))return;
- await dbClear();await dbBulk(pending);notes=[...pending];$('#dlgImport').close();await afterImport(`已取代，共 ${notes.length} 則`);
+ dirty=false;await dbClear();await dbBulk(pending);notes=[...pending];$('#dlgImport').close();await afterImport(`已取代，共 ${notes.length} 則`);
 };
 $('#impCancel').onclick=()=>{pending=null;$('#dlgImport').close()};
 async function afterImport(msg){cur=null;showEditor(false);setView('list');renderAll();toast(msg)}
@@ -449,19 +468,20 @@ $('#sort').addEventListener('change',()=>{S.set('sort',$('#sort').value);page=1;
 $('#btnNew').onclick=newNote;$('#fab').onclick=newNote;
 $('#btnBack').onclick=async()=>{await flush();const n=curNote();if(n&&!n.title&&!n.body&&!n.tags.length){notes=notes.filter(x=>x!==n);await dbDel(n.id);cur=null;showEditor(false);renderAll()}setView('list')};
 ['#title','#folder','#tagsIn','#body'].forEach(s=>$(s).addEventListener('input',queueSave));
-$('#btnPin').onclick=async()=>{const n=curNote();if(!n)return;await flush();n.pinned=!n.pinned;n.updated=Date.now();await dbPut(n);$('#btnPin').style.background=n.pinned?'var(--hover)':'';renderAll()};
+$('#btnPin').addEventListener('click',togglePin);
+$('#btnSave').addEventListener('click',manualSave);
 $('#btnDel').onclick=delNote;
 $('#btnMd').onclick=async()=>{await flush();const n=curNote();if(!n)return;download((n.title||'note').replace(/[\\/:*?"<>|]/g,'_')+'.md',(n.title?'# '+n.title+'\n\n':'')+n.body,'text/markdown')};
 $$('button[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 document.addEventListener('keydown',e=>{
  const mod=e.ctrlKey||e.metaKey;
- if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();flush().then(()=>toast('已儲存'))}
+ if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();manualSave()}
  else if(mod&&e.key.toLowerCase()==='k'){e.preventDefault();setView('list');$('#q').focus()}
  else if(e.altKey&&e.key.toLowerCase()==='n'){e.preventDefault();newNote()}
  else if(e.key==='Escape')closeSide();
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});
-window.addEventListener('pagehide',flush);
+window.addEventListener('pagehide',()=>flush());
 window.addEventListener('online',()=>toast('已連線'));window.addEventListener('offline',()=>toast('離線中，仍可使用'));
 
 (async function init(){

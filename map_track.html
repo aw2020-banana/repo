@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我的足跡地圖</title>
+<meta name="theme-color" content="#1a73e8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="足跡地圖">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Noto Sans HK","PingFang HK",sans-serif;font-size:15px;color:#222}
+#map{position:absolute;inset:0}
+.btn{border:0;border-radius:10px;padding:10px 14px;background:#1a73e8;color:#fff;font-size:15px;cursor:pointer}
+.btn.sec{background:#e8eaed;color:#222}
+.btn.red{background:#d93025}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.5}
+#toolbar{position:absolute;z-index:1000;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
+#toolbar .btn{pointer-events:auto;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+#toolbar .btn.sec{background:#fff}
+#status{position:absolute;z-index:1000;left:10px;bottom:calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.95);padding:6px 10px;border-radius:8px;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,.3);max-width:70vw}
+.modal{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.modal{align-items:center}.sheet{border-radius:16px}}
+.sheet h2{margin:0 0 12px;font-size:18px}
+label{display:block;margin:10px 0 4px;font-size:13px;color:#555}
+input,select,textarea{width:100%;padding:9px;border:1px solid #ccc;border-radius:8px;font-size:15px;background:#fff}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}
+.row.fit>*{flex:none}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.item{border:1px solid #e0e0e0;border-radius:10px;padding:10px;margin:8px 0;display:flex;gap:8px;align-items:center}
+.item .main{flex:1;min-width:0;cursor:pointer}
+.item .name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .meta{font-size:12px;color:#666;margin-top:2px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.pager{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:10px}
+details{margin-top:14px;background:#f6f8fa;border-radius:10px;padding:8px 12px}
+summary{cursor:pointer;font-weight:600}
+details p,details li{font-size:13px;line-height:1.6}
+code{background:#eaeef2;padding:1px 4px;border-radius:4px;font-size:12px}
+#a2hs{position:fixed;z-index:1500;left:10px;right:10px;bottom:calc(60px + env(safe-area-inset-bottom));background:#202124;color:#fff;border-radius:12px;padding:12px;display:none;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+#a2hs.show{display:block}
+#a2hs .row{margin-top:8px;justify-content:flex-end}
+#toast{position:fixed;z-index:3000;left:50%;top:70px;transform:translateX(-50%);background:#202124;color:#fff;padding:8px 14px;border-radius:20px;font-size:14px;display:none;max-width:90vw}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="toolbar">
+  <button class="btn" id="btnLocate">📍 定位</button>
+  <button class="btn" id="btnSave">💾 儲存位置</button>
+  <button class="btn sec" id="btnList">📂 目錄</button>
+  <button class="btn sec" id="btnCats">🏷️ 分類</button>
+  <button class="btn sec" id="btnData">⚙️ 資料</button>
+</div>
+<div id="status">尚未定位</div>
+<div id="toast"></div>
+
+<div id="a2hs">
+  <div id="a2hsText"></div>
+  <div class="row fit">
+    <button class="btn sec sm" id="a2hsClose">不再提示</button>
+    <button class="btn sm" id="a2hsInstall" style="display:none">安裝</button>
+  </div>
+</div>
+
+<!-- 儲存/編輯 -->
+<div class="modal" id="mSave"><div class="sheet">
+  <h2 id="saveTitle">儲存目前位置</h2>
+  <label>日期時間</label><input type="datetime-local" id="fTime" step="1">
+  <label>位置(緯度, 經度)</label><input id="fPos" readonly>
+  <label>名稱(留空則以日期時間命名)</label><input id="fName" maxlength="100" placeholder="例如:公司、茶餐廳">
+  <label>分類</label><select id="fCat"></select>
+  <label>備註</label><textarea id="fNote" rows="2"></textarea>
+  <div class="actions">
+    <button class="btn sec" data-close>取消</button>
+    <button class="btn" id="btnDoSave">儲存</button>
+  </div>
+</div></div>
+
+<!-- 目錄 -->
+<div class="modal" id="mList"><div class="sheet">
+  <h2>地點目錄 <span id="listCount" style="font-weight:normal;font-size:13px;color:#666"></span></h2>
+  <div class="row">
+    <div><label>分類</label><select id="qCat"></select></div>
+    <div><label>排序</label>
+      <select id="qSort">
+        <option value="timeDesc">日期:新→舊</option>
+        <option value="timeAsc">日期:舊→新</option>
+        <option value="nameAsc">名稱:A→Z</option>
+        <option value="nameDesc">名稱:Z→A</option>
+      </select></div>
+  </div>
+  <div class="row">
+    <div><label>由</label><input type="date" id="qFrom"></div>
+    <div><label>至</label><input type="date" id="qTo"></div>
+  </div>
+  <div class="row">
+    <div><label>搜尋名稱/備註</label><input id="qText" placeholder="關鍵字"></div>
+    <div><label>每頁</label>
+      <select id="qSize"><option>5</option><option selected>10</option><option>20</option><option>50</option></select></div>
+  </div>
+  <div id="listBody"></div>
+  <div class="pager">
+    <button class="btn sec sm" id="pPrev">‹ 上一頁</button>
+    <span id="pInfo"></span>
+    <button class="btn sec sm" id="pNext">下一頁 ›</button>
+  </div>
+  <div class="actions">
+    <button class="btn sec sm" id="qReset">重設篩選</button>
+    <button class="btn sec" data-close>關閉</button>
+  </div>
+</div></div>
+
+<!-- 分類管理 -->
+<div class="modal" id="mCats"><div class="sheet">
+  <h2>分類管理</h2>
+  <div class="row fit">
+    <input id="newCatName" placeholder="新分類名稱" maxlength="30" style="flex:1">
+    <input type="color" id="newCatColor" value="#1a73e8" style="width:50px;padding:2px">
+    <button class="btn" id="btnAddCat">新增</button>
+  </div>
+  <div id="catBody"></div>
+  <p style="font-size:12px;color:#666">「未分類」為系統預設,不可刪除。刪除分類時,其地點會移至「未分類」。</p>
+  <div class="actions"><button class="btn sec" data-close>關閉</button></div>
+</div></div>
+
+<!-- 資料 -->
+<div class="modal" id="mData"><div class="sheet">
+  <h2>資料與儲存</h2>
+  <div class="row">
+    <button class="btn" id="btnExport">⬇️ 匯出 JSON</button>
+    <button class="btn sec" id="btnImport">⬆️ 匯入 JSON</button>
+  </div>
+  <input type="file" id="fileImport" accept="application/json,.json" style="display:none">
+  <label>匯入模式</label>
+  <select id="impMode">
+    <option value="merge">合併(相同 ID 會覆蓋)</option>
+    <option value="replace">取代(清除現有資料)</option>
+  </select>
+  <p id="storageInfo" style="font-size:13px;color:#444"></p>
+  <button class="btn sec sm" id="btnPersist">申請持久化儲存</button>
+  <button class="btn red sm" id="btnClearAll">清除所有資料</button>
+
+  <details>
+    <summary>🔧 技術說明(點擊展開)</summary>
+    <ul>
+      <li><b>架構:</b>單一 HTML、純前端、無後端。Leaflet 1.9.4 由 unpkg CDN 載入;底圖為 OpenStreetMap 圖磚,無需 API Key。</li>
+      <li><b>定位:</b><code>navigator.geolocation.getCurrentPosition</code>(<code>enableHighAccuracy:true</code>,逾時 20 秒)。須在 HTTPS 或 localhost 使用,並需使用者授權。精度(accuracy)以公尺記錄。室內多為 Wi-Fi/基站定位,誤差較大。</li>
+      <li><b>IndexedDB:</b>資料庫 <code>footprintDB</code> v1,兩個 object store:<code>places</code>(keyPath <code>id</code>,索引 <code>time</code>、<code>catId</code>)與 <code>categories</code>(keyPath <code>id</code>)。預設分類 id 為 <code>uncat</code>。</li>
+      <li><b>持久化:</b>啟動及首次儲存時呼叫 <code>navigator.storage.persist()</code>。瀏覽器可能自動批准(如已安裝為 PWA、有書籤或常用),亦可能拒絕或提示;結果見上方狀態。<code>navigator.storage.estimate()</code> 顯示用量。即使已持久化,仍建議定期匯出 JSON 備份。</li>
+      <li><b>時間:</b>內部以 ISO 8601 UTC 字串(<code>time</code>)儲存;介面以本地時區顯示。日期篩選以本地日期比較。</li>
+      <li><b>JSON 格式:</b><code>{app, version, exportedAt, categories:[{id,name,color}], places:[{id,name,lat,lng,acc,time,catId,note}]}</code>。匯入時會驗證座標範圍,並自動補回缺失分類。</li>
+      <li><b>目錄:</b>篩選、排序、分頁皆於記憶體內完成(資料量數千筆內足夠)。頁碼在篩選變更時重設為 1。</li>
+      <li><b>Add to Home Screen:</b>Chromium 瀏覽器監聽 <code>beforeinstallprompt</code> 顯示「安裝」按鈕;iOS Safari 無此事件,故顯示手動步驟(分享 → 加入主畫面)。已以獨立模式開啟時不顯示。本檔以 Blob 動態產生 manifest 與圖示。若要完整 PWA 安裝資格(尤其 Chrome),建議另加 <code>manifest.json</code>、圖示 PNG 與 <code>sw.js</code>。</li>
+      <li><b>圖磚使用政策:</b>OSM 公共圖磚僅適合輕度個人使用;若流量大,請改用自己的圖磚服務。</li>
+      <li><b>安全:</b>所有使用者文字均經 HTML 跳脫後才輸出,避免 XSS。</li>
+    </ul>
+  </details>
+
+  <div class="actions"><button class="btn sec" data-close>關閉</button></div>
+</div></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const UNCAT = 'uncat';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const fmt = d => { d = new Date(d); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
+const toLocalInput = d => fmt(d).replace(' ','T');
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2,10));
+let toastT;
+const toast = (m,ms=2500) => { const t=$('toast'); t.textContent=m; t.style.display='block'; clearTimeout(toastT); toastT=setTimeout(()=>t.style.display='none',ms); };
+
+/* ---------- IndexedDB ---------- */
+let db;
+const openDB = () => new Promise((res,rej) => {
+  const r = indexedDB.open('footprintDB',1);
+  r.onupgradeneeded = e => {
+    const d = e.target.result;
+    const p = d.createObjectStore('places',{keyPath:'id'});
+    p.createIndex('time','time'); p.createIndex('catId','catId');
+    d.createObjectStore('categories',{keyPath:'id'});
+  };
+  r.onsuccess = () => res(r.result);
+  r.onerror = () => rej(r.error);
+});
+const tx = (store,mode,fn) => new Promise((res,rej) => {
+  const t = db.transaction(store,mode); const s = Array.isArray(store)?null:t.objectStore(store);
+  let out; try { out = fn(s,t); } catch(e){ rej(e); return; }
+  t.oncomplete = () => res(out && out.result !== undefined ? out.result : out);
+  t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+});
+const getAll = store => new Promise((res,rej) => { const r = db.transaction(store).objectStore(store).getAll(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
+
+let places = [], cats = [];
+const catById = id => cats.find(c=>c.id===id) || cats.find(c=>c.id===UNCAT);
+async function load() {
+  cats = await getAll('categories');
+  if (!cats.find(c=>c.id===UNCAT)) {
+    const u = {id:UNCAT,name:'未分類',color:'#757575'};
+    await tx('categories','readwrite',s=>s.put(u)); cats.push(u);
+  }
+  places = await getAll('places');
+  cats.sort((a,b)=> a.id===UNCAT?-1: b.id===UNCAT?1 : a.name.localeCompare(b.name,'zh-HK'));
+}
+
+/* ---------- Map ---------- */
+const map = L.map('map',{zoomControl:false}).setView([22.3193,114.1694],12);
+L.control.zoom({position:'bottomright'}).addTo(map);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+const markerLayer = L.layerGroup().addTo(map);
+let meMarker=null, meCircle=null, current=null;
+
+function drawMarkers() {
+  markerLayer.clearLayers();
+  places.forEach(p => {
+    const c = catById(p.catId);
+    L.circleMarker([p.lat,p.lng],{radius:8,color:'#fff',weight:2,fillColor:c.color,fillOpacity:.95})
+      .bindPopup(`<b>${esc(p.name)}</b><br>${esc(fmt(p.time))}<br><span style="color:${esc(c.color)}">●</span> ${esc(c.name)}${p.note?'<br>'+esc(p.note):''}`)
+      .addTo(markerLayer);
+  });
+}
+
+function locate(flyTo=true) {
+  return new Promise((resolve,reject) => {
+    if (!navigator.geolocation) { toast('此瀏覽器不支援定位'); return reject(); }
+    $('status').textContent = '定位中…';
+    navigator.geolocation.getCurrentPosition(pos => {
+      const {latitude:lat, longitude:lng, accuracy:acc} = pos.coords;
+      current = {lat,lng,acc,time:new Date()};
+      if (meMarker) map.removeLayer(meMarker);
+      if (meCircle) map.removeLayer(meCircle);
+      meCircle = L.circle([lat,lng],{radius:acc,color:'#1a73e8',weight:1,fillOpacity:.1}).addTo(map);
+      meMarker = L.circleMarker([lat,lng],{radius:8,color:'#fff',weight:3,fillColor:'#1a73e8',fillOpacity:1}).addTo(map);
+      if (flyTo) map.flyTo([lat,lng],Math.max(map.getZoom(),17));
+      $('status').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}(±${Math.round(acc)}m)`;
+      resolve(current);
+    }, err => {
+      const m = {1:'定位被拒絕,請在瀏覽器/系統允許位置權限',2:'無法取得位置',3:'定位逾時'}[err.code]||'定位失敗';
+      $('status').textContent = m; toast(m,4000); reject(err);
+    }, {enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  });
+}
+
+/* ---------- Modal helpers ---------- */
+const open = id => $(id).classList.add('show');
+const close = id => $(id).classList.remove('show');
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if (e.target===m || e.target.hasAttribute('data-close')) m.classList.remove('show'); });
+});
+
+/* ---------- Save / Edit ---------- */
+let editingId = null, pendingPos = null;
+function fillCatSelect(sel, withAll, val) {
+  sel.innerHTML = (withAll?'<option value="">全部分類</option>':'') + cats.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  sel.value = val ?? (withAll?'':UNCAT);
+}
+async function openSave() {
+  try { await locate(true); } catch { return; }
+  editingId = null; pendingPos = {...current};
+  $('saveTitle').textContent = '儲存目前位置';
+  $('fTime').value = toLocalInput(current.time);
+  $('fPos').value = `${current.lat.toFixed(6)}, ${current.lng.toFixed(6)}(±${Math.round(current.acc)}m)`;
+  $('fName').value=''; $('fNote').value='';
+  fillCatSelect($('fCat'),false,UNCAT);
+  open('mSave'); $('fName').focus();
+}
+function openEdit(id) {
+  const p = places.find(x=>x.id===id); if(!p) return;
+  editingId = id; pendingPos = null;
+  $('saveTitle').textContent = '編輯地點';
+  $('fTime').value = toLocalInput(p.time);
+  $('fPos').value = `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`+(p.acc?`(±${Math.round(p.acc)}m)`:'');
+  $('fName').value = p.name; $('fNote').value = p.note||'';
+  fillCatSelect($('fCat'),false,p.catId);
+  open('mSave');
+}
+async function doSave() {
+  const t = $('fTime').value ? new Date($('fTime').value) : new Date();
+  const name = $('fName').value.trim() || fmt(t);
+  const catId = $('fCat').value || UNCAT;
+  const note = $('fNote').value.trim();
+  let rec;
+  if (editingId) {
+    rec = {...places.find(x=>x.id===editingId), name, catId, note, time:t.toISOString()};
+  } else {
+    rec = {id:uid(), name, lat:pendingPos.lat, lng:pendingPos.lng, acc:pendingPos.acc, time:t.toISOString(), catId, note};
+  }
+  await tx('places','readwrite',s=>s.put(rec));
+  await load(); drawMarkers(); renderList();
+  close('mSave'); toast(editingId?'已更新':'已儲存');
+  requestPersist(true);
+}
+
+/* ---------- 目錄 ---------- */
+let page = 1;
+function filtered() {
+  const cat=$('qCat').value, from=$('qFrom').value, to=$('qTo').value, q=$('qText').value.trim().toLowerCase();
+  let arr = places.filter(p => {
+    const d = fmt(p.time).slice(0,10);
+    if (cat && p.catId!==cat) return false;
+    if (from && d<from) return false;
+    if (to && d>to) return false;
+    if (q && !(`${p.name} ${p.note||''}`.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  const s = $('qSort').value;
+  arr.sort((a,b)=> s==='timeAsc'? a.time.localeCompare(b.time)
+    : s==='timeDesc'? b.time.localeCompare(a.time)
+    : s==='nameAsc'? a.name.localeCompare(b.name,'zh-HK')
+    : b.name.localeCompare(a.name,'zh-HK'));
+  return arr;
+}
+function renderList() {
+  const arr = filtered(), size = +$('qSize').value;
+  const pages = Math.max(1,Math.ceil(arr.length/size));
+  if (page>pages) page=pages; if (page<1) page=1;
+  const slice = arr.slice((page-1)*size, page*size);
+  $('listCount').textContent = `(共 ${arr.length} 筆)`;
+  $('listBody').innerHTML = slice.length ? slice.map(p => { const c=catById(p.catId); return `
+    <div class="item">
+      <div class="main" data-go="${esc(p.id)}">
+        <div class="name">${esc(p.name)}</div>
+        <div class="meta"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.name)} · ${esc(fmt(p.time))}</div>
+        <div class="meta">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}${p.note?' · '+esc(p.note):''}</div>
+      </div>
+      <button class="btn sec sm" data-edit="${esc(p.id)}">編輯</button>
+      <button class="btn red sm" data-del="${esc(p.id)}">刪</button>
+    </div>`; }).join('') : '<p style="text-align:center;color:#888">沒有符合的地點</p>';
+  $('pInfo').textContent = `${page} / ${pages}`;
+  $('pPrev').disabled = page<=1; $('pNext').disabled = page>=pages;
+}
+$('listBody').addEventListener('click', async e => {
+  const go=e.target.closest('[data-go]'), ed=e.target.closest('[data-edit]'), del=e.target.closest('[data-del]');
+  if (go) { const p=places.find(x=>x.id===go.dataset.go); close('mList'); map.flyTo([p.lat,p.lng],17); }
+  else if (ed) { close('mList'); openEdit(ed.dataset.edit); }
+  else if (del) {
+    const p=places.find(x=>x.id===del.dataset.del);
+    if (confirm(`刪除「${p.name}」?`)) { await tx('places','readwrite',s=>s.delete(p.id)); await load(); drawMarkers(); renderList(); }
+  }
+});
+['qCat','qSort','qFrom','qTo','qSize'].forEach(id => $(id).addEventListener('change',()=>{page=1;renderList();}));
+$('qText').addEventListener('input',()=>{page=1;renderList();});
+$('pPrev').onclick=()=>{page--;renderList();};
+$('pNext').onclick=()=>{page++;renderList();};
+$('qReset').onclick=()=>{ $('qCat').value='';$('qFrom').value='';$('qTo').value='';$('qText').value='';$('qSort').value='timeDesc';page=1;renderList(); };
+function openList(){ fillCatSelect($('qCat'),true,$('qCat').value||''); renderList(); open('mList'); }
+
+/* ---------- 分類管理 ---------- */
+function renderCats() {
+  $('catBody').innerHTML = cats.map(c => {
+    const n = places.filter(p=>p.catId===c.id).length;
+    return `<div class="item">
+      <input type="color" value="${esc(c.color)}" data-color="${esc(c.id)}" style="width:44px;padding:2px;flex:none">
+      <div class="main" style="cursor:default"><div class="name">${esc(c.name)}</div><div class="meta">${n} 個地點</div></div>
+      ${c.id===UNCAT?'':`<button class="btn sec sm" data-ren="${esc(c.id)}">改名</button><button class="btn red sm" data-delc="${esc(c.id)}">刪</button>`}
+    </div>`; }).join('');
+}
+$('btnAddCat').onclick = async () => {
+  const name=$('newCatName').value.trim(); if(!name) return toast('請輸入分類名稱');
+  if (cats.some(c=>c.name===name)) return toast('分類已存在');
+  await tx('categories','readwrite',s=>s.put({id:uid(),name,color:$('newCatColor').value}));
+  $('newCatName').value=''; await load(); renderCats();
+};
+$('catBody').addEventListener('click', async e => {
+  const ren=e.target.closest('[data-ren]'), dc=e.target.closest('[data-delc]');
+  if (ren) {
+    const c=cats.find(x=>x.id===ren.dataset.ren); const n=prompt('新名稱',c.name);
+    if (n && n.trim()) { c.name=n.trim(); await tx('categories','readwrite',s=>s.put(c)); await load(); renderCats(); drawMarkers(); }
+  } else if (dc) {
+    const c=cats.find(x=>x.id===dc.dataset.delc);
+    if (!confirm(`刪除分類「${c.name}」?其地點會移至「未分類」。`)) return;
+    await tx(['places','categories'],'readwrite',(s,t)=>{
+      const ps=t.objectStore('places');
+      places.filter(p=>p.catId===c.id).forEach(p=>ps.put({...p,catId:UNCAT}));
+      t.objectStore('categories').delete(c.id);
+    });
+    await load(); renderCats(); drawMarkers();
+  }
+});
+$('catBody').addEventListener('change', async e => {
+  const id=e.target.dataset.color; if(!id) return;
+  const c=cats.find(x=>x.id===id); c.color=e.target.value;
+  await tx('categories','readwrite',s=>s.put(c)); drawMarkers();
+});
+
+/* ---------- 匯入/匯出 ---------- */
+$('btnExport').onclick = () => {
+  const data = {app:'footprint-map',version:1,exportedAt:new Date().toISOString(),categories:cats,places};
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `footprint-${fmt(new Date()).replace(/[: ]/g,'-')}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('已匯出');
+};
+$('btnImport').onclick = () => $('fileImport').click();
+$('fileImport').onchange = async e => {
+  const f = e.target.files[0]; e.target.value=''; if(!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!d || !Array.isArray(d.places)) throw new Error('格式不正確');
+    const inCats = (Array.isArray(d.categories)?d.categories:[]).filter(c=>c&&c.id&&c.name)
+      .map(c=>({id:String(c.id),name:String(c.name),color:/^#[0-9a-f]{6}$/i.test(c.color)?c.color:'#757575'}));
+    const catIds = new Set(inCats.map(c=>c.id)); catIds.add(UNCAT);
+    const inPlaces = [];
+    for (const p of d.places) {
+      const lat=+p.lat, lng=+p.lng, t=new Date(p.time);
+      if (!isFinite(lat)||!isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180||isNaN(t)) continue;
+      inPlaces.push({id:String(p.id||uid()),name:String(p.name||fmt(t)),lat,lng,acc:p.acc!=null?+p.acc:null,time:t.toISOString(),catId:catIds.has(p.catId)?p.catId:UNCAT,note:String(p.note||'')});
+    }
+    const replace = $('impMode').value==='replace';
+    if (replace && !confirm('取代模式會清除現有所有資料,確定?')) return;
+    await tx(['places','categories'],'readwrite',(s,t)=>{
+      const ps=t.objectStore('places'), cs=t.objectStore('categories');
+      if (replace) { ps.clear(); cs.clear(); }
+      cs.put({id:UNCAT,name:'未分類',color:'#757575'});
+      inCats.filter(c=>c.id!==UNCAT).forEach(c=>cs.put(c));
+      inPlaces.forEach(p=>ps.put(p));
+    });
+    await load(); drawMarkers(); renderCats();
+    toast(`已匯入 ${inPlaces.length} 筆(略過 ${d.places.length-inPlaces.length} 筆)`,4000);
+  } catch(err) { toast('匯入失敗:'+err.message,4000); }
+};
+$('btnClearAll').onclick = async () => {
+  if (!confirm('確定清除所有地點與分類?此操作無法還原(建議先匯出)。')) return;
+  await tx(['places','categories'],'readwrite',(s,t)=>{ t.objectStore('places').clear(); t.objectStore('categories').clear(); });
+  await load(); drawMarkers(); toast('已清除');
+};
+
+/* ---------- 持久化儲存 ---------- */
+async function requestPersist(silent) {
+  if (!navigator.storage || !navigator.storage.persist) { await updateStorageInfo(); return; }
+  try {
+    let ok = await navigator.storage.persisted();
+    if (!ok) ok = await navigator.storage.persist();
+    if (!silent) toast(ok?'已啟用持久化儲存':'瀏覽器未批准持久化(可嘗試加入主畫面或加書籤)',4000);
+  } catch {}
+  updateStorageInfo();
+}
+async function updateStorageInfo() {
+  let s = '';
+  if (navigator.storage && navigator.storage.persisted) {
+    const p = await navigator.storage.persisted();
+    s += `持久化狀態:${p?'✅ 已持久化':'⚠️ 尚未持久化'}<br>`;
+  } else s += '此瀏覽器不支援 Storage persist API<br>';
+  if (navigator.storage && navigator.storage.estimate) {
+    const e = await navigator.storage.estimate();
+    s += `已用 ${(e.usage/1024).toFixed(1)} KB / 配額約 ${(e.quota/1048576).toFixed(0)} MB<br>`;
+  }
+  s += `地點 ${places.length} 筆 · 分類 ${cats.length} 個`;
+  $('storageInfo').innerHTML = s;
+}
+$('btnPersist').onclick = () => requestPersist(false);
+
+/* ---------- Add to Home Screen ---------- */
+let deferredPrompt = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+function showA2HS(text, canInstall) {
+  if (isStandalone() || localStorage.getItem('a2hsDismissed')) return;
+  $('a2hsText').innerHTML = text;
+  $('a2hsInstall').style.display = canInstall?'':'none';
+  $('a2hs').classList.add('show');
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  showA2HS('📲 將「足跡地圖」加入主畫面,像 App 一樣使用。',true);
+});
+window.addEventListener('appinstalled', () => { $('a2hs').classList.remove('show'); deferredPrompt=null; });
+$('a2hsInstall').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $('a2hs').classList.remove('show');
+};
+$('a2hsClose').onclick = () => { localStorage.setItem('a2hsDismissed','1'); $('a2hs').classList.remove('show'); };
+if (isIOS) setTimeout(()=>showA2HS('📲 加入主畫面:按 Safari 底部的 <b>分享</b> 圖示 →「<b>加入主畫面</b>」。',false),2500);
+
+/* 動態 manifest 與圖示 */
+(function(){
+  try {
+    const c=document.createElement('canvas'); c.width=c.height=512; const x=c.getContext('2d');
+    x.fillStyle='#1a73e8'; x.fillRect(0,0,512,512);
+    x.fillStyle='#fff'; x.beginPath(); x.arc(256,220,110,0,Math.PI*2); x.fill();
+    x.beginPath(); x.moveTo(170,290); x.lineTo(342,290); x.lineTo(256,440); x.closePath(); x.fill();
+    x.fillStyle='#1a73e8'; x.beginPath(); x.arc(256,220,48,0,Math.PI*2); x.fill();
+    const icon=c.toDataURL('image/png');
+    const l=document.createElement('link'); l.rel='apple-touch-icon'; l.href=icon; document.head.appendChild(l);
+    const base=location.href.split('#')[0].split('?')[0];
+    const mf={name:'我的足跡地圖',short_name:'足跡地圖',start_url:base,scope:base.replace(/[^/]*$/,''),display:'standalone',background_color:'#ffffff',theme_color:'#1a73e8',
+      icons:[{src:icon,sizes:'512x512',type:'image/png',purpose:'any'}]};
+    const m=document.createElement('link'); m.rel='manifest';
+    m.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}));
+    document.head.appendChild(m);
+  } catch {}
+})();
+
+/* ---------- 事件綁定 & 啟動 ---------- */
+$('btnLocate').onclick = () => locate(true).catch(()=>{});
+$('btnSave').onclick = openSave;
+$('btnList').onclick = openList;
+$('btnCats').onclick = () => { renderCats(); open('mCats'); };
+$('btnData').onclick = () => { updateStorageInfo(); open('mData'); };
+$('btnDoSave').onclick = () => doSave().catch(e=>toast('儲存失敗:'+e));
+
+(async () => {
+  try {
+    db = await openDB();
+    await load(); drawMarkers();
+    if (places.length) map.fitBounds(L.latLngBounds(places.map(p=>[p.lat,p.lng])),{padding:[50,50],maxZoom:15});
+    requestPersist(true);
+  } catch(e) { toast('IndexedDB 無法使用:'+e,6000); }
+})();
+})();
+</script>
+</body>
+</html>

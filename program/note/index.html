@@ -28,8 +28,8 @@ button.danger{color:var(--danger)}
 button.ghost{border-color:transparent;background:transparent}
 input,select,textarea{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:40px;width:100%}
 input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.app{display:grid;height:100dvh;grid-template-columns:240px 330px 1fr;padding-bottom:env(safe-area-inset-bottom)}
-.side,.list,.editor{background:var(--panel);min-height:0;display:flex;flex-direction:column}
+.app{display:grid;height:100vh;height:100dvh;grid-template-columns:240px 330px minmax(0,1fr);grid-template-rows:minmax(0,1fr);padding-bottom:env(safe-area-inset-bottom)}
+.side,.list,.editor{background:var(--panel);min-height:0;min-width:0;display:flex;flex-direction:column}
 .side{border-right:1px solid var(--line);padding:12px;overflow:auto}
 .list{border-right:1px solid var(--line)}
 .brand{font-weight:700;font-size:1.15em;margin:4px 0 12px}
@@ -40,8 +40,8 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .nav small{color:var(--muted)}
 .lhead{padding:10px;border-bottom:1px solid var(--line);display:grid;gap:8px}
 .row{display:flex;gap:8px;align-items:center}
-.row>*{flex:1}.row>.fix{flex:none}
-.items{overflow:auto;flex:1;-webkit-overflow-scrolling:touch}
+.row>*{flex:1;min-width:0}.row>.fix{flex:none}
+.items{overflow:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
 .item{padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer}
 .item:hover{background:var(--hover)}
 .item.active{background:var(--hover);border-left:3px solid var(--accent)}
@@ -50,14 +50,15 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .item small{color:var(--muted);font-size:.75em}
 .tag{display:inline-block;background:var(--code);border-radius:99px;padding:0 8px;font-size:.75em;margin-right:4px;color:var(--muted)}
 .empty{padding:30px 16px;text-align:center;color:var(--muted)}
+#editPane{display:none;flex-direction:column;flex:1;min-height:0}
 .ehead{padding:10px;border-bottom:1px solid var(--line);display:grid;gap:8px}
-.ebody{flex:1;min-height:0;display:grid;grid-template-columns:1fr;position:relative}
+.ebody{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);position:relative}
 .ebody textarea{border:0;border-radius:0;resize:none;height:100%;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.95em;line-height:1.7}
-.preview{overflow:auto;padding:14px 18px;max-width:100%}
+.preview{overflow:auto;padding:14px 18px;min-height:0}
 .preview .md{max-width:75ch;margin:0 auto}
 .ebody[data-mode=edit] .preview{display:none}
 .ebody[data-mode=preview] textarea{display:none}
-@media(min-width:1100px){.ebody[data-mode=split]{grid-template-columns:1fr 1fr}.ebody[data-mode=split] textarea{border-right:1px solid var(--line)}}
+@media(min-width:1100px){.ebody[data-mode=split]{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.ebody[data-mode=split] textarea{border-right:1px solid var(--line)}}
 @media(max-width:1099px){.ebody[data-mode=split] .preview{display:none}}
 .status{font-size:.8em;color:var(--muted);padding:6px 10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .md h1,.md h2,.md h3,.md h4{line-height:1.3;margin:1.2em 0 .5em}
@@ -70,11 +71,10 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .fab{display:none;position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;font-size:28px;line-height:1;padding:0;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:20}
 .back,.menu{display:none}
 .backdrop{display:none}
-.hide-empty{display:none!important}
 .noteplaceholder{flex:1;display:grid;place-items:center;color:var(--muted);padding:20px;text-align:center}
 .banner{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:40;background:var(--panel);border:1px solid var(--accent);border-radius:12px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:none;gap:10px;align-items:center;max-width:560px;margin:auto}
 .banner.show{display:flex}.banner div{flex:1;font-size:.9em}.banner button{flex:none}
-dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--text);width:min(640px,94vw);max-height:90dvh;padding:18px}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--text);width:min(640px,94vw);max-height:90vh;max-height:90dvh;padding:18px}
 dialog::backdrop{background:rgba(0,0,0,.45)}
 dialog h3{margin-top:0}
 details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:10px 0}
@@ -85,14 +85,14 @@ details .md{font-size:.92em}
 .toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 16px;border-radius:99px;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
 .toast.show{opacity:1}
 @media(max-width:1099px){
- .app{grid-template-columns:320px 1fr}
+ .app{grid-template-columns:320px minmax(0,1fr)}
  .side{position:fixed;left:0;top:0;bottom:0;width:270px;z-index:50;transform:translateX(-100%);transition:transform .2s;box-shadow:4px 0 20px rgba(0,0,0,.3)}
  .side.open{transform:none}
  .backdrop.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
  .menu{display:inline-block}
 }
 @media(max-width:699px){
- .app{grid-template-columns:1fr}
+ .app{grid-template-columns:minmax(0,1fr)}
  .app[data-view=list] .editor{display:none}
  .app[data-view=edit] .list{display:none}
  .back{display:inline-block}
@@ -137,7 +137,7 @@ details .md{font-size:.92em}
 
  <main class="editor" id="editor">
   <div class="noteplaceholder" id="placeholder">選擇一則筆記，或按「＋ 新增」開始</div>
-  <div id="editPane" class="hide-empty" style="display:none;flex-direction:column;flex:1;min-height:0">
+  <div id="editPane">
    <div class="ehead">
     <div class="row">
      <button class="back fix" id="btnBack">← 返回</button>
@@ -236,7 +236,6 @@ const uid=()=>(crypto.randomUUID?crypto.randomUUID():'n'+Date.now().toString(36)
 const fmt=t=>new Date(t).toLocaleString('zh-HK',{hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
 let toastT;const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)};
 
-/* ---------- IndexedDB ---------- */
 let db;
 const openDB=()=>new Promise((res,rej)=>{
  const r=indexedDB.open('notes-db',1);
@@ -251,11 +250,9 @@ const dbDel=id=>wrap(store('readwrite').delete(id));
 const dbClear=()=>wrap(store('readwrite').clear());
 const dbBulk=list=>new Promise((res,rej)=>{const tx=db.transaction('notes','readwrite');const s=tx.objectStore('notes');list.forEach(n=>s.put(n));tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});
 
-/* ---------- 狀態 ---------- */
 let notes=[],cur=null,filter={t:'all',v:''},page=1,saveT=null,dirty=false;
 const S={get:(k,d)=>{try{return localStorage.getItem(APP+'.'+k)??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(APP+'.'+k,v)}catch(e){}}};
 
-/* ---------- Markdown ---------- */
 function md(src){
  const blocks=[];
  src=String(src).replace(/\r/g,'').replace(/```[^\n]*\n([\s\S]*?)```/g,(m,c)=>{blocks.push('<pre><code>'+esc(c.replace(/\n$/,''))+'</code></pre>');return '\u0000'+(blocks.length-1)+'\u0000'});
@@ -271,7 +268,7 @@ function md(src){
   if(!l.trim()){i++;continue}
   if((m=l.match(/^(#{1,4})\s+(.*)$/))){out+=`<h${m[1].length}>${inl(m[2])}</h${m[1].length}>`;i++;continue}
   if(/^\s*([-*_])(\s*\1){2,}\s*$/.test(l)){out+='<hr>';i++;continue}
-  if(/^>\s?/.test(l)){let b=[];while(i<L.length&&/^>\s?/.test(L[i])){b.push(L[i].replace(/^>\s?/,''));i++}out+='<blockquote>'+inl(b.join('<br>')).replace(/&lt;br&gt;/g,'<br>')+'</blockquote>';continue}
+  if(/^>\s?/.test(l)){let b=[];while(i<L.length&&/^>\s?/.test(L[i])){b.push(inl(L[i].replace(/^>\s?/,'')));i++}out+='<blockquote>'+b.join('<br>')+'</blockquote>';continue}
   if(/^\s*([-*+]|\d+\.)\s+/.test(l)){
    const ord=/^\s*\d+\./.test(l);let items=[],task=false;
    while(i<L.length&&(m=L[i].match(/^\s*(?:[-*+]|\d+\.)\s+(.*)$/))){
@@ -286,7 +283,6 @@ function md(src){
  return out;
 }
 
-/* ---------- 篩選 / 排序 ---------- */
 function visible(){
  const q=$('#q').value.trim().toLowerCase(),sort=$('#sort').value;
  let r=notes.filter(n=>{
@@ -311,16 +307,15 @@ function renderList(){
  $('#countInfo').textContent=r.length+' 則';
  let h=shown.map(n=>{
   const pv=n.body.replace(/[#>*`\-\[\]]/g,'').replace(/\s+/g,' ').slice(0,120);
-  return `<div class="item${n.id===cur?' active':''}" data-id="${n.id}" tabindex="0"><b>${n.pinned?'📌 ':''}${esc(n.title||'（無標題）')}</b><p>${esc(pv)||'&nbsp;'}</p><small>${fmt(n.updated)}</small> ${n.tags.slice(0,3).map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</div>`}).join('');
+  return `<div class="item${n.id===cur?' active':''}" data-id="${esc(n.id)}" tabindex="0"><b>${n.pinned?'📌 ':''}${esc(n.title||'（無標題）')}</b><p>${esc(pv)||'&nbsp;'}</p><small>${fmt(n.updated)}</small> ${n.tags.slice(0,3).map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</div>`}).join('');
  if(!r.length)h='<div class="empty">沒有符合的筆記</div>';
  if(r.length>shown.length)h+=`<div class="empty"><button id="more">載入更多 (${r.length-shown.length})</button></div>`;
  $('#items').innerHTML=h;
 }
 const renderAll=()=>{renderSide();renderList()};
 
-/* ---------- 編輯 ---------- */
 const curNote=()=>notes.find(n=>n.id===cur);
-function showEditor(on){$('#placeholder').style.display=on?'none':'grid';const p=$('#editPane');p.style.display=on?'flex':'none'}
+function showEditor(on){$('#placeholder').style.display=on?'none':'grid';$('#editPane').style.display=on?'flex':'none'}
 function setView(v){$('#app').dataset.view=v}
 async function select(id,openView=true){
  await flush();
@@ -353,14 +348,13 @@ async function flush(){
 }
 function updMeta(){const n=curNote();if(n)$('#meta').textContent=`${n.body.length} 字 · 建立 ${fmt(n.created)}`}
 function refreshPreview(){const m=$('#ebody').dataset.mode;if(m!=='edit')$('#preview').innerHTML=md($('#body').value)}
-function setMode(m){$('#ebody').dataset.mode=m;S.set('mode',m);$$('[data-mode]').forEach(b=>{if(b.tagName==='BUTTON')b.classList.toggle('primary',b.dataset.mode===m)});refreshPreview()}
+function setMode(m){$('#ebody').dataset.mode=m;S.set('mode',m);$$('button[data-mode]').forEach(b=>b.classList.toggle('primary',b.dataset.mode===m));refreshPreview()}
 async function delNote(){
  const n=curNote();if(!n||!confirm('確定刪除「'+(n.title||'無標題')+'」？此操作無法復原。'))return;
  dirty=false;clearTimeout(saveT);notes=notes.filter(x=>x!==n);await dbDel(n.id);cur=null;showEditor(false);setView('list');renderAll();toast('已刪除');
 }
 function download(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 
-/* ---------- 匯入 / 匯出 ---------- */
 const stamp=()=>new Date().toISOString().slice(0,10);
 async function exportJSON(){await flush();download(`notes-${stamp()}.json`,JSON.stringify({app:APP,version:1,exportedAt:new Date().toISOString(),notes},null,2),'application/json');toast('已匯出 '+notes.length+' 則')}
 function exportCSV(){
@@ -397,7 +391,6 @@ $('#impReplace').onclick=async()=>{
 $('#impCancel').onclick=()=>{pending=null;$('#dlgImport').close()};
 async function afterImport(msg){cur=null;showEditor(false);setView('list');renderAll();toast(msg)}
 
-/* ---------- 持久化儲存 ---------- */
 async function storageInfo(){
  const el=$('#storageInfo');
  if(!navigator.storage){el.textContent='此瀏覽器不支援 Storage API';return}
@@ -415,12 +408,12 @@ async function askPersist(manual){
  storageInfo();
 }
 
-/* ---------- Add to Home Screen ---------- */
 let deferred=null;
 const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const monthKey=()=>new Date().getFullYear()+'/'+new Date().getMonth();
 function showBanner(txt,canInstall){
- if(standalone()||S.get('a2hsDismiss','')===String(new Date().getMonth()+'/'+new Date().getFullYear()))return;
+ if(standalone()||S.get('a2hsDismiss','')===monthKey())return;
  $('#a2hsText').innerHTML=txt;$('#a2hsInstall').style.display=canInstall?'':'none';$('#a2hs').classList.add('show');
 }
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;showBanner('把「我的筆記」加入主畫面，像 App 一樣離線使用。',true)});
@@ -432,12 +425,11 @@ async function doInstall(){
  else alert('請使用瀏覽器選單中的「安裝應用程式 / 加入主畫面」。(Chrome/Edge 需符合 PWA 條件後才會顯示)');
 }
 $('#a2hsInstall').onclick=doInstall;$('#btnInstall2').onclick=doInstall;
-$('#a2hsClose').onclick=()=>{$('#a2hs').classList.remove('show');S.set('a2hsDismiss',new Date().getMonth()+'/'+new Date().getFullYear())};
+$('#a2hsClose').onclick=()=>{$('#a2hs').classList.remove('show');S.set('a2hsDismiss',monthKey())};
 if(isIOS()&&!standalone())setTimeout(()=>showBanner('iOS：點底部 <b>分享</b> 圖示 → <b>加入主畫面</b>。',false),2500);
 
-/* ---------- 設定 ---------- */
-function applyPrefs(){document.documentElement.dataset.theme=S.get('theme','auto');document.documentElement.style.setProperty('--fs',S.get('fs','16')+'px');
- const dark=document.documentElement.dataset.theme==='dark'||(document.documentElement.dataset.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);
+function applyPrefs(){const th=S.get('theme','auto');document.documentElement.dataset.theme=th;document.documentElement.style.setProperty('--fs',S.get('fs','16')+'px');
+ const dark=th==='dark'||(th==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);
  document.querySelector('meta[name=theme-color]').content=dark?'#0f1115':'#2563eb'}
 $('#setTheme').onchange=e=>{S.set('theme',e.target.value);applyPrefs()};
 $('#setFs').onchange=e=>{S.set('fs',e.target.value);applyPrefs()};
@@ -446,7 +438,6 @@ $('#btnCloseSet').onclick=()=>$('#dlgSettings').close();
 $('#btnExport').onclick=exportJSON;$('#btnCsv').onclick=exportCSV;$('#btnImport').onclick=()=>$('#file').click();
 $('#btnPersist').onclick=()=>askPersist(true);
 
-/* ---------- 事件 ---------- */
 const closeSide=()=>{$('#side').classList.remove('open');$('#backdrop').classList.remove('show')};
 $('#btnMenu').onclick=()=>{$('#side').classList.add('open');$('#backdrop').classList.add('show')};
 $('#backdrop').onclick=closeSide;
@@ -458,7 +449,7 @@ $('#sort').addEventListener('change',()=>{S.set('sort',$('#sort').value);page=1;
 $('#btnNew').onclick=newNote;$('#fab').onclick=newNote;
 $('#btnBack').onclick=async()=>{await flush();const n=curNote();if(n&&!n.title&&!n.body&&!n.tags.length){notes=notes.filter(x=>x!==n);await dbDel(n.id);cur=null;showEditor(false);renderAll()}setView('list')};
 ['#title','#folder','#tagsIn','#body'].forEach(s=>$(s).addEventListener('input',queueSave));
-$('#btnPin').onclick=async()=>{const n=curNote();if(!n)return;n.pinned=!n.pinned;n.updated=Date.now();await dbPut(n);$('#btnPin').style.background=n.pinned?'var(--hover)':'';renderAll()};
+$('#btnPin').onclick=async()=>{const n=curNote();if(!n)return;await flush();n.pinned=!n.pinned;n.updated=Date.now();await dbPut(n);$('#btnPin').style.background=n.pinned?'var(--hover)':'';renderAll()};
 $('#btnDel').onclick=delNote;
 $('#btnMd').onclick=async()=>{await flush();const n=curNote();if(!n)return;download((n.title||'note').replace(/[\\/:*?"<>|]/g,'_')+'.md',(n.title?'# '+n.title+'\n\n':'')+n.body,'text/markdown')};
 $$('button[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
@@ -473,11 +464,10 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});
 window.addEventListener('pagehide',flush);
 window.addEventListener('online',()=>toast('已連線'));window.addEventListener('offline',()=>toast('離線中，仍可使用'));
 
-/* ---------- 啟動 ---------- */
 (async function init(){
  applyPrefs();$('#sort').value=S.get('sort','updated');setMode(S.get('mode','edit'));
  try{db=await openDB();notes=(await dbAll()).map(clean)}catch(e){toast('無法開啟 IndexedDB：'+e.message);notes=[]}
- if(!notes.length){
+ if(!notes.length&&db){
   const t=Date.now();const w={id:uid(),title:'歡迎使用',folder:'說明',tags:['入門'],pinned:true,created:t,updated:t,
    body:'# 歡迎\n\n這是一個**離線可用**的 Markdown 筆記 PWA。\n\n- 資料存在本機 IndexedDB\n- 支援標籤、資料夾、釘選、搜尋\n- 設定中可匯入 / 匯出 JSON\n\n- [x] 試試新增筆記\n- [ ] 加入主畫面\n\n> 記得定期匯出備份。\n\n```\nCtrl+S 儲存 · Ctrl+K 搜尋 · Alt+N 新增\n```'};
   notes=[w];await dbPut(w);
